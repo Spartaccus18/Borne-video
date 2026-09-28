@@ -67,8 +67,11 @@
   .btn-ok { background: var(--ok); color: #fff; }
   .row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
+  .brand-logo { display: block; height: 3.4rem; width: auto; margin: 0 auto; opacity: .95; }
+  #s-home .brand-logo { margin-bottom: .2rem; }
+  #s-end .brand-logo { height: 6rem; margin-top: 3rem; }
   /* ---------- Accueil ---------- */
-  #s-home h1 { margin-top: 1rem; }
+  #s-home h1 { margin-top: .6rem; }
   #s-home .lead { margin-top: .6rem; }
   .day-chip { margin-top: 1rem; display: inline-block; background: var(--glass); border-radius: 999px; padding: .35rem 1rem; font-size: .95rem; font-weight: 600; }
   .home-q { margin-top: 2rem; font-size: 1.7rem; font-weight: 700; }
@@ -205,6 +208,7 @@
 <!-- ============ ACCUEIL ============ -->
 <section id="s-home" class="screen">
   <div id="admin-hotspot" aria-hidden="true"></div>
+  <img class="brand-logo hidden" alt="Content Camp">
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
@@ -295,6 +299,7 @@
 <section id="s-end" class="screen center hidden">
   <h1>Merci !</h1>
   <p class="lead" id="end-txt">Vos vidéos sont enregistrées. Bonne suite pour le shooting !</p>
+  <img class="brand-logo hidden" alt="Content Camp">
 </section>
 
 <!-- ============ ERREUR ============ -->
@@ -338,9 +343,16 @@
 
     <div class="card">
       <h3>Exporter (AirDrop, Fichiers, Photos…)</h3>
-      <p>Les vidéos partent par lots de <span id="lot-size"></span>. Étape 1 : préparer le lot. Étape 2 : partager. Une vidéo exportée est marquée comme telle et n'est pas renvoyée au lot suivant.</p>
+      <p>Étape 1 : préparer. Étape 2 : partager (AirDrop vers le Mac conseillé). Une vidéo exportée est marquée comme telle et n'est jamais renvoyée une seconde fois.</p>
+      <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi :</p>
+      <div class="seg" id="seg-lot" style="margin-top:.4rem">
+        <button data-v="all">Tout en une fois</button>
+        <button data-v="50">50</button>
+        <button data-v="25">25</button>
+        <button data-v="10">10</button>
+      </div>
       <div class="row">
-        <button class="btn" id="btn-exp-prep">1. Préparer le lot suivant</button>
+        <button class="btn" id="btn-exp-prep">1. Préparer l'export</button>
         <button class="btn btn-ok" id="btn-exp-share" disabled>2. Partager</button>
       </div>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej"> <span>Inclure aussi les prises rejetées</span></label>
@@ -419,7 +431,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.0 · 28.09.2026';
+  const VERSION = '2.2 · 28.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -452,8 +464,13 @@
     pending: null,       // prise en attente de validation
     recording: null,
     exportBatch: null,
-    noIdle: false
+    noIdle: false,
+    lot: LS.get('lot', null)
   };
+  if (!['all', '50', '25', '10'].includes(state.lot)) {
+    const n = Number(CFG.exportParLot);
+    state.lot = !n || n >= 50 ? (n === 50 ? '50' : 'all') : n >= 25 ? '25' : '10';
+  }
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
   document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#0b57d0');
@@ -1047,7 +1064,7 @@
      ------------------------------------------------------------------ */
   async function openAdmin() {
     $('#admin').classList.remove('hidden');
-    $('#lot-size').textContent = CFG.exportParLot || 8;
+    setSeg('#seg-lot', state.lot);
     const sel = $('#adm-day');
     sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
       '<option value="ALL">Toutes les journées (liste complète)</option>';
@@ -1151,23 +1168,37 @@
   $('#btn-player-close').addEventListener('click', () => { const v = $('#adm-video'); v.pause(); $('#adm-player').classList.add('hidden'); });
 
   /* Export en deux temps : préparer (lecture des fichiers), puis partager (geste direct) */
+  document.querySelectorAll('#seg-lot button').forEach(b => b.addEventListener('click', () => {
+    state.lot = b.dataset.v; LS.set('lot', state.lot); setSeg('#seg-lot', state.lot);
+    state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
+    $('#exp-info').textContent = '';
+  }));
+
+  const exportable = (all, incl) => all.filter(m => !m.exported && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id);
+
   $('#btn-exp-prep').addEventListener('click', async () => {
+    const btn = $('#btn-exp-prep');
     const incl = $('#exp-rej').checked;
     const all = await DB.all();
-    const metas = all.filter(m => !m.exported && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id).slice(0, CFG.exportParLot || 8);
+    const pool = exportable(all, incl);
+    const metas = state.lot === 'all' ? pool : pool.slice(0, Number(state.lot));
     if (!metas.length) { state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Rien à exporter : tout est déjà parti.'; return; }
-    $('#exp-info').textContent = 'Préparation…';
-    const files = [];
-    for (const m of metas) {
+    btn.disabled = true;
+    const files = [], kept = [];
+    for (let i = 0; i < metas.length; i++) {
+      $('#exp-info').textContent = 'Préparation ' + (i + 1) + ' / ' + metas.length + '…';
+      const m = metas[i];
       const b = await DB.blob(m.id);
-      if (b) files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' }));
+      if (b) { files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' })); kept.push(m); }
     }
+    btn.disabled = false;
     const size = files.reduce((a, f) => a + f.size, 0);
-    const remaining = all.filter(m => !m.exported && (incl || m.status !== 'rejected')).length - metas.length;
-    state.exportBatch = { metas, files };
+    const remaining = pool.length - metas.length;
+    state.exportBatch = { metas: kept, files };
     $('#btn-exp-share').disabled = false;
     $('#btn-exp-share').textContent = '2. Partager ' + files.length + ' vidéo' + (files.length > 1 ? 's' : '') + ' (' + fmtBytes(size) + ')';
-    $('#exp-info').textContent = 'Lot prêt.' + (remaining > 0 ? ' Il restera ' + remaining + ' vidéo(s) pour les lots suivants.' : ' C\'est le dernier lot.');
+    $('#exp-info').textContent = (remaining > 0 ? 'Prêt. Il restera ' + remaining + ' vidéo(s) pour l\'envoi suivant.' : 'Prêt : toutes les vidéos à exporter sont dans cet envoi.') +
+      (size > 2e9 ? ' Envoi volumineux : si le partage échoue, choisissez un lot de 50 ou 25.' : '');
   });
 
   $('#btn-exp-share').addEventListener('click', async () => {
@@ -1175,18 +1206,21 @@
     const markDone = async () => {
       for (const m of batch.metas) { m.exported = true; m.exportedAt = Date.now(); await DB.put(m); }
       state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
-      $('#exp-info').textContent = batch.files.length + ' vidéo(s) exportée(s). Préparez le lot suivant s\'il en reste.';
+      const left = exportable(await DB.all(), $('#exp-rej').checked).length;
+      $('#exp-info').textContent = batch.files.length + ' vidéo(s) exportée(s).' + (left ? ' Il en reste ' + left + ' : touchez « 1. Préparer l\'export ».' : ' Tout est exporté ✔');
       await refreshStats();
     };
     if (navigator.canShare && navigator.canShare({ files: batch.files })) {
       try { await navigator.share({ files: batch.files }); await markDone(); }
       catch (e) {
         if (e && e.name === 'AbortError') $('#exp-info').textContent = 'Partage annulé : rien n\'a été marqué comme exporté.';
-        else $('#exp-info').textContent = 'Échec du partage (' + (e && e.name) + '). Essayez avec un lot plus petit (exportParLot dans config.js).';
+        else $('#exp-info').textContent = 'Échec du partage (' + (e && e.name) + '). Rien n\'a été marqué comme exporté : choisissez un lot plus petit (50 ou 25) et recommencez.';
       }
     } else {
       // Ordinateur de test : téléchargement classique
-      for (const f of batch.files) {
+      for (let i = 0; i < batch.files.length; i++) {
+        const f = batch.files[i];
+        $('#exp-info').textContent = 'Téléchargement ' + (i + 1) + ' / ' + batch.files.length + '…';
         const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name;
         document.body.appendChild(a); a.click();
         setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
@@ -1244,6 +1278,10 @@
      Démarrage
      ------------------------------------------------------------------ */
   async function boot() {
+    if (CFG.logo) document.querySelectorAll('.brand-logo').forEach(img => {
+      img.onload = () => img.classList.remove('hidden');
+      img.src = CFG.logo;
+    });
     applyCamPos();
     renderHome();
     show('home');

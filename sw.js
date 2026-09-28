@@ -3,9 +3,9 @@
    modifications de config.js), et si le réseau ne répond pas en 3 s ou
    n'est pas disponible, on sert la copie enregistrée sur l'iPad.        */
 
-const CACHE = 'borne-video-v2';
+const CACHE = 'borne-video-v2-2';
 const FILES = ['./', './index.html', './config.js', './manifest.webmanifest',
-  './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+  './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo-content-camp.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));

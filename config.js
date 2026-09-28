@@ -14,13 +14,19 @@ window.BORNE_CONFIG = {
   couleurPrincipale: "#0b57d0",   // fond bleu
   couleurAccent: "#ffffff",       // boutons
 
+  /* ---------- Logo (accueil + écran « Merci ») ----------
+     Nom du fichier image placé à côté d'index.html. "" = pas de logo.
+     Idéalement un PNG blanc sur fond transparent.                           */
+  logo: "logo-content-camp.png",
+
   /* ---------- Réglages de la borne ---------- */
   codeAdmin: "1848",              // code du menu administrateur (à changer !)
   compteARebours: 3,              // secondes avant le début de l'enregistrement
   prisesMax: 3,                   // nombre d'essais maximum par question
   retourAccueilSecondes: 90,      // retour à l'accueil si personne ne touche l'écran
   ecranMerciSecondes: 8,          // durée de l'écran « Merci »
-  exportParLot: 8,                // nombre de vidéos par envoi lors de l'export
+  exportParLot: 0,                // vidéos par envoi à l'export : 0 = tout en une fois (sinon 50, 25 ou 10)
+                                  // modifiable aussi directement dans le menu organisateur
 
   /* Qualité vidéo : l'iPad fait au mieux dans la limite de ces valeurs */
   video: {
