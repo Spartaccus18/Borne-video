@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Borne vidéo</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Borne vidéo">
+<meta name="theme-color" content="#0b57d0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<script src="config.js"></script>
+<style>
+  :root {
+    --main: #0b57d0;
+    --accent: #ffffff;
+    --danger: #ff3b30;
+    --ok: #34c759;
+    --glass: rgba(255,255,255,0.12);
+    --glass-strong: rgba(255,255,255,0.2);
+    --top-pad: 0px;
+    --side-pad: 0px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: clamp(15px, 2.1vmin, 24px); }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden;
+    background: var(--main); color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    -webkit-user-select: none; user-select: none;
+    overscroll-behavior: none; touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+  body { position: fixed; inset: 0; }
+  input, textarea, select { -webkit-user-select: text; user-select: text; font: inherit; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
+  .hidden { display: none !important; }
+
+  /* ---------- Écrans ---------- */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(env(safe-area-inset-top) + 2.2rem + var(--top-pad)) calc(env(safe-area-inset-right) + 2rem + var(--side-pad)) calc(env(safe-area-inset-bottom) + 2rem) calc(env(safe-area-inset-left) + 2rem + var(--side-pad));
+    text-align: center;
+  }
+  .center { justify-content: center; }
+  h1 { font-size: 3.2rem; font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+  h2 { font-size: 2.3rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; }
+  .lead { font-size: 1.35rem; opacity: 0.88; line-height: 1.4; }
+  .small { font-size: 1rem; opacity: 0.75; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+    background: var(--accent); color: var(--main);
+    font-size: 1.6rem; font-weight: 700;
+    border-radius: 999px; padding: 1.05rem 2.6rem; min-height: 4rem;
+    box-shadow: 0 8px 26px rgba(0,0,0,0.22);
+    transition: transform .12s ease, opacity .12s ease;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn[disabled] { opacity: .45; pointer-events: none; }
+  .btn-ghost { background: var(--glass); color: #fff; box-shadow: none; font-weight: 600; font-size: 1.25rem; padding: .85rem 1.8rem; min-height: 3.2rem; }
+  .btn-stop { background: var(--danger); color: #fff; }
+  .btn-ok { background: var(--ok); color: #fff; }
+  .row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+  /* ---------- Accueil ---------- */
+  #s-home h1 { margin-top: 1rem; }
+  #s-home .lead { margin-top: .6rem; }
+  .day-chip { margin-top: 1rem; display: inline-block; background: var(--glass); border-radius: 999px; padding: .35rem 1rem; font-size: .95rem; font-weight: 600; }
+  .home-q { margin-top: 2rem; font-size: 1.7rem; font-weight: 700; }
+  .search {
+    margin-top: 1rem; width: min(100%, 36rem);
+    font-size: 1.3rem; padding: .9rem 1.3rem; border-radius: 1rem; border: none; outline: none;
+    background: #fff; color: #111;
+  }
+  .names {
+    margin-top: 1.2rem; width: min(100%, 44rem); flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; align-content: start;
+    padding-bottom: 1rem;
+  }
+  .name-btn {
+    background: var(--glass); border-radius: 1.1rem; padding: 1.15rem 1rem;
+    font-size: 1.3rem; font-weight: 600; text-align: center; line-height: 1.25;
+  }
+  .name-btn:active { background: var(--glass-strong); transform: scale(.98); }
+  .names .empty { grid-column: 1 / -1; opacity: .7; padding: 2rem; font-size: 1.2rem; }
+  .not-listed { margin-top: .6rem; }
+  #admin-hotspot { position: absolute; top: 0; right: 0; width: 90px; height: 90px; z-index: 5; }
+
+  /* ---------- Saisie du nom ---------- */
+  #s-name input { margin-top: 2rem; width: min(100%, 36rem); font-size: 1.6rem; padding: 1rem 1.3rem; border-radius: 1rem; border: none; outline: none; text-align: center; }
+  #s-name .row { margin-top: 2rem; }
+
+  /* ---------- Aperçu caméra ---------- */
+  .preview-wrap { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; margin: 1.2rem 0; }
+  .preview-box { position: relative; border-radius: 1.6rem; overflow: hidden; background: #000; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
+  .preview-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); background: #000; }
+  .preview-box.crop video { object-fit: cover; }
+  .guides { position: absolute; inset: 0; pointer-events: none; }
+  .guides::before, .guides::after { content: ""; position: absolute; left: 8%; right: 8%; border-top: 2px dashed rgba(255,255,255,.45); }
+  .guides::before { top: 33%; }
+  .guides::after { top: 66%; }
+  .guides span { position: absolute; top: calc(33% - 1.9rem); left: 0; right: 0; font-size: .95rem; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
+
+  /* ---------- Préparation ---------- */
+  #s-prep h2 { margin-top: .4rem; }
+  .tips { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; width: min(100%, 48rem); }
+  .tip { background: var(--glass); border-radius: 1rem; padding: .9rem .8rem; font-size: 1.02rem; line-height: 1.35; }
+  .tip b { display: block; font-size: 1.12rem; margin-bottom: .25rem; }
+  #s-prep .row { margin-top: 1.2rem; }
+
+  /* ---------- Question ---------- */
+  .q-count { font-size: 1.15rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+  .q-text { margin-top: 1.4rem; font-size: 3rem; font-weight: 800; line-height: 1.15; max-width: 40rem; }
+  .q-help { margin-top: 1.4rem; font-size: 1.45rem; opacity: .9; line-height: 1.4; max-width: 36rem; }
+  .q-dur { margin-top: 1.4rem; font-size: 1.1rem; opacity: .75; }
+  #s-question .row { margin-top: 2.6rem; }
+
+  /* ---------- Enregistrement ---------- */
+  #s-record { padding-top: calc(env(safe-area-inset-top) + 1.4rem + var(--top-pad)); }
+  .rec-q { font-size: 1.55rem; font-weight: 700; line-height: 1.25; max-width: 40rem; }
+  .countdown { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); font-size: 9rem; font-weight: 800; text-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .rec-badge { position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: .5rem; background: rgba(0,0,0,.55); padding: .35rem .9rem; border-radius: 999px; font-weight: 800; font-size: 1.1rem; letter-spacing: .05em; }
+  .rec-dot { width: .8rem; height: .8rem; border-radius: 50%; background: var(--danger); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .rec-bottom { width: min(100%, 36rem); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+  .bar { width: 100%; height: .8rem; background: rgba(255,255,255,.22); border-radius: 999px; overflow: hidden; }
+  .bar > div { height: 100%; width: 0%; background: #fff; border-radius: 999px; }
+  .bar.late > div { background: #ffcc00; }
+  .rec-time { font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Relecture ---------- */
+  #s-review h2 { margin-top: .4rem; }
+  #s-review .preview-box video { transform: none; }
+  .play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); font-size: 1.4rem; font-weight: 700; }
+
+  /* ---------- Repère caméra ---------- */
+  .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .4rem; background: #fff; color: var(--main); font-weight: 800; font-size: 1rem; padding: .35rem .9rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; animation: nudge 1.6s ease-in-out infinite; }
+  .cam-cue .arrow { font-size: 1.3rem; line-height: 1; }
+  .cue-haut { top: calc(env(safe-area-inset-top) + .4rem); left: 50%; transform: translateX(-50%); }
+  .cue-gauche { left: calc(env(safe-area-inset-left) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
+  .cue-droite { right: calc(env(safe-area-inset-right) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
+  @keyframes nudge { 50% { opacity: .75; } }
+
+  /* ---------- Fin / erreur ---------- */
+  #s-end h1 { font-size: 3.8rem; }
+  #s-end .lead { margin-top: 1.4rem; }
+  #s-error .lead { margin-top: 1.4rem; max-width: 34rem; }
+  #s-error .row { margin-top: 2rem; }
+
+  /* ---------- Administration ---------- */
+  .overlay { position: fixed; inset: 0; z-index: 50; background: #0a1a3a; display: flex; flex-direction: column; align-items: center; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: calc(env(safe-area-inset-top) + 1.5rem) 1.5rem calc(env(safe-area-inset-bottom) + 2rem); }
+  .pin-dots { display: flex; gap: .9rem; margin: 1.6rem 0; }
+  .pin-dots i { width: 1.1rem; height: 1.1rem; border-radius: 50%; border: 2px solid #fff; }
+  .pin-dots i.on { background: #fff; }
+  .pad { display: grid; grid-template-columns: repeat(3, 5.2rem); gap: .9rem; }
+  .pad button { height: 5.2rem; border-radius: 50%; background: var(--glass); font-size: 2rem; font-weight: 600; }
+  .pad button:active { background: var(--glass-strong); }
+  #pin .btn-ghost { margin-top: 1.6rem; }
+  .pin-err { color: #ff8a80; min-height: 1.4rem; font-weight: 600; }
+
+  #admin { text-align: left; }
+  .adm { width: min(100%, 46rem); }
+  .adm h1 { font-size: 2rem; }
+  .card { background: rgba(255,255,255,.08); border-radius: 1rem; padding: 1.1rem 1.2rem; margin-top: 1rem; }
+  .card h3 { font-size: 1.15rem; margin-bottom: .6rem; }
+  .card p, .card li { font-size: .98rem; line-height: 1.45; }
+  .card .row { justify-content: flex-start; margin-top: .6rem; gap: .6rem; }
+  .seg { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .seg button { background: var(--glass); padding: .6rem 1rem; border-radius: .7rem; font-size: 1rem; font-weight: 600; }
+  .seg button.on { background: #fff; color: var(--main); }
+  .adm select, .adm textarea { width: 100%; font-size: 1rem; border-radius: .7rem; border: none; padding: .7rem .8rem; color: #111; background: #fff; }
+  .adm textarea { min-height: 10rem; resize: vertical; }
+  .adm .btn { font-size: 1.05rem; padding: .7rem 1.3rem; min-height: 2.8rem; }
+  .adm .btn-ghost { font-size: 1rem; padding: .6rem 1.1rem; min-height: 2.6rem; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .6rem; }
+  .stat { background: rgba(255,255,255,.08); border-radius: .8rem; padding: .7rem; text-align: center; }
+  .stat b { display: block; font-size: 1.6rem; }
+  .stat span { font-size: .8rem; opacity: .8; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size: .9rem; }
+  .cand-list { list-style: none; margin-top: .4rem; max-height: 22rem; overflow-y: auto; }
+  .cand-list li { padding: .55rem 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .cand-list .nm { font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; }
+  .chip { font-size: .8rem; padding: .25rem .55rem; border-radius: .5rem; background: rgba(255,255,255,.14); }
+  .chip.rej { opacity: .5; text-decoration: line-through; }
+  .chip.exp { background: rgba(52,199,89,.35); }
+  .muted { opacity: .6; }
+  .warn { color: #ffcc00; }
+  .adm-player { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.92); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2rem; }
+  .adm-player video { max-width: 100%; max-height: 78vh; border-radius: 1rem; background: #000; }
+  .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 1.5rem); transform: translateX(-50%); z-index: 80; background: #111; color: #fff; padding: .8rem 1.2rem; border-radius: .8rem; font-size: 1rem; box-shadow: 0 8px 24px rgba(0,0,0,.4); max-width: 90vw; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- Repère « regardez ici » (position réglable dans le menu admin) -->
+<div id="camCue" class="cam-cue cue-haut hidden"><span class="arrow">↑</span><span class="cue-txt">Regardez ici</span></div>
+
+<!-- ============ ACCUEIL ============ -->
+<section id="s-home" class="screen">
+  <div id="admin-hotspot" aria-hidden="true"></div>
+  <h1 id="home-title">Bienvenue</h1>
+  <p class="lead" id="home-sub"></p>
+  <span class="day-chip" id="home-day"></span>
+  <p class="home-q">Touchez votre nom pour commencer</p>
+  <input id="search" class="search" type="search" placeholder="Rechercher votre nom…" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div id="names" class="names"></div>
+  <button class="btn btn-ghost not-listed" id="btn-not-listed">Mon nom n'est pas dans la liste</button>
+</section>
+
+<!-- ============ SAISIE DU NOM ============ -->
+<section id="s-name" class="screen center hidden">
+  <h2>Quel est votre nom ?</h2>
+  <p class="lead" style="margin-top:.8rem">Prénom et nom, tels qu'ils figurent sur la liste</p>
+  <input id="name-input" type="text" placeholder="Prénom Nom" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60">
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-name-back">Retour</button>
+    <button class="btn" id="btn-name-ok">Continuer</button>
+  </div>
+</section>
+
+<!-- ============ PRÉPARATION ============ -->
+<section id="s-prep" class="screen hidden">
+  <h2 id="prep-hello">Bonjour !</h2>
+  <p class="lead" style="margin-top:.4rem">Vérifiez votre cadrage : vos yeux à peu près sur la ligne du haut.</p>
+  <div class="preview-wrap" id="prep-wrap">
+    <div class="preview-box" id="prep-box">
+      <video id="prep-video" autoplay muted playsinline></video>
+      <div class="guides"><span>Vos yeux ici</span></div>
+    </div>
+  </div>
+  <div class="tips">
+    <div class="tip"><b>Regardez l'objectif</b><span id="tip-cam">Le repère blanc vous montre où il se trouve.</span></div>
+    <div class="tip"><b>Parlez comme à un ami</b>Souriez, phrases courtes, ton naturel.</div>
+    <div class="tip"><b>Pas de stress</b>Vous pouvez recommencer chaque réponse.</div>
+  </div>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-prep-back">Ce n'est pas moi</button>
+    <button class="btn" id="btn-prep-go">C'est parti</button>
+  </div>
+</section>
+
+<!-- ============ QUESTION ============ -->
+<section id="s-question" class="screen center hidden">
+  <p class="q-count" id="q-count">Question 1 sur 4</p>
+  <p class="q-text" id="q-text"></p>
+  <p class="q-help" id="q-help"></p>
+  <p class="q-dur" id="q-dur"></p>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-q-skip">Passer</button>
+    <button class="btn" id="btn-q-go">Je suis prêt, on tourne</button>
+  </div>
+</section>
+
+<!-- ============ ENREGISTREMENT ============ -->
+<section id="s-record" class="screen hidden">
+  <p class="rec-q" id="rec-q"></p>
+  <div class="preview-wrap" id="rec-wrap">
+    <div class="preview-box" id="rec-box">
+      <video id="rec-video" autoplay muted playsinline></video>
+      <div class="rec-badge hidden" id="rec-badge"><span class="rec-dot"></span>REC</div>
+      <div class="countdown" id="countdown">3</div>
+    </div>
+  </div>
+  <div class="rec-bottom">
+    <div class="bar" id="bar"><div></div></div>
+    <div class="rec-time" id="rec-time">0:30</div>
+    <button class="btn btn-stop" id="btn-stop" disabled>Terminer</button>
+  </div>
+</section>
+
+<!-- ============ RELECTURE ============ -->
+<section id="s-review" class="screen hidden">
+  <h2>Ça vous convient ?</h2>
+  <div class="preview-wrap" id="rev-wrap">
+    <div class="preview-box" id="rev-box">
+      <video id="rev-video" playsinline></video>
+      <button class="play-overlay hidden" id="rev-play">▶ Revoir ma réponse</button>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-retake">Recommencer</button>
+    <button class="btn btn-ok" id="btn-keep">C'est parfait</button>
+  </div>
+  <p class="small" id="rev-info" style="margin-top:.8rem"></p>
+</section>
+
+<!-- ============ FIN ============ -->
+<section id="s-end" class="screen center hidden">
+  <h1>Merci !</h1>
+  <p class="lead" id="end-txt">Vos vidéos sont enregistrées. Bonne suite pour le shooting !</p>
+</section>
+
+<!-- ============ ERREUR ============ -->
+<section id="s-error" class="screen center hidden">
+  <h2>La caméra n'est pas disponible</h2>
+  <p class="lead" id="err-txt"></p>
+  <p class="small" id="err-detail" style="margin-top:1rem"></p>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-err-home">Accueil</button>
+    <button class="btn" id="btn-err-retry">Réessayer</button>
+  </div>
+</section>
+
+<!-- ============ CODE ADMIN ============ -->
+<div id="pin" class="overlay hidden" style="justify-content:center">
+  <h2>Accès organisateur</h2>
+  <div class="pin-dots" id="pin-dots"></div>
+  <p class="pin-err" id="pin-err"></p>
+  <div class="pad" id="pad"></div>
+  <button class="btn btn-ghost" id="btn-pin-cancel">Annuler</button>
+</div>
+
+<!-- ============ MENU ADMIN ============ -->
+<div id="admin" class="overlay hidden">
+  <div class="adm">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+      <h1>Menu organisateur</h1>
+      <button class="btn" id="btn-adm-close">Fermer</button>
+    </div>
+
+    <div class="card">
+      <h3>Vidéos sur cet iPad</h3>
+      <div class="stats">
+        <div class="stat"><b id="st-kept">0</b><span>gardées</span></div>
+        <div class="stat"><b id="st-todo">0</b><span>à exporter</span></div>
+        <div class="stat"><b id="st-rej">0</b><span>rejetées</span></div>
+        <div class="stat"><b id="st-size">–</b><span>espace utilisé</span></div>
+      </div>
+      <p class="small" id="st-quota" style="margin-top:.6rem"></p>
+    </div>
+
+    <div class="card">
+      <h3>Exporter (AirDrop, Fichiers, Photos…)</h3>
+      <p>Les vidéos partent par lots de <span id="lot-size"></span>. Étape 1 : préparer le lot. Étape 2 : partager. Une vidéo exportée est marquée comme telle et n'est pas renvoyée au lot suivant.</p>
+      <div class="row">
+        <button class="btn" id="btn-exp-prep">1. Préparer le lot suivant</button>
+        <button class="btn btn-ok" id="btn-exp-share" disabled>2. Partager</button>
+      </div>
+      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej"> <span>Inclure aussi les prises rejetées</span></label>
+      <p class="small" id="exp-info" style="margin-top:.5rem"></p>
+      <div class="row">
+        <button class="btn btn-ghost" id="btn-exp-reset">Remettre toutes les vidéos « à exporter »</button>
+        <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà exportées</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Journée active</h3>
+      <select id="adm-day"></select>
+      <h3 style="margin-top:1rem">Noms du jour (un par ligne)</h3>
+      <p class="small">Saisis ici, les noms restent uniquement sur cet iPad et remplacent ceux du fichier de configuration pour cette journée.</p>
+      <textarea id="adm-names" style="margin-top:.5rem" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn" id="btn-names-save">Enregistrer les noms</button>
+        <button class="btn btn-ghost" id="btn-names-reset">Revenir aux noms du fichier</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Suivi des candidats de la journée</h3>
+      <p class="small" id="track-sum"></p>
+      <ul class="cand-list" id="track-list"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Position de la caméra frontale</h3>
+      <p class="small">Où se trouve l'objectif quand l'iPad est à la verticale ? Le repère « Regardez ici » se place de ce côté.</p>
+      <div class="seg" id="seg-cam" style="margin-top:.5rem">
+        <button data-v="haut">En haut</button>
+        <button data-v="gauche">À gauche</button>
+        <button data-v="droite">À droite</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Mode d'enregistrement</h3>
+      <div class="seg" id="seg-mode">
+        <button data-v="direct">Direct (meilleure qualité)</button>
+        <button data-v="canvas">Recadrage 9:16 forcé (secours)</button>
+      </div>
+      <p class="small" style="margin-top:.5rem">Garder « Direct ». Passer en « Recadrage » seulement si le test ci-dessous produit une vidéo couchée ou au mauvais format.</p>
+    </div>
+
+    <div class="card">
+      <h3>Test caméra et micro</h3>
+      <p class="mono" id="cam-info">–</p>
+      <div class="row">
+        <button class="btn" id="btn-test">Enregistrer un test de 5 s</button>
+        <button class="btn btn-ghost" id="btn-cam-restart">Redémarrer la caméra</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Application</h3>
+      <p class="small" id="app-info"></p>
+      <div class="row">
+        <button class="btn btn-ghost" id="btn-reload">Recharger (récupère la dernière version)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="adm-player" class="adm-player hidden">
+  <p id="adm-player-title" class="mono"></p>
+  <video id="adm-video" controls playsinline></video>
+  <button class="btn" id="btn-player-close">Fermer</button>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const VERSION = '2.0 · 28.09.2026';
+  const CFG = window.BORNE_CONFIG;
+  const $ = (s) => document.querySelector(s);
+
+  if (!CFG) {
+    document.body.innerHTML = '<p style="padding:3rem;font-size:1.4rem">Fichier config.js introuvable ou invalide (vérifier les virgules et guillemets).</p>';
+    return;
+  }
+
+  /* ------------------------------------------------------------------
+     Préférences locales de l'iPad (journée active, noms, réglages)
+     ------------------------------------------------------------------ */
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem('borne.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem('borne.' + k, JSON.stringify(v)); } catch (e) {} },
+    del(k) { try { localStorage.removeItem('borne.' + k); } catch (e) {} }
+  };
+
+  const QUESTIONS = CFG.questions || [];
+  const DAYS = CFG.journees || [];
+
+  const state = {
+    dayId: LS.get('dayId', DAYS[0] ? DAYS[0].id : 'ALL'),
+    camPos: LS.get('camPos', 'haut'),
+    recMode: LS.get('recMode', 'direct'),
+    screen: 'home',
+    session: 0,          // change à chaque nouveau candidat (protège les tâches asynchrones)
+    candidate: null,
+    qIndex: 0,
+    takesThisQ: 0,
+    pending: null,       // prise en attente de validation
+    recording: null,
+    exportBatch: null,
+    noIdle: false
+  };
+  if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
+
+  document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#0b57d0');
+  document.documentElement.style.setProperty('--accent', CFG.couleurAccent || '#ffffff');
+
+  /* ------------------------------------------------------------------
+     Outils
+     ------------------------------------------------------------------ */
+  const norm = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const slug = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Inconnu';
+  const pad2 = (n) => String(n).padStart(2, '0');
+  const today = () => { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); };
+  const hhmm = (ts) => { const d = new Date(ts); return pad2(d.getHours()) + 'h' + pad2(d.getMinutes()); };
+  const fmtTime = (s) => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ':' + pad2(s % 60); };
+  const fmtBytes = (b) => b > 1e9 ? (b / 1e9).toFixed(1).replace('.', ',') + ' Go' : Math.round(b / 1e6) + ' Mo';
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  let toastTimer;
+  function toast(msg, ms) {
+    const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.add('hidden'), ms || 3500);
+  }
+
+  function dayLabel(id) {
+    if (id === 'ALL') return 'Toutes les journées';
+    const d = DAYS.find(x => x.id === id); return d ? d.libelle : id;
+  }
+  function namesFor(id) {
+    if (id === 'ALL') {
+      const all = new Set();
+      DAYS.forEach(d => namesFor(d.id).forEach(n => all.add(n)));
+      return [...all].sort((a, b) => a.localeCompare(b, 'fr'));
+    }
+    const local = LS.get('noms.' + id, null);
+    const d = DAYS.find(x => x.id === id);
+    const list = (local && local.length) ? local : (d ? d.candidats || [] : []);
+    return [...new Set(list.map(s => String(s).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+  }
+
+  /* ------------------------------------------------------------------
+     Stockage des vidéos (IndexedDB) : métadonnées et fichiers séparés
+     ------------------------------------------------------------------ */
+  const DB = {
+    db: null,
+    open() {
+      return new Promise((res, rej) => {
+        const r = indexedDB.open('borne-video', 1);
+        r.onupgradeneeded = () => {
+          const d = r.result;
+          if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'id', autoIncrement: true });
+          if (!d.objectStoreNames.contains('blobs')) d.createObjectStore('blobs');
+        };
+        r.onsuccess = () => { this.db = r.result; res(); };
+        r.onerror = () => rej(r.error);
+      });
+    },
+    add(meta, blob) {
+      return new Promise((res, rej) => {
+        const t = this.db.transaction(['meta', 'blobs'], 'readwrite');
+        const q = t.objectStore('meta').add(meta);
+        q.onsuccess = () => { meta.id = q.result; t.objectStore('blobs').put(blob, q.result); };
+        t.oncomplete = () => res(meta.id);
+        t.onerror = () => rej(t.error);
+        t.onabort = () => rej(t.error || new Error('Écriture annulée'));
+      });
+    },
+    put(meta) {
+      return new Promise((res, rej) => {
+        const t = this.db.transaction('meta', 'readwrite');
+        t.objectStore('meta').put(meta);
+        t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+      });
+    },
+    all() {
+      return new Promise((res, rej) => {
+        const q = this.db.transaction('meta').objectStore('meta').getAll();
+        q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error);
+      });
+    },
+    blob(id) {
+      return new Promise((res, rej) => {
+        const q = this.db.transaction('blobs').objectStore('blobs').get(id);
+        q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+      });
+    },
+    remove(id) {
+      return new Promise((res, rej) => {
+        const t = this.db.transaction(['meta', 'blobs'], 'readwrite');
+        t.objectStore('meta').delete(id); t.objectStore('blobs').delete(id);
+        t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+      });
+    }
+  };
+
+  function fileName(m) {
+    const ext = /webm/.test(m.mime) ? 'webm' : 'mp4';
+    return [m.date, m.dayId, slug(m.candidate), m.questionId, 'p' + m.take].join('_') +
+      (m.status === 'rejected' ? '_rejetee' : '') + '.' + ext;
+  }
+
+  /* ------------------------------------------------------------------
+     Caméra et micro
+     ------------------------------------------------------------------ */
+  let stream = null;
+  const V = Object.assign({ largeur: 1080, hauteur: 1920, imagesParSeconde: 30, debitVideo: 12000000, debitAudio: 192000 }, CFG.video || {});
+  const LONG = Math.max(V.largeur, V.hauteur), SHORT = Math.min(V.largeur, V.hauteur);
+
+  function streamLive() {
+    return stream && stream.getVideoTracks().some(t => t.readyState === 'live');
+  }
+
+  async function ensureCamera() {
+    if (streamLive()) return stream;
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const e = new Error('Contexte non sécurisé'); e.name = 'InsecureContext'; throw e;
+    }
+    const proc = !!CFG.traitementAudio;
+    const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: proc };
+    let s = null, lastErr = null;
+    const tries = [
+      { video: { facingMode: 'user', width: { ideal: SHORT }, height: { ideal: LONG }, frameRate: { ideal: V.imagesParSeconde } }, audio },
+      { video: { facingMode: 'user' }, audio: true }
+    ];
+    for (const c of tries) {
+      try { s = await navigator.mediaDevices.getUserMedia(c); break; }
+      catch (e) { lastErr = e; if (e.name === 'NotAllowedError' || e.name === 'SecurityError') break; }
+    }
+    if (!s) throw lastErr;
+    stream = s;
+    await improveResolution(stream.getVideoTracks()[0]);
+    stream.getTracks().forEach(t => t.addEventListener('ended', () => { if (stream === s) stream = null; }));
+    ['#prep-video', '#rec-video'].forEach(sel => { const v = $(sel); v.srcObject = stream; v.play().catch(() => {}); });
+    return stream;
+  }
+
+  /* Cherche la meilleure définition proche de 1080×1920 (dans un sens ou l'autre) */
+  async function improveResolution(track) {
+    if (!track || !track.applyConstraints || !track.getSettings) return;
+    const score = (st) => (st.width || 0) * (st.height || 0) <= 0 ? 0 :
+      Math.min(st.width, st.height) >= SHORT - 8 && Math.max(st.width, st.height) >= LONG - 8 ? 3 :
+      Math.max(st.width, st.height) >= LONG - 8 ? 2 : Math.max(st.width, st.height) / LONG;
+    let best = track.getSettings(), bestScore = score(best);
+    if (bestScore >= 3) return;
+    const sets = [
+      { width: { ideal: LONG }, height: { ideal: SHORT } },
+      { width: { ideal: SHORT }, height: { ideal: LONG } }
+    ];
+    let bestSet = null;
+    for (const c of sets) {
+      try {
+        await track.applyConstraints(Object.assign({ frameRate: { ideal: V.imagesParSeconde } }, c));
+        await sleep(150);
+        const st = track.getSettings(), sc = score(st);
+        if (sc > bestScore) { best = st; bestScore = sc; bestSet = c; }
+        if (sc >= 3) return;
+      } catch (e) {}
+    }
+    if (bestSet) { try { await track.applyConstraints(Object.assign({ frameRate: { ideal: V.imagesParSeconde } }, bestSet)); } catch (e) {} }
+  }
+
+  function camInfo() {
+    if (!streamLive()) return 'Caméra non démarrée.';
+    const vt = stream.getVideoTracks()[0], at = stream.getAudioTracks()[0];
+    const st = vt.getSettings ? vt.getSettings() : {};
+    const v = $('#rec-video');
+    const w = v.videoWidth || st.width, h = v.videoHeight || st.height;
+    const fmt = !(w && h) ? '?' : state.recMode === 'canvas' ? 'source, recadrée en 9:16' : (h > w ? 'vertical ✔' : 'HORIZONTAL ⚠');
+    return 'Image : ' + w + ' × ' + h + ' (' + fmt + ') · ' + (st.frameRate ? Math.round(st.frameRate) : '?') + ' i/s<br>' +
+      'Micro : ' + esc(at ? (at.label || 'micro intégré') : 'aucun ⚠') + '<br>' +
+      'Format d\'enregistrement : ' + esc(pickMime() || 'par défaut du navigateur') + '<br>' +
+      'Mode : ' + (state.recMode === 'canvas' ? 'recadrage 9:16 forcé' : 'direct');
+  }
+
+  function pickMime() {
+    if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+    const list = [
+      'video/mp4;codecs="avc1.640028,mp4a.40.2"',
+      'video/mp4;codecs="avc1.4d0028,mp4a.40.2"',
+      'video/mp4;codecs=avc1,mp4a.40.2',
+      'video/mp4;codecs=avc1',
+      'video/mp4',
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm'
+    ];
+    return list.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; } }) || '';
+  }
+
+  /* Mode secours : recadre l'image en 1080×1920 via un canvas */
+  function canvasPipeline() {
+    const src = $('#rec-video');
+    const c = document.createElement('canvas');
+    c.width = SHORT; c.height = LONG;
+    const ctx = c.getContext('2d');
+    let raf = 0, alive = true;
+    const draw = () => {
+      if (!alive) return;
+      const vw = src.videoWidth, vh = src.videoHeight;
+      if (vw && vh) {
+        const s = Math.max(c.width / vw, c.height / vh);
+        const dw = vw * s, dh = vh * s;
+        ctx.drawImage(src, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    const out = c.captureStream(V.imagesParSeconde);
+    stream.getAudioTracks().forEach(t => out.addTrack(t));
+    return { stream: out, stop() { alive = false; cancelAnimationFrame(raf); out.getVideoTracks().forEach(t => t.stop()); } };
+  }
+
+  function startRecorder() {
+    const pipe = state.recMode === 'canvas' ? canvasPipeline() : null;
+    const src = pipe ? pipe.stream : stream;
+    const mime = pickMime();
+    const opts = { videoBitsPerSecond: V.debitVideo, audioBitsPerSecond: V.debitAudio };
+    if (mime) opts.mimeType = mime;
+    let rec;
+    try { rec = new MediaRecorder(src, opts); }
+    catch (e) { rec = new MediaRecorder(src); }
+    const chunks = [];
+    const t0 = performance.now();
+    const done = new Promise((res, rej) => {
+      rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => {
+        if (pipe) pipe.stop();
+        const type = (rec.mimeType || mime || 'video/mp4').split(';')[0];
+        res({ blob: new Blob(chunks, { type }), mime: type, duration: (performance.now() - t0) / 1000 });
+      };
+      rec.onerror = (e) => { if (pipe) pipe.stop(); rej(e.error || e); };
+    });
+    rec.start();
+    return {
+      done,
+      stop() { if (rec.state !== 'inactive') { try { rec.requestData(); } catch (e) {} rec.stop(); } }
+    };
+  }
+
+  /* ------------------------------------------------------------------
+     Affichage
+     ------------------------------------------------------------------ */
+  const SCREENS = ['home', 'name', 'prep', 'question', 'record', 'review', 'end', 'error'];
+  const CUE_SCREENS = ['prep', 'question', 'record'];
+
+  function show(name) {
+    state.screen = name;
+    SCREENS.forEach(s => $('#s-' + s).classList.toggle('hidden', s !== name));
+    $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
+    requestAnimationFrame(fitAll);
+    bumpIdle();
+  }
+
+  function applyCamPos() {
+    const cue = $('#camCue');
+    cue.className = 'cam-cue cue-' + state.camPos + (CUE_SCREENS.includes(state.screen) ? '' : ' hidden');
+    cue.querySelector('.arrow').textContent = { haut: '↑', gauche: '←', droite: '→' }[state.camPos] || '↑';
+    cue.querySelector('.cue-txt').textContent = state.camPos === 'haut' ? 'Regardez ici' : 'Objectif';
+    const root = document.documentElement.style;
+    root.setProperty('--top-pad', state.camPos === 'haut' ? '1.6rem' : '0px');
+    root.setProperty('--side-pad', state.camPos === 'haut' ? '0px' : '2.4rem');
+    $('#tip-cam').textContent = state.camPos === 'haut'
+      ? 'L\'objectif est tout en haut de l\'iPad, au-dessus de l\'écran.'
+      : 'L\'objectif est sur le bord ' + (state.camPos === 'gauche' ? 'gauche' : 'droit') + ' de l\'iPad : le repère blanc vous le montre.';
+  }
+
+  /* Ajuste la taille de l'aperçu au format réel de l'image */
+  function fitBox(wrapSel, boxSel, videoSel, forceCrop) {
+    const wrap = $(wrapSel), box = $(boxSel), v = $(videoSel);
+    if (!wrap || wrap.offsetParent === null) return;
+    let ar = 9 / 16;
+    if (!forceCrop && v.videoWidth && v.videoHeight) ar = v.videoWidth / v.videoHeight;
+    const W = wrap.clientWidth, H = wrap.clientHeight;
+    let h = H, w = h * ar;
+    if (w > W) { w = W; h = w / ar; }
+    box.style.width = Math.floor(w) + 'px';
+    box.style.height = Math.floor(h) + 'px';
+    box.classList.toggle('crop', !!forceCrop);
+  }
+  function fitAll() {
+    const crop = state.recMode === 'canvas';
+    fitBox('#prep-wrap', '#prep-box', '#prep-video', crop);
+    fitBox('#rec-wrap', '#rec-box', '#rec-video', crop);
+    fitBox('#rev-wrap', '#rev-box', '#rev-video', false);
+  }
+  window.addEventListener('resize', fitAll);
+  ['#prep-video', '#rec-video', '#rev-video'].forEach(s => {
+    $(s).addEventListener('loadedmetadata', fitAll);
+    $(s).addEventListener('resize', fitAll);
+  });
+
+  /* ------------------------------------------------------------------
+     Accueil
+     ------------------------------------------------------------------ */
+  function renderHome() {
+    $('#home-title').textContent = CFG.titre || 'Bienvenue';
+    $('#home-sub').textContent = CFG.sousTitre || '';
+    $('#home-day').textContent = dayLabel(state.dayId);
+    renderNames();
+  }
+  function renderNames() {
+    const q = norm($('#search').value);
+    const list = namesFor(state.dayId).filter(n => !q || norm(n).includes(q));
+    const box = $('#names');
+    box.innerHTML = '';
+    if (!list.length) {
+      box.innerHTML = '<p class="empty">' + (q ? 'Aucun nom trouvé. Utilisez le bouton ci-dessous.' : 'Aucun nom pour cette journée.') + '</p>';
+      return;
+    }
+    list.forEach(n => {
+      const b = document.createElement('button');
+      b.className = 'name-btn'; b.textContent = n;
+      b.addEventListener('click', () => startSession(n));
+      box.appendChild(b);
+    });
+  }
+  $('#search').addEventListener('input', renderNames);
+  $('#btn-not-listed').addEventListener('click', () => { $('#name-input').value = ''; show('name'); setTimeout(() => $('#name-input').focus(), 50); });
+  $('#btn-name-back').addEventListener('click', goHome);
+  $('#btn-name-ok').addEventListener('click', () => {
+    const n = $('#name-input').value.trim().replace(/\s+/g, ' ');
+    if (n.length < 3) { toast('Merci d\'indiquer votre prénom et votre nom.'); return; }
+    $('#name-input').blur();
+    startSession(n);
+  });
+  $('#name-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#btn-name-ok').click(); });
+
+  function goHome() {
+    state.session++;
+    if (state.recording) { try { state.recording.stop(); } catch (e) {} state.recording = null; }
+    state.candidate = null; state.pending = null; state.noIdle = false;
+    const rv = $('#rev-video'); rv.pause(); if (rv.src) { URL.revokeObjectURL(rv.src); rv.removeAttribute('src'); rv.load(); }
+    $('#search').value = '';
+    renderHome();
+    show('home');
+    $('#names').scrollTop = 0;
+  }
+
+  /* ------------------------------------------------------------------
+     Parcours du candidat
+     ------------------------------------------------------------------ */
+  async function startSession(name) {
+    state.session++;
+    state.candidate = name;
+    state.qIndex = 0;
+    $('#search').blur();
+    $('#prep-hello').textContent = 'Bonjour ' + name + ' !';
+    show('prep');
+    await openCamera();
+  }
+
+  async function openCamera() {
+    const sess = state.session;
+    try {
+      await ensureCamera();
+      if (sess !== state.session) return false;
+      fitAll();
+      return true;
+    } catch (e) {
+      if (sess !== state.session) return false;
+      showCamError(e);
+      return false;
+    }
+  }
+
+  function showCamError(e) {
+    const n = e && e.name;
+    let msg = 'Appelez un organisateur.';
+    let detail = '';
+    if (n === 'InsecureContext') detail = 'La page doit être ouverte via son adresse https://… (icône de l\'écran d\'accueil), pas comme fichier local.';
+    else if (n === 'NotAllowedError') detail = 'L\'accès à la caméra a été refusé. Réglages de l\'iPad > Safari (ou l\'app) > Caméra et Micro : Autoriser.';
+    else if (n === 'NotReadableError') detail = 'La caméra est utilisée par une autre app. Fermez les autres apps puis réessayez.';
+    else detail = (n || 'Erreur') + ' : ' + ((e && e.message) || '');
+    $('#err-txt').textContent = msg;
+    $('#err-detail').textContent = detail;
+    show('error');
+  }
+  $('#btn-err-home').addEventListener('click', goHome);
+  $('#btn-err-retry').addEventListener('click', async () => {
+    if (state.candidate) { show('prep'); await openCamera(); } else goHome();
+  });
+
+  $('#btn-prep-back').addEventListener('click', goHome);
+  $('#btn-prep-go').addEventListener('click', async () => {
+    if (!streamLive()) { if (!(await openCamera())) return; }
+    showQuestion(0);
+  });
+
+  function showQuestion(i) {
+    if (i >= QUESTIONS.length) return finish();
+    state.qIndex = i;
+    state.takesThisQ = 0;
+    const q = QUESTIONS[i];
+    $('#q-count').textContent = 'Question ' + (i + 1) + ' sur ' + QUESTIONS.length;
+    $('#q-text').textContent = q.texte;
+    $('#q-help').textContent = q.aide || '';
+    $('#q-dur').textContent = 'Jusqu\'à ' + (q.duree || 30) + ' secondes · vous pouvez terminer avant';
+    show('question');
+  }
+  $('#btn-q-skip').addEventListener('click', () => showQuestion(state.qIndex + 1));
+  $('#btn-q-go').addEventListener('click', () => record());
+
+  async function nextTakeNumber(meta) {
+    const all = await DB.all();
+    return all.filter(m => m.date === meta.date && m.dayId === meta.dayId && m.candidate === meta.candidate && m.questionId === meta.questionId).length + 1;
+  }
+
+  async function record() {
+    const sess = state.session;
+    if (!streamLive()) { show('prep'); if (!(await openCamera())) return; }
+    const q = QUESTIONS[state.qIndex];
+    const dur = q.duree || 30;
+    $('#rec-q').textContent = q.texte;
+    $('#rec-badge').classList.add('hidden');
+    $('#btn-stop').disabled = true;
+    $('#bar').classList.remove('late');
+    $('#bar > div').style.width = '0%';
+    $('#rec-time').textContent = fmtTime(dur);
+    const cd = $('#countdown');
+    cd.classList.remove('hidden');
+    show('record');
+    state.noIdle = true;
+    $('#rec-video').play().catch(() => {});
+
+    // Métadonnées figées AU DÉBUT de la prise (plus de mélange Q1/Q2)
+    const meta = {
+      date: today(), dayId: state.dayId, candidate: state.candidate,
+      questionId: q.id, questionIndex: state.qIndex, questionText: q.texte,
+      take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0
+    };
+
+    for (let n = CFG.compteARebours || 3; n > 0; n--) {
+      cd.textContent = n;
+      await sleep(1000);
+      if (sess !== state.session) return;
+    }
+    cd.classList.add('hidden');
+
+    let rec;
+    try { rec = startRecorder(); }
+    catch (e) { state.noIdle = false; showCamError(e); return; }
+    state.recording = rec;
+    $('#rec-badge').classList.remove('hidden');
+    $('#btn-stop').disabled = false;
+
+    const t0 = performance.now();
+    let stopped = false;
+    const stop = () => { if (stopped) return; stopped = true; $('#btn-stop').disabled = true; clearInterval(tick); rec.stop(); };
+    $('#btn-stop').onclick = stop;
+    const tick = setInterval(() => {
+      const el = (performance.now() - t0) / 1000;
+      const left = dur - el;
+      $('#bar > div').style.width = Math.min(100, (el / dur) * 100) + '%';
+      $('#bar').classList.toggle('late', left <= 5);
+      $('#rec-time').textContent = fmtTime(left);
+      if (left <= 0) stop();
+    }, 100);
+
+    let result;
+    try { result = await rec.done; }
+    catch (e) { clearInterval(tick); state.recording = null; state.noIdle = false; if (sess === state.session) showCamError(e); return; }
+    clearInterval(tick);
+    state.recording = null;
+    state.noIdle = false;
+    if (sess !== state.session) return;       // session abandonnée
+
+    meta.mime = result.mime; meta.duration = Math.round(result.duration * 10) / 10; meta.size = result.blob.size;
+    try {
+      meta.take = await nextTakeNumber(meta);
+      await DB.add(meta, result.blob);
+    } catch (e) {
+      toast('⚠ Impossible d\'enregistrer la vidéo sur l\'iPad (espace plein ?). Prévenez un organisateur.', 8000);
+      return showQuestion(state.qIndex + 1);
+    }
+    state.takesThisQ++;
+    state.pending = meta;
+    showReview(result.blob, meta);
+  }
+
+  function showReview(blob, meta) {
+    const v = $('#rev-video');
+    if (v.src) URL.revokeObjectURL(v.src);
+    v.src = URL.createObjectURL(blob);
+    v.muted = false;
+    const left = (CFG.prisesMax || 3) - state.takesThisQ;
+    $('#btn-retake').classList.toggle('hidden', left <= 0);
+    $('#btn-retake').textContent = 'Recommencer' + (left > 0 ? ' (' + left + ' essai' + (left > 1 ? 's' : '') + ')' : '');
+    $('#rev-info').textContent = left <= 0 ? 'Dernier essai pour cette question.' : '';
+    $('#rev-play').classList.add('hidden');
+    show('review');
+    v.onended = () => $('#rev-play').classList.remove('hidden');
+    v.play().catch(() => $('#rev-play').classList.remove('hidden'));
+  }
+  $('#rev-play').addEventListener('click', () => { const v = $('#rev-video'); v.currentTime = 0; v.play(); $('#rev-play').classList.add('hidden'); });
+
+  async function settlePending(status) {
+    const m = state.pending; state.pending = null;
+    if (!m) return;
+    m.status = status;
+    try { await DB.put(m); } catch (e) {}
+  }
+  $('#btn-keep').addEventListener('click', async () => {
+    $('#rev-video').pause();
+    await settlePending('kept');
+    showQuestion(state.qIndex + 1);
+  });
+  $('#btn-retake').addEventListener('click', async () => {
+    $('#rev-video').pause();
+    await settlePending('rejected');
+    record();
+  });
+
+  function finish() {
+    show('end');
+    const sess = state.session;
+    setTimeout(() => { if (sess === state.session && state.screen === 'end') goHome(); }, (CFG.ecranMerciSecondes || 8) * 1000);
+  }
+
+  /* ------------------------------------------------------------------
+     Retour automatique à l'accueil en cas d'inactivité
+     ------------------------------------------------------------------ */
+  let idleTimer;
+  function bumpIdle() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(onIdle, (CFG.retourAccueilSecondes || 90) * 1000);
+  }
+  async function onIdle() {
+    if (state.noIdle || !$('#admin').classList.contains('hidden') || !$('#pin').classList.contains('hidden')) return bumpIdle();
+    if (state.screen === 'review') await settlePending('kept');
+    if (state.screen !== 'home' || $('#search').value) goHome();
+    bumpIdle();
+  }
+  ['pointerdown', 'keydown', 'input', 'touchstart'].forEach(ev => document.addEventListener(ev, bumpIdle, { capture: true, passive: true }));
+
+  /* ------------------------------------------------------------------
+     Garder l'écran allumé, reprendre la caméra au retour
+     ------------------------------------------------------------------ */
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) {}
+  }
+  document.addEventListener('pointerdown', keepAwake, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      if (state.recording) { state.session++; try { state.recording.stop(); } catch (e) {} state.recording = null; state.noIdle = false; }
+    } else {
+      keepAwake();
+      if (state.screen === 'record') goHome();
+      ['#prep-video', '#rec-video'].forEach(s => $(s).play().catch(() => {}));
+    }
+  });
+
+  /* ------------------------------------------------------------------
+     Accès organisateur : 5 touches rapides dans le coin en haut à droite
+     ------------------------------------------------------------------ */
+  let hotTaps = [];
+  $('#admin-hotspot').addEventListener('pointerdown', () => {
+    const now = Date.now();
+    hotTaps = hotTaps.filter(t => now - t < 3000); hotTaps.push(now);
+    if (hotTaps.length >= 5) { hotTaps = []; openPin(); }
+  });
+
+  let pinVal = '';
+  const PIN = String(CFG.codeAdmin || '1848');
+  function renderPin() {
+    $('#pin-dots').innerHTML = Array.from({ length: PIN.length }, (_, i) => '<i class="' + (i < pinVal.length ? 'on' : '') + '"></i>').join('');
+  }
+  function openPin() { pinVal = ''; $('#pin-err').textContent = ''; renderPin(); $('#pin').classList.remove('hidden'); }
+  (function buildPad() {
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
+    keys.forEach(k => {
+      const b = document.createElement('button');
+      b.textContent = k; if (!k) b.style.visibility = 'hidden';
+      b.addEventListener('click', () => {
+        if (k === '⌫') pinVal = pinVal.slice(0, -1);
+        else if (pinVal.length < PIN.length) pinVal += k;
+        renderPin();
+        if (pinVal.length === PIN.length) {
+          if (pinVal === PIN) { $('#pin').classList.add('hidden'); openAdmin(); }
+          else { $('#pin-err').textContent = 'Code incorrect'; pinVal = ''; setTimeout(renderPin, 250); }
+        }
+      });
+      $('#pad').appendChild(b);
+    });
+  })();
+  $('#btn-pin-cancel').addEventListener('click', () => $('#pin').classList.add('hidden'));
+
+  /* ------------------------------------------------------------------
+     Menu organisateur
+     ------------------------------------------------------------------ */
+  async function openAdmin() {
+    $('#admin').classList.remove('hidden');
+    $('#lot-size').textContent = CFG.exportParLot || 8;
+    const sel = $('#adm-day');
+    sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
+      '<option value="ALL">Toutes les journées (liste complète)</option>';
+    sel.value = state.dayId;
+    fillNamesBox();
+    setSeg('#seg-cam', state.camPos);
+    setSeg('#seg-mode', state.recMode);
+    $('#app-info').textContent = 'Version ' + VERSION + ' · ' + (navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'lancée depuis l\'écran d\'accueil ✔' : 'lancée dans le navigateur (préférer l\'icône de l\'écran d\'accueil)') + ' · ' + (window.isSecureContext ? 'HTTPS ✔' : 'NON SÉCURISÉ ⚠');
+    $('#cam-info').innerHTML = camInfo();
+    await refreshStats();
+  }
+  $('#btn-adm-close').addEventListener('click', () => { $('#admin').classList.add('hidden'); state.exportBatch = null; $('#btn-exp-share').disabled = true; goHome(); });
+
+  function setSeg(sel, v) { document.querySelectorAll(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+  document.querySelectorAll('#seg-cam button').forEach(b => b.addEventListener('click', () => {
+    state.camPos = b.dataset.v; LS.set('camPos', state.camPos); setSeg('#seg-cam', state.camPos); applyCamPos();
+  }));
+  document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => {
+    state.recMode = b.dataset.v; LS.set('recMode', state.recMode); setSeg('#seg-mode', state.recMode); $('#cam-info').innerHTML = camInfo(); fitAll();
+  }));
+
+  function fillNamesBox() {
+    const id = $('#adm-day').value;
+    $('#adm-names').value = id === 'ALL' ? '' : namesFor(id).join('\n');
+    $('#adm-names').disabled = id === 'ALL';
+  }
+  $('#adm-day').addEventListener('change', async () => {
+    state.dayId = $('#adm-day').value; LS.set('dayId', state.dayId); fillNamesBox(); await refreshStats();
+  });
+  $('#btn-names-save').addEventListener('click', async () => {
+    const id = $('#adm-day').value; if (id === 'ALL') return;
+    const list = $('#adm-names').value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    LS.set('noms.' + id, list); fillNamesBox(); toast(list.length + ' noms enregistrés pour ' + dayLabel(id)); await refreshStats();
+  });
+  $('#btn-names-reset').addEventListener('click', async () => {
+    const id = $('#adm-day').value; if (id === 'ALL') return;
+    LS.del('noms.' + id); fillNamesBox(); toast('Noms du fichier de configuration rétablis'); await refreshStats();
+  });
+
+  async function refreshStats() {
+    const all = await DB.all();
+    const kept = all.filter(m => m.status !== 'rejected');
+    const todo = kept.filter(m => !m.exported);
+    const rej = all.filter(m => m.status === 'rejected');
+    $('#st-kept').textContent = kept.length;
+    $('#st-todo').textContent = todo.length;
+    $('#st-rej').textContent = rej.length;
+    $('#st-size').textContent = fmtBytes(all.reduce((a, m) => a + (m.size || 0), 0));
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const est = await navigator.storage.estimate();
+        const persisted = navigator.storage.persisted ? await navigator.storage.persisted() : false;
+        $('#st-quota').textContent = 'Espace disponible pour la borne : ' + fmtBytes((est.quota || 0) - (est.usage || 0)) + (persisted ? ' · stockage protégé ✔' : '');
+      }
+    } catch (e) {}
+
+    // Suivi par candidat pour la journée active
+    const dayNames = namesFor(state.dayId);
+    const byCand = {};
+    all.filter(m => state.dayId === 'ALL' || m.dayId === state.dayId).forEach(m => { (byCand[m.candidate] = byCand[m.candidate] || []).push(m); });
+    const names = [...new Set([...dayNames, ...Object.keys(byCand)])].sort((a, b) => a.localeCompare(b, 'fr'));
+    const done = names.filter(n => (byCand[n] || []).some(m => m.status !== 'rejected')).length;
+    $('#track-sum').textContent = dayLabel(state.dayId) + ' : ' + done + ' / ' + dayNames.length + ' candidats passés à la borne.';
+    const ul = $('#track-list'); ul.innerHTML = '';
+    names.forEach(n => {
+      const li = document.createElement('li');
+      const ms = (byCand[n] || []).sort((a, b) => a.id - b.id);
+      li.innerHTML = '<span class="nm">' + esc(n) + '</span>' + (ms.length ? '' : ' <span class="muted">— pas encore passé</span>') +
+        (dayNames.includes(n) ? '' : ' <span class="warn">(hors liste)</span>');
+      if (ms.length) {
+        const chips = document.createElement('div'); chips.className = 'chips';
+        ms.forEach(m => {
+          const c = document.createElement('button');
+          c.className = 'chip' + (m.status === 'rejected' ? ' rej' : '') + (m.exported ? ' exp' : '');
+          c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt);
+          c.addEventListener('click', () => playMeta(m));
+          chips.appendChild(c);
+        });
+        li.appendChild(chips);
+      }
+      ul.appendChild(li);
+    });
+    return { all, todo };
+  }
+
+  async function playMeta(m) {
+    const b = await DB.blob(m.id); if (!b) return toast('Fichier introuvable');
+    const v = $('#adm-video'); if (v.src) URL.revokeObjectURL(v.src);
+    v.src = URL.createObjectURL(b);
+    $('#adm-player-title').textContent = fileName(m);
+    $('#adm-player').classList.remove('hidden');
+    v.play().catch(() => {});
+  }
+  function playBlob(blob, title) {
+    const v = $('#adm-video'); if (v.src) URL.revokeObjectURL(v.src);
+    v.src = URL.createObjectURL(blob);
+    $('#adm-player-title').textContent = title;
+    $('#adm-player').classList.remove('hidden');
+    v.play().catch(() => {});
+  }
+  $('#btn-player-close').addEventListener('click', () => { const v = $('#adm-video'); v.pause(); $('#adm-player').classList.add('hidden'); });
+
+  /* Export en deux temps : préparer (lecture des fichiers), puis partager (geste direct) */
+  $('#btn-exp-prep').addEventListener('click', async () => {
+    const incl = $('#exp-rej').checked;
+    const all = await DB.all();
+    const metas = all.filter(m => !m.exported && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id).slice(0, CFG.exportParLot || 8);
+    if (!metas.length) { state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Rien à exporter : tout est déjà parti.'; return; }
+    $('#exp-info').textContent = 'Préparation…';
+    const files = [];
+    for (const m of metas) {
+      const b = await DB.blob(m.id);
+      if (b) files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' }));
+    }
+    const size = files.reduce((a, f) => a + f.size, 0);
+    const remaining = all.filter(m => !m.exported && (incl || m.status !== 'rejected')).length - metas.length;
+    state.exportBatch = { metas, files };
+    $('#btn-exp-share').disabled = false;
+    $('#btn-exp-share').textContent = '2. Partager ' + files.length + ' vidéo' + (files.length > 1 ? 's' : '') + ' (' + fmtBytes(size) + ')';
+    $('#exp-info').textContent = 'Lot prêt.' + (remaining > 0 ? ' Il restera ' + remaining + ' vidéo(s) pour les lots suivants.' : ' C\'est le dernier lot.');
+  });
+
+  $('#btn-exp-share').addEventListener('click', async () => {
+    const batch = state.exportBatch; if (!batch) return;
+    const markDone = async () => {
+      for (const m of batch.metas) { m.exported = true; m.exportedAt = Date.now(); await DB.put(m); }
+      state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
+      $('#exp-info').textContent = batch.files.length + ' vidéo(s) exportée(s). Préparez le lot suivant s\'il en reste.';
+      await refreshStats();
+    };
+    if (navigator.canShare && navigator.canShare({ files: batch.files })) {
+      try { await navigator.share({ files: batch.files }); await markDone(); }
+      catch (e) {
+        if (e && e.name === 'AbortError') $('#exp-info').textContent = 'Partage annulé : rien n\'a été marqué comme exporté.';
+        else $('#exp-info').textContent = 'Échec du partage (' + (e && e.name) + '). Essayez avec un lot plus petit (exportParLot dans config.js).';
+      }
+    } else {
+      // Ordinateur de test : téléchargement classique
+      for (const f of batch.files) {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+        await sleep(700);
+      }
+      await markDone();
+    }
+  });
+
+  let resetArmed = 0, delArmed = 0;
+  $('#btn-exp-reset').addEventListener('click', async () => {
+    if (Date.now() - resetArmed > 4000) { resetArmed = Date.now(); toast('Touchez encore une fois pour confirmer'); return; }
+    resetArmed = 0;
+    const all = await DB.all(); for (const m of all) if (m.exported) { m.exported = false; await DB.put(m); }
+    toast('Toutes les vidéos sont de nouveau « à exporter »'); await refreshStats();
+  });
+  $('#btn-del-exp').addEventListener('click', async () => {
+    const all = await DB.all(); const ex = all.filter(m => m.exported);
+    if (!ex.length) return toast('Aucune vidéo exportée à supprimer');
+    if (Date.now() - delArmed > 4000) { delArmed = Date.now(); toast('Supprimer ' + ex.length + ' vidéo(s) déjà exportée(s) ? Touchez encore une fois pour confirmer.', 4000); return; }
+    delArmed = 0;
+    for (const m of ex) await DB.remove(m.id);
+    toast(ex.length + ' vidéo(s) supprimée(s) de l\'iPad'); await refreshStats();
+  });
+
+  $('#btn-test').addEventListener('click', async () => {
+    const b = $('#btn-test');
+    try { await ensureCamera(); } catch (e) { $('#cam-info').textContent = 'Erreur caméra : ' + (e.name || '') + ' ' + (e.message || ''); return; }
+    $('#rec-video').play().catch(() => {});
+    await sleep(400);
+    $('#cam-info').innerHTML = camInfo();
+    b.disabled = true;
+    const r = startRecorder();
+    for (let i = 5; i > 0; i--) { b.textContent = 'Enregistrement… ' + i; await sleep(1000); }
+    r.stop();
+    const res = await r.done;
+    b.disabled = false; b.textContent = 'Enregistrer un test de 5 s';
+    const tmp = document.createElement('video');
+    tmp.preload = 'metadata'; tmp.muted = true; tmp.src = URL.createObjectURL(res.blob);
+    tmp.onloadedmetadata = () => {
+      $('#cam-info').innerHTML = camInfo() + '<br>Fichier test : ' + tmp.videoWidth + ' × ' + tmp.videoHeight + ' · ' + fmtBytes(res.blob.size) + ' pour 5 s · ' + esc(res.mime) +
+        (tmp.videoHeight > tmp.videoWidth ? ' · vertical ✔' : ' · <span class="warn">HORIZONTAL : essayer le mode « Recadrage 9:16 »</span>');
+      URL.revokeObjectURL(tmp.src);
+    };
+    playBlob(res.blob, 'Test 5 s — ' + res.mime);
+  });
+  $('#btn-cam-restart').addEventListener('click', async () => {
+    if (stream) stream.getTracks().forEach(t => t.stop()); stream = null;
+    try { await ensureCamera(); await sleep(400); $('#cam-info').innerHTML = camInfo(); toast('Caméra redémarrée'); }
+    catch (e) { $('#cam-info').textContent = 'Erreur caméra : ' + (e.name || '') + ' ' + (e.message || ''); }
+  });
+  $('#btn-reload').addEventListener('click', () => location.reload());
+
+  /* ------------------------------------------------------------------
+     Démarrage
+     ------------------------------------------------------------------ */
+  async function boot() {
+    applyCamPos();
+    renderHome();
+    show('home');
+    try { await DB.open(); }
+    catch (e) { toast('⚠ Stockage indisponible sur cet appareil (navigation privée ?)', 10000); }
+    try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
+    if ('serviceWorker' in navigator && window.isSecureContext) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+  window.__borne = { state, DB, fileName };  // pour les tests
+  boot();
+})();
+</script>
+</body>
+</html>
