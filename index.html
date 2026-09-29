@@ -25,7 +25,7 @@
     --status: max(env(safe-area-inset-top), 28px);   /* hauteur de la barre d'état de l'iPad */
     --side-pad: 0px;
     --ring: clamp(60px, 12vmin, 180px);
-    --ring-color: #fffaf2;
+    --ring-color: #ffffff;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { font-size: clamp(15px, 2.1vmin, 24px); }
@@ -119,6 +119,33 @@
   .tip { background: var(--glass); border-radius: 1.1rem; padding: 1.2rem 1.1rem; font-size: 1.05rem; line-height: 1.5; }
   .tip b { display: block; font-size: 1.15rem; margin-bottom: .55rem; }
   #s-prep .row { margin-top: 2rem; }
+
+  /* ---------- Étape « La pose » ---------- */
+  .pose-wrap { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.4rem; margin: 1.6rem 0 1.4rem; }
+  .pose-stage { position: relative; flex: 1 1 auto; min-height: 14rem; width: min(100%, 36rem); border-radius: 2rem; background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.24), rgba(255,255,255,.05) 70%); }
+  .pose-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pose-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; width: min(100%, 48rem); text-align: left; }
+  .pose-h { font-size: .9rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; opacity: .75; margin-bottom: .7rem; }
+  .pose-steps { list-style: none; }
+  .pose-steps li { display: flex; gap: .7rem; align-items: center; background: var(--glass); border-radius: 1rem; padding: .75rem .9rem; margin-bottom: .6rem; font-size: 1.05rem; line-height: 1.4; transition: background .3s, color .3s, transform .3s; }
+  .pose-steps li .n { flex: none; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: rgba(255,255,255,.22); display: grid; place-items: center; font-weight: 800; font-size: .95rem; }
+  .pose-steps li.on { background: #fff; color: var(--main); transform: scale(1.03); }
+  .pose-steps li.on .n { background: var(--main); color: #fff; }
+  .rec-pose { display: flex; align-items: center; justify-content: center; gap: 1.1rem; min-height: 7rem; }
+  .rec-pose canvas { width: 8rem; height: 9rem; flex: none; }
+  .rec-pose-txt { font-size: 1.65rem; font-weight: 800; text-align: left; max-width: 28rem; line-height: 1.3; }
+  .rec-pose-n { display: block; font-size: .95rem; font-weight: 700; opacity: .75; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
+
+  /* ---------- Aide au cadrage et analyse des prises ---------- */
+  .assist { position: absolute; left: 50%; bottom: 1rem; transform: translateX(-50%); background: rgba(0,0,0,.62); color: #fff; padding: .55rem 1.1rem; border-radius: 1.2rem; font-weight: 700; font-size: 1rem; line-height: 1.3; text-align: center; width: max-content; max-width: 90%; transition: background .3s; }
+  .assist.good { background: rgba(40,170,80,.92); }
+  .qa { width: min(100%, 40rem); background: rgba(255,255,255,.12); border-radius: 1.3rem; padding: 1.1rem 1.3rem; margin-bottom: 1.4rem; text-align: left; }
+  .qa-title { font-weight: 800; font-size: 1.2rem; margin-bottom: .45rem; }
+  .qa ul { list-style: none; }
+  .qa li { display: flex; gap: .65rem; font-size: 1.05rem; line-height: 1.5; padding: .25rem 0; }
+  .qa li .i { flex: none; width: 1.4rem; text-align: center; }
+  #btn-retake.advised { background: #fff; color: var(--main); font-weight: 800; animation: advise 1.5s ease-in-out infinite; }
+  @keyframes advise { 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.18); } }
 
   /* ---------- Question ---------- */
   .q-count { font-size: 1.15rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
@@ -255,6 +282,7 @@
     <div class="preview-box" id="prep-box">
       <video id="prep-video" autoplay muted playsinline></video>
       <div class="guides"><span>Vos yeux ici</span></div>
+      <div class="assist hidden" id="prep-assist"></div>
     </div>
   </div>
   <div class="tips">
@@ -265,6 +293,24 @@
   <div class="row">
     <button class="btn btn-ghost" id="btn-prep-back">Ce n'est pas moi</button>
     <button class="btn" id="btn-prep-go">C'est parti</button>
+  </div>
+</section>
+
+<!-- ============ LA POSE ============ -->
+<section id="s-pose" class="screen hidden">
+  <p class="q-count">Étape 1 · La pose</p>
+  <h2 id="pose-title" style="margin-top:.9rem">D'abord, la pose</h2>
+  <p class="lead" style="margin-top:.7rem" id="pose-lead">Imitez le mannequin : une courte vidéo muette de 9 secondes.</p>
+  <div class="pose-wrap">
+    <div class="pose-stage"><canvas id="pose-canvas"></canvas></div>
+    <div class="pose-lists">
+      <div><p class="pose-h">Avant de tourner</p><ol class="pose-steps" id="pose-before"></ol></div>
+      <div><p class="pose-h" id="pose-during-h">Pendant les 9 secondes</p><ol class="pose-steps" id="pose-during"></ol></div>
+    </div>
+  </div>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-pose-skip">Passer</button>
+    <button class="btn" id="btn-pose-go">Je suis prêt, on tourne</button>
   </div>
 </section>
 
@@ -283,6 +329,7 @@
 <!-- ============ ENREGISTREMENT ============ -->
 <section id="s-record" class="screen hidden">
   <p class="rec-q" id="rec-q"></p>
+  <div class="rec-pose hidden" id="rec-pose"><canvas id="mini-canvas"></canvas><div class="rec-pose-txt"><span class="rec-pose-n" id="rec-pose-n"></span><span id="rec-pose-txt"></span></div></div>
   <div class="preview-wrap" id="rec-wrap">
     <div class="preview-box" id="rec-box">
       <video id="rec-video" autoplay muted playsinline></video>
@@ -306,6 +353,7 @@
       <button class="play-overlay hidden" id="rev-play">▶ Revoir ma réponse</button>
     </div>
   </div>
+  <div class="qa hidden" id="rev-qa"><p class="qa-title" id="qa-title"></p><ul id="qa-list"></ul></div>
   <div class="row">
     <button class="btn btn-ghost" id="btn-retake">Recommencer</button>
     <button class="btn btn-ok" id="btn-keep">C'est parfait</button>
@@ -464,7 +512,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.9 · 29.09.2026';
+  const VERSION = '3.0 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -483,6 +531,14 @@
   };
 
   const QUESTIONS = CFG.questions || [];
+  const POSE = Object.assign({
+    active: false, duree: 9, titre: "D'abord, la pose",
+    etapesAvant: ["Tournez légèrement le corps, visage vers l'objectif", "Menton un peu en avant et vers le bas", "Épaules relâchées, penchez-vous un peu vers nous"],
+    etapesPendant: ["Regard dans l'objectif, visage détendu", "Souriez, naturellement", "Tournez un peu la tête… et revenez vers nous"]
+  }, CFG.pose || {});
+  // Suite des étapes : la pose (facultative) puis les questions
+  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 9 }] : [])
+    .concat(QUESTIONS.map(q => Object.assign({ type: 'question' }, q)));
   const DAYS = CFG.journees || [];
 
   const state = {
@@ -937,16 +993,206 @@
   }
 
   /* ------------------------------------------------------------------
+     Analyse automatique des prises (100 % locale, hors ligne)
+     - visage : présence, taille, centrage, sourire (modèles face-api intégrés)
+     - lumière : luminosité du visage
+     - son : volume de la voix, saturation, phrase coupée, durée
+     ------------------------------------------------------------------ */
+  const QA = { api: null, loading: null, canvas: null, ctx: null };
+  const QW = 144, QH = 256;
+  function qaEnabled() { return CFG.analyseAuto !== false; }
+  function loadFaceApi() {
+    if (!qaEnabled()) return Promise.resolve();
+    if (QA.loading) return QA.loading;
+    QA.loading = (async () => {
+      try {
+        const faceapi = await import('./vendor/face-api.esm.js');
+        try { await faceapi.tf.setBackend('webgl'); } catch (e) { await faceapi.tf.setBackend('cpu'); }
+        await faceapi.tf.ready();
+        await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
+        await faceapi.nets.faceExpressionNet.loadFromUri('./models');
+        QA.api = faceapi;
+      } catch (e) { console.warn('Analyse du visage indisponible', e); }
+    })();
+    return QA.loading;
+  }
+  function grabFrame(v) {
+    if (!v || !v.videoWidth) return false;
+    if (!QA.canvas) { QA.canvas = document.createElement('canvas'); QA.canvas.width = QW; QA.canvas.height = QH; QA.ctx = QA.canvas.getContext('2d', { willReadFrequently: true }); }
+    const vw = v.videoWidth, vh = v.videoHeight, sc = Math.max(QW / vw, QH / vh), dw = vw * sc, dh = vh * sc;
+    QA.ctx.drawImage(v, (QW - dw) / 2, (QH - dh) / 2, dw, dh);
+    return true;
+  }
+  function lumaStats(box) {
+    const d = QA.ctx.getImageData(0, 0, QW, QH).data;
+    let fs = 0, fn = 0, bs = 0, bn = 0;
+    for (let y = 0; y < QH; y += 2) for (let x = 0; x < QW; x += 2) {
+      const i = (y * QW + x) * 4, l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      if (box && x >= box.x && x < box.x + box.width && y >= box.y && y < box.y + box.height) { fs += l; fn++; } else { bs += l; bn++; }
+    }
+    return { face: fn ? fs / fn : null, bg: bn ? bs / bn : null };
+  }
+  async function analyseFrame(v, withExpr) {
+    if (!grabFrame(v)) return null;
+    let det = null;
+    if (QA.api) {
+      try {
+        let task = QA.api.detectSingleFace(QA.canvas, new QA.api.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 }));
+        if (withExpr) task = task.withFaceExpressions();
+        det = await task;
+      } catch (e) { det = null; }
+    }
+    const box = det ? (det.detection || det).box : null;
+    const L = lumaStats(box);
+    return {
+      face: !!box,
+      cx: box ? (box.x + box.width / 2) / QW : null,
+      cy: box ? (box.y + box.height / 2) / QH : null,
+      h: box ? box.height / QH : null,
+      luma: L.face != null ? L.face : L.bg, bg: L.bg,
+      happy: det && det.expressions ? det.expressions.happy : null
+    };
+  }
+  function startSampling(v, isPose, dur) {
+    const samples = [], t0 = performance.now();
+    if (!qaEnabled()) return { stop: () => samples };
+    let alive = true, busy = false;
+    const k = dur / 9;
+    const iv = setInterval(async () => {
+      if (!alive || busy) return;
+      busy = true;
+      const t = (performance.now() - t0) / 1000;
+      const r = await analyseFrame(v, isPose && t > 3.2 * k && t < 6.6 * k);
+      if (r && alive) { r.t = t; samples.push(r); }
+      busy = false;
+    }, 380);
+    return { stop() { alive = false; clearInterval(iv); return samples; } };
+  }
+  async function audioProfile(blob) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      const ab = await blob.arrayBuffer();
+      const buf = await new Promise((res, rej) => { const r = ctx.decodeAudioData(ab, res, rej); if (r && r.then) r.then(res, rej); });
+      const win = Math.round(buf.sampleRate * 0.1), n = Math.floor(buf.length / win);
+      const frames = new Array(n).fill(-120);
+      let clip = 0;
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        for (let f = 0; f < n; f++) {
+          let s = 0;
+          for (let j = f * win; j < (f + 1) * win; j++) { const v = d[j]; s += v * v; if (v > 0.985 || v < -0.985) clip++; }
+          const db = 10 * Math.log10(s / win + 1e-12);
+          if (db > frames[f]) frames[f] = db;
+        }
+      }
+      try { ctx.close(); } catch (e) {}
+      return { frames, clipRatio: clip / (buf.length * buf.numberOfChannels), duration: buf.duration };
+    } catch (e) { return null; }
+  }
+  const median = (a) => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
+  function buildReport(step, samples, audio, byTimer) {
+    const items = []; let redo = false;
+    const isPose = step.type === 'pose';
+    const S = samples || [], F = S.filter(x => x.face);
+    const faceOk = !!QA.api && S.length >= 3;
+    if (faceOk) {
+      if (F.length / S.length < 0.5) { items.push({ lvl: 'redo', txt: "Votre visage sort souvent de l'image : restez bien face à l'iPad." }); redo = true; }
+      else {
+        const h = median(F.map(x => x.h)), cx = median(F.map(x => x.cx));
+        if (h < 0.15) items.push({ lvl: 'tip', txt: "Rapprochez-vous un peu : votre visage paraîtra plus grand à l'écran." });
+        else if (h > 0.56) items.push({ lvl: 'tip', txt: 'Reculez légèrement : votre visage est très proche.' });
+        if (Math.abs(cx - 0.5) > 0.16) items.push({ lvl: 'tip', txt: "Placez-vous bien au centre de l'image." });
+      }
+    }
+    const lum = median((F.length ? F : S).map(x => x.luma).filter(x => x != null));
+    if (lum != null) {
+      if (lum < 55) { items.push({ lvl: 'redo', txt: 'Votre visage est très sombre : avancez vers la lumière.' }); redo = true; }
+      else if (lum < 80) items.push({ lvl: 'tip', txt: "Votre visage est un peu sombre : avancez d'un pas vers la lumière." });
+      else if (lum > 235) items.push({ lvl: 'tip', txt: "Beaucoup de lumière sur votre visage : reculez d'un pas." });
+      else if (F.length) { const bg = median(F.map(x => x.bg)); if (bg - lum > 55) items.push({ lvl: 'tip', txt: 'Vous êtes à contre-jour : tournez-vous vers la lumière.' }); }
+    }
+    if (isPose) {
+      if (faceOk) {
+        const hs = S.filter(x => x.happy != null).map(x => x.happy);
+        if (hs.length && Math.max(...hs) < 0.5) items.push({ lvl: 'tip', txt: 'Votre sourire était discret : osez un vrai grand sourire !' });
+      }
+    } else if (audio && audio.frames.length) {
+      const fr = audio.frames, voiced = fr.filter(x => x > -42);
+      if (voiced.length / fr.length < 0.08) { items.push({ lvl: 'redo', txt: "On ne vous entend presque pas : parlez plus fort, face à l'iPad." }); redo = true; }
+      else {
+        const lvl = median(voiced);
+        if (lvl < -33) items.push({ lvl: 'tip', txt: "Parlez un peu plus fort, comme à quelqu'un placé à deux mètres." });
+        if (audio.clipRatio > 0.0008) items.push({ lvl: 'tip', txt: 'Le son sature par moments : parlez un peu moins fort ou reculez légèrement.' });
+        let first = fr.findIndex(x => x > -42), last = fr.length - 1 - fr.slice().reverse().findIndex(x => x > -42);
+        if (byTimer && (last + 1) * 0.1 > audio.duration - 0.6) { items.push({ lvl: 'redo', txt: 'Vous avez été coupé en fin de phrase : visez un peu plus court.' }); redo = true; }
+        else if ((last - first) * 0.1 < 5) items.push({ lvl: 'tip', txt: 'Réponse très courte : vous pouvez développer un peu.' });
+      }
+    }
+    return { items: items.slice(0, 3), redo };
+  }
+  async function analyseTake(step, blob, samples, dur, byTimer, sess) {
+    if (!qaEnabled()) return;
+    const audio = step.type === 'pose' ? null : await audioProfile(blob);
+    if (sess !== state.session || state.screen !== 'review') return;
+    const rep = buildReport(step, samples, audio, byTimer);
+    const left = (CFG.prisesMax || 3) - state.takesThisQ;
+    const icon = { ok: '✔', tip: '💡', redo: '⚠' };
+    let title;
+    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière et sourire : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
+    else if (rep.redo && left > 0) { title = 'Nous vous conseillons de recommencer'; $('#btn-retake').classList.add('advised'); }
+    else if (rep.redo) title = 'Prise enregistrée. Un conseil pour la suite :';
+    else title = 'Bonne prise ✔ Un petit conseil :';
+    $('#qa-title').textContent = title;
+    $('#qa-list').innerHTML = rep.items.map(it => '<li><span class="i">' + icon[it.lvl] + '</span><span>' + esc(it.txt) + '</span></li>').join('');
+  }
+
+  /* Aide au cadrage en direct sur l'écran de préparation */
+  let assistTimer = null, assistHist = [];
+  function assistMessage(r) {
+    if (!r.face) return { txt: 'Placez votre visage dans le cadre' };
+    if (r.h < 0.15) return { txt: 'Approchez-vous un peu' };
+    if (r.h > 0.56) return { txt: 'Reculez un peu' };
+    if (Math.abs(r.cx - 0.5) > 0.16) return { txt: 'Placez-vous au centre' };
+    if (r.cy > 0.52) return { txt: 'Redressez-vous : les yeux sur la ligne' };
+    if (r.luma != null && r.luma < 75) return { txt: 'Avancez un peu vers la lumière' };
+    return { txt: 'Cadrage parfait ✔', ok: true };
+  }
+  function startAssist() {
+    clearTimeout(assistTimer); assistHist = [];
+    const el = $('#prep-assist');
+    if (!qaEnabled()) { el.classList.add('hidden'); return; }
+    const loop = async () => {
+      if (state.screen !== 'prep') { el.classList.add('hidden'); return; }
+      if (QA.api) {
+        const r = await analyseFrame($('#prep-video'), false);
+        if (r && state.screen === 'prep') {
+          const m = assistMessage(r);
+          assistHist.push(m.txt); if (assistHist.length > 3) assistHist.shift();
+          const counts = {}; assistHist.forEach(t => counts[t] = (counts[t] || 0) + 1);
+          const best = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+          el.textContent = best;
+          el.className = 'assist' + (best.indexOf('✔') >= 0 ? ' good' : '');
+        }
+      }
+      assistTimer = setTimeout(loop, 450);
+    };
+    loop();
+  }
+
+  /* ------------------------------------------------------------------
      Affichage
      ------------------------------------------------------------------ */
-  const SCREENS = ['home', 'name', 'prep', 'question', 'record', 'review', 'end', 'error'];
-  const CUE_SCREENS = ['prep', 'question', 'record'];
+  const SCREENS = ['home', 'name', 'prep', 'pose', 'question', 'record', 'review', 'end', 'error'];
+  const CUE_SCREENS = ['prep', 'pose', 'question', 'record'];
 
   function show(name) {
     state.screen = name;
     SCREENS.forEach(s => $('#s-' + s).classList.toggle('hidden', s !== name));
     $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
     document.documentElement.classList.toggle('ring-on', !!state.ring && name === 'record');
+    if (name !== 'pose' && demoMan) demoMan.stop();
+    if (name === 'prep') startAssist();
     requestAnimationFrame(fitAll);
     bumpIdle();
   }
@@ -1087,16 +1333,53 @@
   });
 
   function showQuestion(i) {
-    if (i >= QUESTIONS.length) return finish();
+    if (i >= STEPS.length) return finish();
     state.qIndex = i;
     state.takesThisQ = 0;
-    const q = QUESTIONS[i];
-    $('#q-count').textContent = 'Question ' + (i + 1) + ' sur ' + QUESTIONS.length;
+    const q = STEPS[i];
+    if (q.type === 'pose') return showPose();
+    const k = STEPS.slice(0, i + 1).filter(x => x.type === 'question').length;
+    const offset = POSE.active ? 1 : 0;
+    $('#q-count').textContent = (offset ? 'Étape ' + (i + 1) + ' · ' : '') + 'Question ' + k + ' sur ' + QUESTIONS.length;
     $('#q-text').textContent = q.texte;
     $('#q-help').textContent = q.aide || '';
     $('#q-dur').textContent = 'Jusqu\'à ' + (q.duree || 30) + ' secondes · vous pouvez terminer avant';
     show('question');
   }
+
+  /* ------------------------------------------------------------------
+     Étape « La pose » : mannequin 3D de démonstration
+     ------------------------------------------------------------------ */
+  let MannequinLib = null, demoMan = null, miniMan = null;
+  async function loadMannequin() {
+    if (MannequinLib === null) {
+      try { MannequinLib = await import('./vendor/pose3d.js'); } catch (e) { console.warn('Mannequin 3D indisponible', e); MannequinLib = false; }
+    }
+    return MannequinLib;
+  }
+  function fillPoseLists() {
+    const li = (n, t) => '<li><span class="n">' + n + '</span><span>' + esc(t) + '</span></li>';
+    $('#pose-before').innerHTML = POSE.etapesAvant.map((t, i) => li(i + 1, t)).join('');
+    $('#pose-during').innerHTML = POSE.etapesPendant.map((t, i) => li(i + 1 + POSE.etapesAvant.length, t)).join('');
+    $('#pose-during-h').textContent = 'Pendant les ' + (POSE.duree || 9) + ' secondes';
+    $('#pose-title').textContent = POSE.titre || "D'abord, la pose";
+    $('#pose-lead').textContent = 'Imitez le mannequin : une courte vidéo muette de ' + (POSE.duree || 9) + ' secondes.';
+  }
+  function highlightPoseStep(i) {
+    document.querySelectorAll('#pose-before li, #pose-during li').forEach((el, k) => el.classList.toggle('on', k === i));
+  }
+  async function showPose() {
+    fillPoseLists();
+    show('pose');
+    const M = await loadMannequin();
+    if (!M || state.screen !== 'pose') return;
+    if (!demoMan) { demoMan = M.createMannequin($('#pose-canvas'), { mode: 'demo' }); demoMan.onStep(highlightPoseStep); }
+    demoMan.resize(); demoMan.start();
+  }
+  $('#btn-pose-go').addEventListener('click', () => record());
+  $('#btn-pose-skip').addEventListener('click', () => showQuestion(state.qIndex + 1));
+  window.addEventListener('resize', () => { if (demoMan && state.screen === 'pose') demoMan.resize(); });
+
   $('#btn-q-skip').addEventListener('click', () => showQuestion(state.qIndex + 1));
   $('#btn-q-go').addEventListener('click', () => record());
 
@@ -1108,9 +1391,21 @@
   async function record() {
     const sess = state.session;
     if (!streamLive()) { show('prep'); if (!(await openCamera())) return; }
-    const q = QUESTIONS[state.qIndex];
-    const dur = q.duree || 30;
+    const q = STEPS[state.qIndex];
+    const isPose = q.type === 'pose';
+    const dur = q.duree || (isPose ? 9 : 30);
     $('#rec-q').textContent = q.texte;
+    $('#rec-q').classList.toggle('hidden', isPose);
+    $('#rec-pose').classList.toggle('hidden', !isPose);
+    $('#btn-stop').classList.toggle('hidden', isPose);
+    const cues = POSE.etapesPendant || [];
+    const setCue = (k) => { $('#rec-pose-n').textContent = (k + 1) + ' / ' + cues.length; $('#rec-pose-txt').textContent = cues[k] || ''; };
+    if (isPose) {
+      setCue(0);
+      const M = await loadMannequin();
+      if (M && !miniMan) miniMan = M.createMannequin($('#mini-canvas'), { mode: 'live', maxFps: 20, pixelRatio: 1.5 });
+      if (miniMan) { miniMan.setTime(0, dur); miniMan.start(); }
+    }
     $('#rec-badge').classList.add('hidden');
     $('#btn-stop').disabled = true;
     $('#bar').classList.remove('late');
@@ -1140,26 +1435,30 @@
     try { rec = startRecorder(); }
     catch (e) { state.noIdle = false; showCamError(e); return; }
     state.recording = rec;
+    const sampler = startSampling($('#rec-video'), isPose, dur);
     $('#rec-badge').classList.remove('hidden');
     $('#btn-stop').disabled = false;
 
     const t0 = performance.now();
-    let stopped = false;
-    const stop = () => { if (stopped) return; stopped = true; $('#btn-stop').disabled = true; clearInterval(tick); rec.stop(); };
-    $('#btn-stop').onclick = stop;
+    let stopped = false, byTimer = false;
+    const stop = (auto) => { if (stopped) return; stopped = true; byTimer = !!auto; $('#btn-stop').disabled = true; clearInterval(tick); rec.stop(); };
+    $('#btn-stop').onclick = () => stop(false);
     const tick = setInterval(() => {
       const el = (performance.now() - t0) / 1000;
       const left = dur - el;
+      if (isPose) { setCue(Math.min(cues.length - 1, Math.floor(el / (dur / Math.max(1, cues.length))))); if (miniMan) miniMan.setTime(el, dur); }
       $('#bar > div').style.width = Math.min(100, (el / dur) * 100) + '%';
-      $('#bar').classList.toggle('late', left <= 5);
+      $('#bar').classList.toggle('late', !isPose && left <= 5);
       $('#rec-time').textContent = fmtTime(left);
-      if (left <= 0) stop();
+      if (left <= 0) stop(true);
     }, 100);
 
     let result;
     try { result = await rec.done; }
-    catch (e) { clearInterval(tick); state.recording = null; state.noIdle = false; if (sess === state.session) showCamError(e); return; }
+    catch (e) { clearInterval(tick); sampler.stop(); state.recording = null; state.noIdle = false; if (sess === state.session) showCamError(e); return; }
     clearInterval(tick);
+    const samples = sampler.stop();
+    if (miniMan) miniMan.stop();
     state.recording = null;
     state.noIdle = false;
     if (sess !== state.session) return;       // session abandonnée
@@ -1189,6 +1488,7 @@
     state.takesThisQ++;
     state.pending = meta;
     showReview(result.blob, meta);
+    analyseTake(q, result.blob, samples, dur, byTimer, sess);
   }
 
   function showReview(blob, meta) {
@@ -1201,6 +1501,9 @@
     $('#btn-retake').textContent = 'Recommencer' + (left > 0 ? ' (' + left + ' essai' + (left > 1 ? 's' : '') + ')' : '');
     $('#rev-info').textContent = left <= 0 ? 'Dernier essai pour cette question.' : '';
     $('#rev-play').classList.add('hidden');
+    $('#btn-retake').classList.remove('advised');
+    if (qaEnabled()) { $('#rev-qa').classList.remove('hidden'); $('#qa-title').textContent = 'Analyse de votre prise…'; $('#qa-list').innerHTML = ''; }
+    else $('#rev-qa').classList.add('hidden');
     show('review');
     v.setAttribute('playsinline', ''); v.playsInline = true;
     v.onended = () => $('#rev-play').classList.remove('hidden');
@@ -1591,6 +1894,7 @@
     try { await DB.open(); }
     catch (e) { toast('⚠ Stockage indisponible sur cet appareil (navigation privée ?)', 10000); }
     try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
+    setTimeout(() => { loadFaceApi(); loadMannequin(); }, 1500);
     if ('serviceWorker' in navigator && window.isSecureContext) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }

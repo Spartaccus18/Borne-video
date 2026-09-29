@@ -27,7 +27,7 @@ window.BORNE_CONFIG = {
      l'écran (12 = environ 100 px ; 16 = plus de lumière, image plus petite). */
   anneauLumineux: true,
   largeurAnneau: 12,
-  couleurAnneau: "#fffaf2",       // blanc légèrement chaud, plus flatteur pour la peau
+  couleurAnneau: "#ffffff",       // blanc pur (lumière maximale)
 
   /* ---------- Réglages de la borne ---------- */
   codeAdmin: "1848",              // code du menu administrateur (à changer !)
@@ -50,6 +50,29 @@ window.BORNE_CONFIG = {
   /* true  = traitement audio de l'iPad activé (recommandé : niveau de voix correct)
      false = son brut : sur iPad, le micro devient quasi muet, à éviter      */
   traitementAudio: true,
+
+  /* ---------- Étape « La pose » (vidéo muette en ouverture) ----------
+     Un mannequin 3D montre la pose ; la borne enregistre ensuite quelques
+     secondes guidées (regard, sourire, mouvement de tête) pour les montages. */
+  pose: {
+    active: true,
+    duree: 9,
+    titre: "D'abord, la pose",
+    etapesAvant: [
+      "Tournez légèrement le corps, visage vers l'objectif",
+      "Menton un peu en avant et vers le bas",
+      "Épaules relâchées, penchez-vous un peu vers nous"
+    ],
+    etapesPendant: [
+      "Regard dans l'objectif, visage détendu",
+      "Souriez, naturellement",
+      "Tournez un peu la tête… et revenez vers nous"
+    ]
+  },
+
+  /* Analyse automatique de chaque prise, directement sur l'iPad (sans internet) :
+     cadrage, lumière, son, sourire. Conseils affichés au candidat. */
+  analyseAuto: true,
 
   /* ---------- Questions ----------
      id     : court, sans espace ni accent (sert au nom du fichier)
