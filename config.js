@@ -21,6 +21,13 @@ window.BORNE_CONFIG = {
      Idéalement un PNG blanc sur fond transparent.                           */
   logo: "logo-content-camp.png",
 
+  /* ---------- Anneau lumineux pendant l'enregistrement ----------
+     Cadre blanc sur le bord de l'écran pour éclairer le visage (activable aussi
+     dans le menu organisateur). largeurAnneau : en % du petit côté de l'écran. */
+  anneauLumineux: true,
+  largeurAnneau: 7,
+  couleurAnneau: "#fffaf2",       // blanc légèrement chaud, plus flatteur pour la peau
+
   /* ---------- Réglages de la borne ---------- */
   codeAdmin: "1848",              // code du menu administrateur (à changer !)
   compteARebours: 3,              // secondes avant le début de l'enregistrement

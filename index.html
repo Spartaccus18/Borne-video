@@ -24,6 +24,8 @@
     --top-pad: 0px;
     --status: max(env(safe-area-inset-top), 28px);   /* hauteur de la barre d'état de l'iPad */
     --side-pad: 0px;
+    --ring: clamp(40px, 7vmin, 110px);
+    --ring-color: #fffaf2;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html { font-size: clamp(15px, 2.1vmin, 24px); }
@@ -152,6 +154,13 @@
   .cue-gauche { left: calc(env(safe-area-inset-left) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
   .cue-droite { right: calc(env(safe-area-inset-right) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
 
+  /* ---------- Anneau lumineux (éclairage d'appoint pendant l'enregistrement) ---------- */
+  .ring { position: fixed; inset: 0; z-index: 15; pointer-events: none; border: var(--ring) solid var(--ring-color); display: none; }
+  body.ring-on .ring { display: block; }
+  body.ring-on #s-record { padding-left: calc(env(safe-area-inset-left) + 1.6rem + var(--ring)); padding-right: calc(env(safe-area-inset-right) + 1.6rem + var(--ring)); padding-bottom: calc(env(safe-area-inset-bottom) + 1.6rem + var(--ring)); padding-top: calc(var(--ring) + 1.4rem + var(--top-pad)); }
+  body.ring-on .cam-cue { background: var(--main); color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 4px 14px rgba(0,0,0,.2); }
+  body.ring-on .cue-haut { top: calc(var(--status) + .5rem); }
+
   /* ---------- Fin / erreur ---------- */
   #s-end h1 { font-size: 5rem; line-height: 1.15; }
   #s-end .lead { margin-top: 2.4rem; font-size: 1.9rem; max-width: 34rem; }
@@ -205,6 +214,7 @@
 <body>
 
 <!-- Repère « regardez ici » (position réglable dans le menu admin) -->
+<div class="ring" aria-hidden="true"></div>
 <div id="camCue" class="cam-cue cue-haut hidden"><span class="arrow">↑</span><span class="cue-txt">Regardez ici</span></div>
 
 <!-- ============ ACCUEIL ============ -->
@@ -396,6 +406,15 @@
     </div>
 
     <div class="card">
+      <h3>Anneau lumineux</h3>
+      <div class="seg" id="seg-ring">
+        <button data-v="on">Activé</button>
+        <button data-v="off">Désactivé</button>
+      </div>
+      <p class="small" style="margin-top:.5rem">Pendant l'enregistrement, un cadre blanc sur le bord de l'écran éclaire le visage. Pour un effet maximal : luminosité de l'iPad au maximum et « Luminosité automatique » désactivée (Réglages › Accessibilité › Affichage et taille du texte). C'est un appoint : il ne remplace pas une vraie lampe, et il peut se refléter dans les lunettes.</p>
+    </div>
+
+    <div class="card">
       <h3>Mode d'enregistrement</h3>
       <div class="seg" id="seg-mode">
         <button data-v="direct">Automatique (recommandé)</button>
@@ -439,7 +458,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.7 · 29.09.2026';
+  const VERSION = '2.8 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -464,6 +483,7 @@
     dayId: LS.get('dayId', DAYS[0] ? DAYS[0].id : 'ALL'),
     camPos: LS.get('camPos', 'haut'),
     recMode: LS.get('recMode', 'direct'),
+    ring: LS.get('ring', CFG.anneauLumineux !== false),
     screen: 'home',
     session: 0,          // change à chaque nouveau candidat (protège les tâches asynchrones)
     candidate: null,
@@ -920,6 +940,7 @@
     state.screen = name;
     SCREENS.forEach(s => $('#s-' + s).classList.toggle('hidden', s !== name));
     $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
+    document.body.classList.toggle('ring-on', !!state.ring && name === 'record');
     requestAnimationFrame(fitAll);
     bumpIdle();
   }
@@ -1294,6 +1315,7 @@
     fillNamesBox();
     setSeg('#seg-cam', state.camPos);
     setSeg('#seg-mode', state.recMode);
+    setSeg('#seg-ring', state.ring ? 'on' : 'off');
     $('#app-info').textContent = 'Version ' + VERSION + ' · ' + (navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'lancée depuis l\'écran d\'accueil ✔' : 'lancée dans le navigateur (préférer l\'icône de l\'écran d\'accueil)') + ' · ' + (window.isSecureContext ? 'HTTPS ✔' : 'NON SÉCURISÉ ⚠');
     $('#cam-info').innerHTML = camInfo();
     await refreshStats();
@@ -1303,6 +1325,9 @@
   function setSeg(sel, v) { document.querySelectorAll(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
   document.querySelectorAll('#seg-cam button').forEach(b => b.addEventListener('click', () => {
     state.camPos = b.dataset.v; LS.set('camPos', state.camPos); setSeg('#seg-cam', state.camPos); applyCamPos();
+  }));
+  document.querySelectorAll('#seg-ring button').forEach(b => b.addEventListener('click', () => {
+    state.ring = b.dataset.v === 'on'; LS.set('ring', state.ring); setSeg('#seg-ring', b.dataset.v);
   }));
   document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => {
     state.recMode = b.dataset.v; LS.set('recMode', state.recMode); setSeg('#seg-mode', state.recMode); $('#cam-info').innerHTML = camInfo(); fitAll();
@@ -1552,6 +1577,8 @@
     });
     if (CFG.messageFinTitre) $('#end-title').textContent = CFG.messageFinTitre;
     if (typeof CFG.messageFin === 'string') $('#end-txt').textContent = CFG.messageFin;
+    if (CFG.largeurAnneau) document.documentElement.style.setProperty('--ring', 'clamp(30px, ' + Number(CFG.largeurAnneau) + 'vmin, 160px)');
+    if (CFG.couleurAnneau) document.documentElement.style.setProperty('--ring-color', CFG.couleurAnneau);
     applyCamPos();
     renderHome();
     show('home');
