@@ -22,10 +22,11 @@ window.BORNE_CONFIG = {
   logo: "logo-content-camp.png",
 
   /* ---------- Anneau lumineux pendant l'enregistrement ----------
-     Cadre blanc sur le bord de l'écran pour éclairer le visage (activable aussi
-     dans le menu organisateur). largeurAnneau : en % du petit côté de l'écran. */
+     Cadre blanc sur tout le tour de l'écran pour éclairer le visage (activable aussi
+     dans le menu organisateur). largeurAnneau : épaisseur en % du petit côté de
+     l'écran (12 = environ 100 px ; 16 = plus de lumière, image plus petite). */
   anneauLumineux: true,
-  largeurAnneau: 7,
+  largeurAnneau: 12,
   couleurAnneau: "#fffaf2",       // blanc légèrement chaud, plus flatteur pour la peau
 
   /* ---------- Réglages de la borne ---------- */
