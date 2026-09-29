@@ -51,6 +51,20 @@ window.BORNE_CONFIG = {
      false = son brut : sur iPad, le micro devient quasi muet, à éviter      */
   traitementAudio: true,
 
+  /* ---------- Bonjour + consignes (avant le retour caméra) ----------
+     Après avoir touché son nom, le candidat voit « Bonjour [nom] ! », puis
+     chaque consigne en grand, une par écran, sans se voir à l'écran.
+     Chaque écran passe tout seul (durées en secondes) ; toucher l'écran avance.
+     icone : objectif | sourire | refaire | info
+     {objectif} est remplacé par la position de l'objectif (« tout en haut de l'iPad »…). */
+  dureeBonjour: 3.5,
+  dureeConsigne: 6,
+  consignes: [
+    { icone: "objectif", titre: "Regardez l'objectif", texte: "Pas l'écran : l'objectif, {objectif}. C'est lui, votre public." },
+    { icone: "sourire",  titre: "Parlez comme à un ami", texte: "Souriez, faites des phrases courtes, gardez un ton naturel." },
+    { icone: "refaire",  titre: "Pas de stress", texte: "Vous pourrez revoir chaque réponse et la refaire si besoin." }
+  ],
+
   /* ---------- Étape « La pose » (vidéo muette en ouverture) ----------
      Un mannequin 3D montre la pose ; la borne enregistre ensuite quelques
      secondes guidées (regard, sourire, mouvement de tête) pour les montages. */

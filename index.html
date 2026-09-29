@@ -95,12 +95,33 @@
   }
   .name-btn:active { background: var(--glass-strong); transform: scale(.98); }
   .names .empty { grid-column: 1 / -1; opacity: .7; padding: 2rem; font-size: 1.2rem; }
-  .not-listed { margin-top: 1.2rem; }
+  /* Nom absent de la liste : proposition juste sous le champ de recherche */
+  .add-name { margin-top: 1.2rem; width: min(100%, 36rem); background: var(--glass); border-radius: 1.2rem; padding: 1.2rem 1.3rem 1.3rem; animation: pop .25s ease-out; }
+  .add-q { font-size: 1.2rem; line-height: 1.45; opacity: .92; }
+  .add-q b { font-weight: 800; }
+  .add-name .btn { margin-top: 1rem; width: 100%; font-size: 1.4rem; padding: .95rem 1.4rem; min-height: 3.6rem; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-.4rem); } to { opacity: 1; transform: none; } }
   #admin-hotspot { position: absolute; top: 0; right: 0; width: 90px; height: 90px; z-index: 5; }
 
-  /* ---------- Saisie du nom ---------- */
-  #s-name input { margin-top: 2.6rem; width: min(100%, 36rem); font-size: 1.6rem; padding: 1rem 1.3rem; border-radius: 1rem; border: none; outline: none; text-align: center; }
-  #s-name .row { margin-top: 2.8rem; }
+  /* ---------- Accueil du candidat et consignes (une à la fois, sans caméra) ---------- */
+  #s-intro { justify-content: center; }
+  .intro-card { display: flex; flex-direction: column; align-items: center; max-width: 42rem; }
+  .intro-card.anim { animation: intro-in .45s cubic-bezier(.2,.8,.2,1); }
+  @keyframes intro-in { from { opacity: 0; transform: translateY(1.6rem) scale(.98); } to { opacity: 1; transform: none; } }
+  .intro-icon { width: 9rem; height: 9rem; border-radius: 50%; background: #fff; color: var(--main); display: grid; place-items: center; margin-bottom: 2.6rem; box-shadow: 0 12px 34px rgba(0,0,0,.22); }
+  .intro-icon svg { width: 55%; height: 55%; display: block; }
+  .intro-icon.nudge svg { animation: nudge 1.3s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(-14%); } }
+  .intro-kicker { font-size: 1.2rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; opacity: .75; margin-bottom: 1rem; }
+  .intro-title { font-size: 4.2rem; font-weight: 800; line-height: 1.12; letter-spacing: -0.02em; }
+  .intro-text { margin-top: 1.8rem; font-size: 2.1rem; line-height: 1.45; opacity: .93; max-width: 36rem; }
+  .intro-foot { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 2.6rem); display: flex; flex-direction: column; align-items: center; gap: 1.6rem; }
+  .intro-dots { display: flex; gap: .7rem; }
+  .intro-dots i { width: .8rem; height: .8rem; border-radius: 50%; background: rgba(255,255,255,.3); transition: background .3s, transform .3s; }
+  .intro-dots i.on { background: #fff; transform: scale(1.25); }
+  .intro-bar { width: min(70%, 24rem); height: .4rem; border-radius: 999px; background: rgba(255,255,255,.2); overflow: hidden; }
+  .intro-bar > div { height: 100%; width: 0; background: #fff; border-radius: 999px; }
+  .intro-bar > div.run { transition: width linear; width: 100%; }
 
   /* ---------- Aperçu caméra ---------- */
   .preview-wrap { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; margin: 1.8rem 0; }
@@ -112,25 +133,20 @@
   .guides::after { top: 66%; }
   .guides span { position: absolute; top: calc(33% - 1.9rem); left: 0; right: 0; font-size: .95rem; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,.8); }
 
-  /* ---------- Préparation ---------- */
-  #s-prep h2 { margin-top: .2rem; }
-  #s-prep .lead { margin-top: .9rem; }
-  .tips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; width: min(100%, 48rem); }
-  .tip { background: var(--glass); border-radius: 1.1rem; padding: 1.2rem 1.1rem; font-size: 1.05rem; line-height: 1.5; }
-  .tip b { display: block; font-size: 1.15rem; margin-bottom: .55rem; }
-  #s-prep .row { margin-top: 2rem; }
+  /* ---------- Préparation (cadrage) ---------- */
+  #s-prep h2 { margin-top: .2rem; font-size: 2.8rem; }
+  #s-prep .lead { margin-top: .6rem; font-size: 1.6rem; }
+  #s-prep .row { margin-top: .4rem; }
 
   /* ---------- Étape « La pose » ---------- */
   .pose-wrap { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.4rem; margin: 1.6rem 0 1.4rem; }
   .pose-stage { position: relative; flex: 1 1 auto; min-height: 14rem; width: min(100%, 36rem); border-radius: 2rem; background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.24), rgba(255,255,255,.05) 70%); }
   .pose-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .pose-lists { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; width: min(100%, 48rem); text-align: left; }
-  .pose-h { font-size: .9rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; opacity: .75; margin-bottom: .7rem; }
-  .pose-steps { list-style: none; }
-  .pose-steps li { display: flex; gap: .7rem; align-items: center; background: var(--glass); border-radius: 1rem; padding: .75rem .9rem; margin-bottom: .6rem; font-size: 1.05rem; line-height: 1.4; transition: background .3s, color .3s, transform .3s; }
-  .pose-steps li .n { flex: none; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: rgba(255,255,255,.22); display: grid; place-items: center; font-weight: 800; font-size: .95rem; }
-  .pose-steps li.on { background: #fff; color: var(--main); transform: scale(1.03); }
-  .pose-steps li.on .n { background: var(--main); color: #fff; }
+  /* Une seule consigne à la fois, en grand, synchronisée avec le mannequin */
+  .pose-cap { min-height: 8.5rem; width: min(100%, 40rem); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
+  .pose-cap-n { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .75; margin-bottom: .6rem; }
+  .pose-cap-t { font-size: 2.2rem; font-weight: 800; line-height: 1.3; }
+  .pose-cap-t.anim { animation: intro-in .35s ease-out; }
   .rec-pose { display: flex; align-items: center; justify-content: center; gap: 1.1rem; min-height: 7rem; }
   .rec-pose canvas { width: 8rem; height: 9rem; flex: none; }
   .rec-pose-txt { font-size: 1.65rem; font-weight: 800; text-align: left; max-width: 28rem; line-height: 1.3; }
@@ -257,27 +273,37 @@
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
-  <p class="home-q">Touchez votre nom pour commencer</p>
-  <input id="search" class="search" type="search" placeholder="Rechercher votre nom…" autocomplete="off" autocorrect="off" spellcheck="false">
+  <p class="home-q">Touchez ou cherchez votre nom pour commencer</p>
+  <input id="search" class="search" type="search" enterkeyhint="go" placeholder="Rechercher votre nom…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" maxlength="60">
+  <div id="add-name" class="add-name hidden">
+    <p class="add-q" id="add-q"></p>
+    <button class="btn" id="btn-add-name">Continuer</button>
+  </div>
   <div id="names" class="names"></div>
-  <button class="btn btn-ghost not-listed" id="btn-not-listed">Mon nom n'est pas dans la liste</button>
 </section>
 
-<!-- ============ SAISIE DU NOM ============ -->
-<section id="s-name" class="screen center hidden">
-  <h2>Quel est votre nom ?</h2>
-  <p class="lead" style="margin-top:.8rem">Prénom et nom, tels qu'ils figurent sur la liste</p>
-  <input id="name-input" type="text" placeholder="Prénom Nom" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="60">
-  <div class="row">
-    <button class="btn btn-ghost" id="btn-name-back">Retour</button>
-    <button class="btn" id="btn-name-ok">Continuer</button>
+<!-- ============ BONJOUR + CONSIGNES (une par écran, sans retour caméra) ============ -->
+<section id="s-intro" class="screen hidden">
+  <div class="intro-card" id="intro-card">
+    <div class="intro-icon" id="intro-icon"></div>
+    <p class="intro-kicker" id="intro-kicker"></p>
+    <h1 class="intro-title" id="intro-title"></h1>
+    <p class="intro-text" id="intro-text"></p>
+  </div>
+  <div class="intro-foot">
+    <div class="intro-dots" id="intro-dots"></div>
+    <div class="intro-bar"><div id="intro-bar"></div></div>
+    <div class="row">
+      <button class="btn btn-ghost" id="btn-intro-back">Ce n'est pas moi</button>
+      <button class="btn" id="btn-intro-next">Suivant</button>
+    </div>
   </div>
 </section>
 
 <!-- ============ PRÉPARATION ============ -->
 <section id="s-prep" class="screen hidden">
-  <h2 id="prep-hello">Bonjour !</h2>
-  <p class="lead" style="margin-top:.4rem">Vérifiez votre cadrage : vos yeux à peu près sur la ligne du haut.</p>
+  <h2>Placez-vous bien</h2>
+  <p class="lead">Vos yeux à peu près sur la ligne du haut.</p>
   <div class="preview-wrap" id="prep-wrap">
     <div class="preview-box" id="prep-box">
       <video id="prep-video" autoplay muted playsinline></video>
@@ -285,13 +311,8 @@
       <div class="assist hidden" id="prep-assist"></div>
     </div>
   </div>
-  <div class="tips">
-    <div class="tip"><b>Regardez l'objectif</b><span id="tip-cam">Le repère blanc vous montre où il se trouve.</span></div>
-    <div class="tip"><b>Parlez comme à un ami</b>Souriez, phrases courtes, ton naturel.</div>
-    <div class="tip"><b>Pas de stress</b>Vous pouvez recommencer chaque réponse.</div>
-  </div>
   <div class="row">
-    <button class="btn btn-ghost" id="btn-prep-back">Ce n'est pas moi</button>
+    <button class="btn btn-ghost" id="btn-prep-back">Revoir les conseils</button>
     <button class="btn" id="btn-prep-go">C'est parti</button>
   </div>
 </section>
@@ -303,9 +324,7 @@
   <p class="lead" style="margin-top:.7rem" id="pose-lead">Imitez le mannequin : une courte vidéo muette de 9 secondes.</p>
   <div class="pose-wrap">
     <div class="pose-stage"><canvas id="pose-canvas"></canvas></div>
-    <div class="pose-lists">
-      <div><p class="pose-h">Avant de tourner</p><ol class="pose-steps" id="pose-before"></ol></div>
-      <div><p class="pose-h" id="pose-during-h">Pendant les 9 secondes</p><ol class="pose-steps" id="pose-during"></ol></div>
+    <div class="pose-cap"><span class="pose-cap-n" id="pose-cap-n"></span><span class="pose-cap-t" id="pose-cap-t"></span>
     </div>
   </div>
   <div class="row">
@@ -512,7 +531,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.0 · 29.09.2026';
+  const VERSION = '3.1 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -1183,8 +1202,8 @@
   /* ------------------------------------------------------------------
      Affichage
      ------------------------------------------------------------------ */
-  const SCREENS = ['home', 'name', 'prep', 'pose', 'question', 'record', 'review', 'end', 'error'];
-  const CUE_SCREENS = ['prep', 'pose', 'question', 'record'];
+  const SCREENS = ['home', 'intro', 'prep', 'pose', 'question', 'record', 'review', 'end', 'error'];
+  const CUE_SCREENS = ['intro', 'prep', 'pose', 'question', 'record'];
 
   function show(name) {
     state.screen = name;
@@ -1192,6 +1211,7 @@
     $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
     document.documentElement.classList.toggle('ring-on', !!state.ring && name === 'record');
     if (name !== 'pose' && demoMan) demoMan.stop();
+    if (name !== 'intro') stopIntroTimer();
     if (name === 'prep') startAssist();
     requestAnimationFrame(fitAll);
     bumpIdle();
@@ -1206,9 +1226,7 @@
     const root = document.documentElement.style;
     root.setProperty('--top-pad', state.camPos === 'haut' ? '4.6rem' : '0px');
     root.setProperty('--side-pad', state.camPos === 'haut' ? '0px' : '2.4rem');
-    $('#tip-cam').textContent = state.camPos === 'haut'
-      ? 'L\'objectif est tout en haut de l\'iPad, au-dessus de l\'écran.'
-      : 'L\'objectif est sur le bord ' + (state.camPos === 'gauche' ? 'gauche' : 'droit') + ' de l\'iPad : le repère blanc vous le montre.';
+    if (state.screen === 'intro') renderIntro(false);
   }
 
   /* Cadre toujours vertical 9:16, image en plein cadre (sans bandes noires) */
@@ -1242,16 +1260,44 @@
     $('#home-day').textContent = dayLabel(state.dayId);
     renderNames();
   }
+  /* Recherche insensible aux accents, aux majuscules et à l'ordre des mots (« Schall Tobie » trouve « Tobie Schall ») */
+  function searchNames(qRaw) {
+    const toks = norm(qRaw).split(/[\s\-']+/).filter(Boolean);
+    if (!toks.length) return namesFor(state.dayId);
+    return namesFor('ALL').filter(n => { const nn = norm(n); return toks.every(t => nn.includes(t)); });
+  }
+  /* Met en forme un nom saisi : « tobie schall » ou « TOBIE SCHALL » → « Tobie Schall » */
+  function formatName(raw) {
+    const n = String(raw || '').trim().replace(/\s+/g, ' ');
+    if (n !== n.toLowerCase() && n !== n.toUpperCase()) return n;          // casse déjà choisie : on respecte
+    const part = ['de', 'du', 'des', 'di', 'da', 'von', 'van', 'le', 'la'];
+    return n.toLowerCase().split(' ').map((w, i) => (i > 0 && part.includes(w)) ? w
+      : w.replace(/(^|[-'’])(\p{L})/gu, (m, sep, c) => sep + c.toUpperCase())).join(' ');
+  }
+  const nameOk = (n) => n.split(' ').filter(w => w.replace(/[^\p{L}]/gu, '').length >= 1).length >= 2 && n.length >= 4;
   function renderNames() {
-    const q = norm($('#search').value);
-    // Sans recherche : noms du jour. Avec recherche : tous les candidats (au cas où quelqu'un vient un autre jour)
-    const list = (q ? namesFor('ALL') : namesFor(state.dayId)).filter(n => !q || norm(n).includes(q));
+    const raw = $('#search').value;
+    const q = norm(raw);
+    const list = searchNames(raw);
     const box = $('#names');
     box.innerHTML = '';
-    if (!list.length) {
-      box.innerHTML = '<p class="empty">' + (q ? 'Aucun nom trouvé. Utilisez le bouton ci-dessous.' : 'Aucun nom pour cette journée.') + '</p>';
+    // Aucune correspondance : on propose tout de suite d'ajouter le nom tapé, juste sous le champ
+    const add = $('#add-name');
+    if (q && !list.length) {
+      const n = formatName(raw);
+      add.classList.remove('hidden');
+      if (nameOk(n)) {
+        $('#add-q').innerHTML = '<b>«\u00a0' + esc(n) + '\u00a0»</b> n\'est pas dans la liste.<br>Vérifiez l\'orthographe, puis :';
+        $('#btn-add-name').textContent = 'Continuer avec ce nom';
+        $('#btn-add-name').classList.remove('hidden');
+      } else {
+        $('#add-q').innerHTML = 'Aucun nom trouvé.<br>Tapez votre <b>prénom et votre nom</b> en entier.';
+        $('#btn-add-name').classList.add('hidden');
+      }
       return;
     }
+    add.classList.add('hidden');
+    if (!list.length) { box.innerHTML = '<p class="empty">Aucun nom pour cette journée : cherchez votre nom ci-dessus.</p>'; return; }
     list.forEach(n => {
       const b = document.createElement('button');
       b.className = 'name-btn'; b.textContent = n;
@@ -1260,15 +1306,19 @@
     });
   }
   $('#search').addEventListener('input', renderNames);
-  $('#btn-not-listed').addEventListener('click', () => { $('#name-input').value = ''; show('name'); setTimeout(() => $('#name-input').focus(), 50); });
-  $('#btn-name-back').addEventListener('click', goHome);
-  $('#btn-name-ok').addEventListener('click', () => {
-    const n = $('#name-input').value.trim().replace(/\s+/g, ' ');
-    if (n.length < 3) { toast('Merci d\'indiquer votre prénom et votre nom.'); return; }
-    $('#name-input').blur();
-    startSession(n);
+  $('#search').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const raw = $('#search').value; if (!norm(raw)) return;
+    const list = searchNames(raw);
+    if (list.length === 1) return startSession(list[0]);       // un seul résultat : on le prend
+    if (!list.length && nameOk(formatName(raw))) return startSession(formatName(raw));
+    $('#search').blur();                                       // plusieurs résultats : on ferme le clavier pour choisir
   });
-  $('#name-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#btn-name-ok').click(); });
+  $('#btn-add-name').addEventListener('click', () => {
+    const n = formatName($('#search').value);
+    if (nameOk(n)) startSession(n);
+  });
 
   function goHome() {
     state.session++;
@@ -1276,6 +1326,7 @@
     state.candidate = null; state.pending = null; state.noIdle = false;
     const rv = $('#rev-video'); rv.pause(); if (rv.src) { URL.revokeObjectURL(rv.src); rv.removeAttribute('src'); rv.load(); }
     $('#search').value = '';
+    $('#add-name').classList.add('hidden');
     renderHome();
     show('home');
     $('#names').scrollTop = 0;
@@ -1289,10 +1340,78 @@
     state.candidate = name;
     state.qIndex = 0;
     $('#search').blur();
-    $('#prep-hello').textContent = 'Bonjour ' + name + ' !';
-    show('prep');
-    await openCamera();
+    startIntro(0);
+    openCamera();          // la caméra s'allume discrètement pendant les consignes : pas d'attente ensuite
   }
+
+  /* ------------------------------------------------------------------
+     Bonjour + consignes : une carte par écran, en grand, sans retour caméra
+     (on ne lit pas les consignes quand on se voit à l'écran)
+     ------------------------------------------------------------------ */
+  const CONSIGNES = (Array.isArray(CFG.consignes) && CFG.consignes.length ? CFG.consignes : [
+    { icone: 'objectif', titre: 'Regardez l\'objectif', texte: 'Pas l\'écran : l\'objectif, {objectif}. C\'est lui, votre public.' },
+    { icone: 'sourire', titre: 'Parlez comme à un ami', texte: 'Souriez, faites des phrases courtes, gardez un ton naturel.' },
+    { icone: 'refaire', titre: 'Pas de stress', texte: 'Vous pourrez revoir chaque réponse et la refaire si besoin.' }
+  ]);
+  const ICONES = {
+    objectif: '<svg viewBox="0 0 24 24"><path d="M12 2.5 L4 11.5 H9.5 V21.5 H14.5 V11.5 H20 Z" fill="currentColor"/></svg>',
+    sourire: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M7.8 14.2c1 1.7 2.5 2.6 4.2 2.6s3.2-.9 4.2-2.6"/><circle cx="9" cy="9.6" r=".6" fill="currentColor"/><circle cx="15" cy="9.6" r=".6" fill="currentColor"/></svg>',
+    refaire: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 3.5v5h5"/></svg>',
+    bonjour: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-.6a6 6 0 0 1-4.5-2L3 15.8a1.6 1.6 0 0 1 2.3-2.2L8 16"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.1"/></svg>'
+  };
+  var introTimer = null, introShownAt = 0;
+  function stopIntroTimer() { clearTimeout(introTimer); introTimer = null; }
+  function introCards() {
+    const nQ = QUESTIONS.length;
+    const prog = (POSE.active ? 'une pose de quelques secondes, puis ' : '') + nQ + ' courte' + (nQ > 1 ? 's' : '') + ' question' + (nQ > 1 ? 's' : '') + '.';
+    return [{ icone: 'bonjour', titre: 'Bonjour ' + state.candidate + '\u202f!', texte: 'Au programme : ' + prog, bonjour: true }].concat(CONSIGNES);
+  }
+  function objectifTexte() {
+    return state.camPos === 'haut' ? 'tout en haut de l\'iPad' : 'sur le bord ' + (state.camPos === 'gauche' ? 'gauche' : 'droit') + ' de l\'iPad';
+  }
+  function renderIntro(animate) {
+    const cards = introCards(), i = Math.min(state.introIndex, cards.length - 1), c = cards[i];
+    const ico = $('#intro-icon');
+    let svg = ICONES[c.icone] || ICONES.info;
+    if (c.icone === 'objectif') {   // la flèche montre la vraie position de l'objectif
+      const rot = { haut: 0, gauche: -90, droite: 90 }[state.camPos] || 0;
+      svg = '<div style="width:100%;height:100%;display:grid;place-items:center;transform:rotate(' + rot + 'deg)">' + svg + '</div>';
+    }
+    ico.innerHTML = svg;
+    ico.classList.toggle('nudge', c.icone === 'objectif');
+    $('#intro-kicker').textContent = c.bonjour ? '' : 'Conseil ' + i + ' sur ' + (cards.length - 1);
+    $('#intro-kicker').classList.toggle('hidden', !!c.bonjour);
+    $('#intro-title').textContent = c.titre || '';
+    $('#intro-text').textContent = String(c.texte || '').replace('{objectif}', objectifTexte());
+    $('#intro-dots').innerHTML = cards.map((x, k) => '<i class="' + (k === i ? 'on' : '') + '"></i>').join('');
+    $('#btn-intro-back').classList.toggle('hidden', !c.bonjour);
+    $('#btn-intro-next').textContent = i === cards.length - 1 ? 'Je suis prêt' : 'Suivant';
+    if (animate) { const card = $('#intro-card'); card.classList.remove('anim'); void card.offsetWidth; card.classList.add('anim'); }
+  }
+  function startIntro(i) {
+    state.introIndex = i;
+    introShownAt = Date.now();
+    show('intro');
+    renderIntro(true);
+    stopIntroTimer();
+    const cards = introCards();
+    const sec = i === 0 ? (CFG.dureeBonjour || 3.5) : (CFG.dureeConsigne || 6);
+    const bar = $('#intro-bar');
+    bar.classList.remove('run'); bar.style.transitionDuration = '0s'; void bar.offsetWidth;
+    bar.style.transitionDuration = sec + 's'; bar.classList.add('run');
+    const sess = state.session;
+    introTimer = setTimeout(() => { if (sess === state.session && state.screen === 'intro') nextIntro(); }, sec * 1000);
+  }
+  function nextIntro() {
+    stopIntroTimer();
+    if (state.introIndex + 1 < introCards().length) return startIntro(state.introIndex + 1);
+    show('prep');
+    fitAll();
+  }
+  $('#btn-intro-next').addEventListener('click', (e) => { e.stopPropagation(); nextIntro(); });
+  $('#btn-intro-back').addEventListener('click', (e) => { e.stopPropagation(); goHome(); });
+  $('#s-intro').addEventListener('click', () => { if (Date.now() - introShownAt > 700) nextIntro(); });   // toucher l'écran = passer à la suite
 
   async function openCamera() {
     const sess = state.session;
@@ -1326,7 +1445,7 @@
     if (state.candidate) { show('prep'); await openCamera(); } else goHome();
   });
 
-  $('#btn-prep-back').addEventListener('click', goHome);
+  $('#btn-prep-back').addEventListener('click', () => startIntro(1));
   $('#btn-prep-go').addEventListener('click', async () => {
     if (!streamLive()) { if (!(await openCamera())) return; }
     showQuestion(0);
@@ -1358,15 +1477,20 @@
     return MannequinLib;
   }
   function fillPoseLists() {
-    const li = (n, t) => '<li><span class="n">' + n + '</span><span>' + esc(t) + '</span></li>';
-    $('#pose-before').innerHTML = POSE.etapesAvant.map((t, i) => li(i + 1, t)).join('');
-    $('#pose-during').innerHTML = POSE.etapesPendant.map((t, i) => li(i + 1 + POSE.etapesAvant.length, t)).join('');
-    $('#pose-during-h').textContent = 'Pendant les ' + (POSE.duree || 9) + ' secondes';
     $('#pose-title').textContent = POSE.titre || "D'abord, la pose";
     $('#pose-lead').textContent = 'Imitez le mannequin : une courte vidéo muette de ' + (POSE.duree || 9) + ' secondes.';
+    state.poseStep = -2; highlightPoseStep(0);
   }
   function highlightPoseStep(i) {
-    document.querySelectorAll('#pose-before li, #pose-during li').forEach((el, k) => el.classList.toggle('on', k === i));
+    const av = POSE.etapesAvant || [], pe = POSE.etapesPendant || [];
+    if (i < 0 || i >= av.length + pe.length || i === state.poseStep) return;   // hors étape : on garde la consigne affichée
+    state.poseStep = i;
+    const avant = i < av.length;
+    $('#pose-cap-n').textContent = (avant ? 'Avant de tourner · ' + (i + 1) + ' / ' + av.length
+      : 'Pendant les ' + (POSE.duree || 9) + ' secondes · ' + (i - av.length + 1) + ' / ' + pe.length);
+    const t = $('#pose-cap-t');
+    t.textContent = avant ? av[i] : pe[i - av.length];
+    t.classList.remove('anim'); void t.offsetWidth; t.classList.add('anim');
   }
   async function showPose() {
     fillPoseLists();
