@@ -9,6 +9,8 @@ window.BORNE_CONFIG = {
   /* ---------- Textes généraux ---------- */
   titre: "Élections cantonales 2027",
   sousTitre: "Votre vidéo en 2 minutes",
+  messageFinTitre: "Merci beaucoup !",
+  messageFin: "Vos vidéos sont bien enregistrées.",
 
   /* ---------- Couleurs (codes hexadécimaux) ---------- */
   couleurPrincipale: "#0b57d0",   // fond bleu

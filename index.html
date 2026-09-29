@@ -102,8 +102,7 @@
   /* ---------- Aperçu caméra ---------- */
   .preview-wrap { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; margin: 1.2rem 0; }
   .preview-box { position: relative; border-radius: 1.6rem; overflow: hidden; background: #000; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
-  .preview-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); background: #000; }
-  .preview-box.crop video { object-fit: cover; }
+  .preview-box video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); background: #000; }
   .guides { position: absolute; inset: 0; pointer-events: none; }
   .guides::before, .guides::after { content: ""; position: absolute; left: 8%; right: 8%; border-top: 2px dashed rgba(255,255,255,.45); }
   .guides::before { top: 33%; }
@@ -139,7 +138,7 @@
 
   /* ---------- Relecture ---------- */
   #s-review h2 { margin-top: .4rem; }
-  #s-review .preview-box video { transform: none; }
+  #s-review .preview-box video { transform: none; background: #111; }
   .play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); font-size: 1.4rem; font-weight: 700; }
 
   /* ---------- Repère caméra ---------- */
@@ -297,8 +296,8 @@
 
 <!-- ============ FIN ============ -->
 <section id="s-end" class="screen center hidden">
-  <h1>Merci !</h1>
-  <p class="lead" id="end-txt">Vos vidéos sont enregistrées. Bonne suite pour le shooting !</p>
+  <h1 id="end-title">Merci beaucoup !</h1>
+  <p class="lead" id="end-txt">Vos vidéos sont bien enregistrées.</p>
   <img class="brand-logo hidden" alt="Content Camp">
 </section>
 
@@ -394,18 +393,20 @@
     <div class="card">
       <h3>Mode d'enregistrement</h3>
       <div class="seg" id="seg-mode">
-        <button data-v="direct">Direct (meilleure qualité)</button>
-        <button data-v="canvas">Recadrage 9:16 forcé (secours)</button>
+        <button data-v="direct">Automatique (recommandé)</button>
+        <button data-v="canvas">Recadrage 9:16 forcé</button>
       </div>
-      <p class="small" style="margin-top:.5rem">Garder « Direct ». Passer en « Recadrage » seulement si le test ci-dessous produit une vidéo couchée ou au mauvais format.</p>
+      <p class="small" style="margin-top:.5rem">« Automatique » enregistre directement si la caméra fournit une image verticale 9:16, et recadre sinon. « Recadrage forcé » seulement si le test ci-dessous donne une vidéo couchée.</p>
     </div>
 
     <div class="card">
       <h3>Test caméra et micro</h3>
+      <p class="small" style="margin-bottom:.5rem">À faire chaque matin. Si la vidéo sort vide, le test essaie automatiquement un autre profil d'enregistrement et garde celui qui fonctionne.</p>
       <p class="mono" id="cam-info">–</p>
       <div class="row">
         <button class="btn" id="btn-test">Enregistrer un test de 5 s</button>
         <button class="btn btn-ghost" id="btn-cam-restart">Redémarrer la caméra</button>
+        <button class="btn btn-ghost" id="btn-profile-reset">Revenir au profil haute qualité</button>
       </div>
     </div>
 
@@ -431,7 +432,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.2 · 28.09.2026';
+  const VERSION = '2.3 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -555,8 +556,28 @@
     blob(id) {
       return new Promise((res, rej) => {
         const q = this.db.transaction('blobs').objectStore('blobs').get(id);
-        q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error);
+        q.onsuccess = () => {
+          const r = q.result;
+          res(r && r.buffer instanceof ArrayBuffer ? new Blob([r.buffer], { type: r.type || 'video/mp4' }) : r);
+        };
+        q.onerror = () => rej(q.error);
       });
+    },
+    putBlob(id, data) {
+      return new Promise((res, rej) => {
+        const t = this.db.transaction('blobs', 'readwrite');
+        t.objectStore('blobs').put(data, id);
+        t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+      });
+    },
+    /* Relit la vidéo stockée ; si elle est vide ou tronquée, la réenregistre sous forme brute */
+    async verify(id, blob) {
+      const back = await this.blob(id);
+      if (back && back.size === blob.size) return;
+      const buf = await blob.arrayBuffer();
+      await this.putBlob(id, { buffer: buf, type: blob.type });
+      const again = await this.blob(id);
+      if (!again || again.size !== blob.size) throw new Error('Stockage impossible');
     },
     remove(id) {
       return new Promise((res, rej) => {
@@ -592,8 +613,10 @@
     const proc = !!CFG.traitementAudio;
     const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: proc };
     let s = null, lastErr = null;
+    // Toujours demander une image VERTICALE (largeur < hauteur), comme l'écran de la borne
     const tries = [
-      { video: { facingMode: 'user', width: { ideal: SHORT }, height: { ideal: LONG }, frameRate: { ideal: V.imagesParSeconde } }, audio },
+      { video: { facingMode: 'user', width: { ideal: SHORT }, height: { ideal: LONG }, aspectRatio: { ideal: SHORT / LONG }, frameRate: { ideal: V.imagesParSeconde } }, audio },
+      { video: { facingMode: 'user', width: { ideal: SHORT }, height: { ideal: LONG } }, audio },
       { video: { facingMode: 'user' }, audio: true }
     ];
     for (const c of tries) {
@@ -602,70 +625,73 @@
     }
     if (!s) throw lastErr;
     stream = s;
-    await improveResolution(stream.getVideoTracks()[0]);
     stream.getTracks().forEach(t => t.addEventListener('ended', () => { if (stream === s) stream = null; }));
     ['#prep-video', '#rec-video'].forEach(sel => { const v = $(sel); v.srcObject = stream; v.play().catch(() => {}); });
+    await waitFrames($('#rec-video'));
     return stream;
   }
 
-  /* Cherche la meilleure définition proche de 1080×1920 (dans un sens ou l'autre) */
-  async function improveResolution(track) {
-    if (!track || !track.applyConstraints || !track.getSettings) return;
-    const score = (st) => (st.width || 0) * (st.height || 0) <= 0 ? 0 :
-      Math.min(st.width, st.height) >= SHORT - 8 && Math.max(st.width, st.height) >= LONG - 8 ? 3 :
-      Math.max(st.width, st.height) >= LONG - 8 ? 2 : Math.max(st.width, st.height) / LONG;
-    let best = track.getSettings(), bestScore = score(best);
-    if (bestScore >= 3) return;
-    const sets = [
-      { width: { ideal: LONG }, height: { ideal: SHORT } },
-      { width: { ideal: SHORT }, height: { ideal: LONG } }
-    ];
-    let bestSet = null;
-    for (const c of sets) {
-      try {
-        await track.applyConstraints(Object.assign({ frameRate: { ideal: V.imagesParSeconde } }, c));
-        await sleep(150);
-        const st = track.getSettings(), sc = score(st);
-        if (sc > bestScore) { best = st; bestScore = sc; bestSet = c; }
-        if (sc >= 3) return;
-      } catch (e) {}
-    }
-    if (bestSet) { try { await track.applyConstraints(Object.assign({ frameRate: { ideal: V.imagesParSeconde } }, bestSet)); } catch (e) {} }
+  function waitFrames(v) {
+    return new Promise(res => {
+      if (v.videoWidth) return res();
+      const t = setTimeout(res, 2500);
+      v.addEventListener('loadedmetadata', () => { clearTimeout(t); res(); }, { once: true });
+    });
+  }
+
+  /* Dimensions réelles de l'image caméra telle qu'affichée */
+  function frameSize() {
+    const v = $('#rec-video');
+    let w = v.videoWidth, h = v.videoHeight;
+    if ((!w || !h) && streamLive()) { const st = stream.getVideoTracks()[0].getSettings ? stream.getVideoTracks()[0].getSettings() : {}; w = st.width; h = st.height; }
+    return { w: w || 0, h: h || 0 };
+  }
+
+  /* Enregistrement direct si l'image est déjà verticale 9:16, sinon recadrage automatique */
+  function effectiveMode() {
+    if (state.recMode === 'canvas') return 'canvas';
+    const { w, h } = frameSize();
+    if (!w || !h) return 'direct';
+    return Math.abs(w / h - SHORT / LONG) < 0.03 ? 'direct' : 'canvas';
   }
 
   function camInfo() {
     if (!streamLive()) return 'Caméra non démarrée.';
     const vt = stream.getVideoTracks()[0], at = stream.getAudioTracks()[0];
     const st = vt.getSettings ? vt.getSettings() : {};
-    const v = $('#rec-video');
-    const w = v.videoWidth || st.width, h = v.videoHeight || st.height;
-    const fmt = !(w && h) ? '?' : state.recMode === 'canvas' ? 'source, recadrée en 9:16' : (h > w ? 'vertical ✔' : 'HORIZONTAL ⚠');
-    return 'Image : ' + w + ' × ' + h + ' (' + fmt + ') · ' + (st.frameRate ? Math.round(st.frameRate) : '?') + ' i/s<br>' +
+    const { w, h } = frameSize();
+    const mode = effectiveMode();
+    return 'Caméra : ' + w + ' × ' + h + ' (' + (h > w ? 'verticale' : w > h ? 'horizontale' : 'carrée') + ') · ' + (st.frameRate ? Math.round(st.frameRate) : '?') + ' i/s<br>' +
       'Micro : ' + esc(at ? (at.label || 'micro intégré') : 'aucun ⚠') + '<br>' +
-      'Format d\'enregistrement : ' + esc(pickMime() || 'par défaut du navigateur') + '<br>' +
-      'Mode : ' + (state.recMode === 'canvas' ? 'recadrage 9:16 forcé' : 'direct');
+      'Enregistrement : ' + (mode === 'direct' ? 'direct' : 'recadré en ' + SHORT + ' × ' + LONG) + ' · profil ' + PROFILES[state.profile].nom;
   }
 
   function pickMime() {
     if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
-    const list = [
-      'video/mp4;codecs="avc1.640028,mp4a.40.2"',
-      'video/mp4;codecs="avc1.4d0028,mp4a.40.2"',
-      'video/mp4;codecs=avc1,mp4a.40.2',
-      'video/mp4;codecs=avc1',
-      'video/mp4',
-      'video/webm;codecs=vp9,opus',
-      'video/webm;codecs=vp8,opus',
-      'video/webm'
-    ];
+    const list = ['video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
     return list.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; } }) || '';
   }
 
-  /* Mode secours : recadre l'image en 1080×1920 via un canvas */
+  /* Profils d'enregistrement, du plus exigeant au plus simple.
+     Si un enregistrement sort vide, la borne passe automatiquement au profil suivant. */
+  const PROFILES = [
+    { nom: 'A (MP4, haute qualité)', mime: true, debit: true, tranche: 1000 },
+    { nom: 'B (MP4, qualité auto)', mime: true, debit: false, tranche: 1000 },
+    { nom: 'C (format auto)', mime: false, debit: false, tranche: 1000 },
+    { nom: 'D (format auto, bloc unique)', mime: false, debit: false, tranche: 0 }
+  ];
+  state.profile = Math.min(PROFILES.length - 1, Math.max(0, Number(LS.get('profile', 0)) || 0));
+  function nextProfile() {
+    if (state.profile >= PROFILES.length - 1) return false;
+    state.profile++; LS.set('profile', state.profile); return true;
+  }
+
+  /* Recadrage en 1080×1920 via un canvas (image horizontale ou mauvais format) */
   function canvasPipeline() {
     const src = $('#rec-video');
     const c = document.createElement('canvas');
     c.width = SHORT; c.height = LONG;
+    if (!c.captureStream) return null;
     const ctx = c.getContext('2d');
     let raf = 0, alive = true;
     const draw = () => {
@@ -685,11 +711,13 @@
   }
 
   function startRecorder() {
-    const pipe = state.recMode === 'canvas' ? canvasPipeline() : null;
+    const P = PROFILES[state.profile];
+    const pipe = effectiveMode() === 'canvas' ? canvasPipeline() : null;
     const src = pipe ? pipe.stream : stream;
-    const mime = pickMime();
-    const opts = { videoBitsPerSecond: V.debitVideo, audioBitsPerSecond: V.debitAudio };
+    const mime = P.mime ? pickMime() : '';
+    const opts = {};
     if (mime) opts.mimeType = mime;
+    if (P.debit) { opts.videoBitsPerSecond = V.debitVideo; opts.audioBitsPerSecond = V.debitAudio; }
     let rec;
     try { rec = new MediaRecorder(src, opts); }
     catch (e) { rec = new MediaRecorder(src); }
@@ -698,17 +726,44 @@
     const done = new Promise((res, rej) => {
       rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
       rec.onstop = () => {
-        if (pipe) pipe.stop();
-        const type = (rec.mimeType || mime || 'video/mp4').split(';')[0];
-        res({ blob: new Blob(chunks, { type }), mime: type, duration: (performance.now() - t0) / 1000 });
+        // laisse passer un éventuel dernier paquet de données
+        setTimeout(() => {
+          if (pipe) pipe.stop();
+          const type = ((chunks[0] && chunks[0].type) || rec.mimeType || mime || 'video/mp4').split(';')[0];
+          res({ blob: new Blob(chunks, { type }), mime: type, duration: (performance.now() - t0) / 1000 });
+        }, 150);
       };
       rec.onerror = (e) => { if (pipe) pipe.stop(); rej(e.error || e); };
     });
-    rec.start();
+    if (P.tranche) rec.start(P.tranche); else rec.start();
     return {
       done,
-      stop() { if (rec.state !== 'inactive') { try { rec.requestData(); } catch (e) {} rec.stop(); } }
+      stop() { if (rec.state !== 'inactive') rec.stop(); }
     };
+  }
+
+  const MIN_BYTES = 20000;   // en dessous : enregistrement raté (fichier vide)
+
+  /* Vérifie qu'une vidéo se lit vraiment (utilisé par le test organisateur) */
+  function probeBlob(blob) {
+    return new Promise(res => {
+      if (!blob || blob.size < MIN_BYTES) return res({ ok: false, w: 0, h: 0 });
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.setAttribute('playsinline', '');
+      v.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+      const u = URL.createObjectURL(blob);
+      let fin = false;
+      const end = (ok) => {
+        if (fin) return; fin = true; clearTimeout(t);
+        const r = { ok, w: v.videoWidth, h: v.videoHeight };
+        v.pause(); v.removeAttribute('src'); v.load(); v.remove(); URL.revokeObjectURL(u); res(r);
+      };
+      v.onloadeddata = () => end(v.videoWidth > 0);
+      v.onerror = () => end(false);
+      const t = setTimeout(() => end(v.videoWidth > 0), 6000);
+      document.body.appendChild(v);
+      v.src = u; v.load(); v.play().catch(() => {});
+    });
   }
 
   /* ------------------------------------------------------------------
@@ -738,24 +793,21 @@
       : 'L\'objectif est sur le bord ' + (state.camPos === 'gauche' ? 'gauche' : 'droit') + ' de l\'iPad : le repère blanc vous le montre.';
   }
 
-  /* Ajuste la taille de l'aperçu au format réel de l'image */
-  function fitBox(wrapSel, boxSel, videoSel, forceCrop) {
-    const wrap = $(wrapSel), box = $(boxSel), v = $(videoSel);
+  /* Cadre toujours vertical 9:16, image en plein cadre (sans bandes noires) */
+  function fitBox(wrapSel, boxSel) {
+    const wrap = $(wrapSel), box = $(boxSel);
     if (!wrap || wrap.offsetParent === null) return;
-    let ar = 9 / 16;
-    if (!forceCrop && v.videoWidth && v.videoHeight) ar = v.videoWidth / v.videoHeight;
+    const ar = SHORT / LONG;
     const W = wrap.clientWidth, H = wrap.clientHeight;
     let h = H, w = h * ar;
     if (w > W) { w = W; h = w / ar; }
     box.style.width = Math.floor(w) + 'px';
     box.style.height = Math.floor(h) + 'px';
-    box.classList.toggle('crop', !!forceCrop);
   }
   function fitAll() {
-    const crop = state.recMode === 'canvas';
-    fitBox('#prep-wrap', '#prep-box', '#prep-video', crop);
-    fitBox('#rec-wrap', '#rec-box', '#rec-video', crop);
-    fitBox('#rev-wrap', '#rev-box', '#rev-video', false);
+    fitBox('#prep-wrap', '#prep-box');
+    fitBox('#rec-wrap', '#rec-box');
+    fitBox('#rev-wrap', '#rev-box');
   }
   window.addEventListener('resize', fitAll);
   ['#prep-video', '#rec-video', '#rev-video'].forEach(s => {
@@ -843,6 +895,7 @@
     let detail = '';
     if (n === 'InsecureContext') detail = 'La page doit être ouverte via son adresse https://… (icône de l\'écran d\'accueil), pas comme fichier local.';
     else if (n === 'NotAllowedError') detail = 'L\'accès à la caméra a été refusé. Réglages de l\'iPad > Safari (ou l\'app) > Caméra et Micro : Autoriser.';
+    else if (n === 'EmptyRecording') detail = 'L\'enregistrement vidéo a échoué malgré plusieurs tentatives. Menu organisateur › « Enregistrer un test de 5 s ».';
     else if (n === 'NotReadableError') detail = 'La caméra est utilisée par une autre app. Fermez les autres apps puis réessayez.';
     else detail = (n || 'Erreur') + ' : ' + ((e && e.message) || '');
     $('#err-txt').textContent = msg;
@@ -938,10 +991,23 @@
     state.noIdle = false;
     if (sess !== state.session) return;       // session abandonnée
 
+    if (result.blob.size < MIN_BYTES) {
+      // Enregistrement vide : on bascule sur un profil plus simple et on recommence (ne compte pas comme un essai)
+      if (nextProfile()) {
+        toast('Petit souci technique, on recommence cette réponse.', 4000);
+        await sleep(1200);
+        if (sess === state.session) record();
+      } else {
+        showCamError({ name: 'EmptyRecording', message: 'L\'iPad n\'arrive pas à enregistrer la vidéo.' });
+      }
+      return;
+    }
+
     meta.mime = result.mime; meta.duration = Math.round(result.duration * 10) / 10; meta.size = result.blob.size;
     try {
       meta.take = await nextTakeNumber(meta);
       await DB.add(meta, result.blob);
+      await DB.verify(meta.id, result.blob);
     } catch (e) {
       toast('⚠ Impossible d\'enregistrer la vidéo sur l\'iPad (espace plein ?). Prévenez un organisateur.', 8000);
       return showQuestion(state.qIndex + 1);
@@ -962,10 +1028,19 @@
     $('#rev-info').textContent = left <= 0 ? 'Dernier essai pour cette question.' : '';
     $('#rev-play').classList.add('hidden');
     show('review');
+    v.setAttribute('playsinline', ''); v.playsInline = true;
     v.onended = () => $('#rev-play').classList.remove('hidden');
+    v.load();
     v.play().catch(() => $('#rev-play').classList.remove('hidden'));
+    // Si la lecture ne démarre pas d'elle-même (règles d'iPadOS), on propose le bouton
+    setTimeout(() => { if (state.screen === 'review' && (v.paused || v.readyState < 2)) $('#rev-play').classList.remove('hidden'); }, 1500);
   }
-  $('#rev-play').addEventListener('click', () => { const v = $('#rev-video'); v.currentTime = 0; v.play(); $('#rev-play').classList.add('hidden'); });
+  $('#rev-play').addEventListener('click', () => {
+    const v = $('#rev-video'); $('#rev-play').classList.add('hidden');
+    try { v.currentTime = 0; } catch (e) {}
+    v.muted = false;
+    v.play().catch(() => { v.muted = true; v.play().catch(() => $('#rev-play').classList.remove('hidden')); });
+  });
 
   async function settlePending(status) {
     const m = state.pending; state.pending = null;
@@ -1185,20 +1260,23 @@
     if (!metas.length) { state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Rien à exporter : tout est déjà parti.'; return; }
     btn.disabled = true;
     const files = [], kept = [];
+    let empty = 0;
     for (let i = 0; i < metas.length; i++) {
       $('#exp-info').textContent = 'Préparation ' + (i + 1) + ' / ' + metas.length + '…';
       const m = metas[i];
       const b = await DB.blob(m.id);
-      if (b) { files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' })); kept.push(m); }
+      if (b && b.size >= MIN_BYTES) { files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' })); kept.push(m); }
+      else empty++;
     }
     btn.disabled = false;
     const size = files.reduce((a, f) => a + f.size, 0);
     const remaining = pool.length - metas.length;
     state.exportBatch = { metas: kept, files };
+    if (!files.length) { state.exportBatch = null; btn.disabled = false; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Les ' + empty + ' vidéo(s) à exporter sont vides (enregistrements ratés) : rien à envoyer.'; return; }
     $('#btn-exp-share').disabled = false;
     $('#btn-exp-share').textContent = '2. Partager ' + files.length + ' vidéo' + (files.length > 1 ? 's' : '') + ' (' + fmtBytes(size) + ')';
     $('#exp-info').textContent = (remaining > 0 ? 'Prêt. Il restera ' + remaining + ' vidéo(s) pour l\'envoi suivant.' : 'Prêt : toutes les vidéos à exporter sont dans cet envoi.') +
-      (size > 2e9 ? ' Envoi volumineux : si le partage échoue, choisissez un lot de 50 ou 25.' : '');
+      (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + (size > 2e9 ? ' Envoi volumineux : si le partage échoue, choisissez un lot de 50 ou 25.' : '');
   });
 
   $('#btn-exp-share').addEventListener('click', async () => {
@@ -1251,22 +1329,28 @@
     try { await ensureCamera(); } catch (e) { $('#cam-info').textContent = 'Erreur caméra : ' + (e.name || '') + ' ' + (e.message || ''); return; }
     $('#rec-video').play().catch(() => {});
     await sleep(400);
-    $('#cam-info').innerHTML = camInfo();
     b.disabled = true;
-    const r = startRecorder();
-    for (let i = 5; i > 0; i--) { b.textContent = 'Enregistrement… ' + i; await sleep(1000); }
-    r.stop();
-    const res = await r.done;
+    let res = null, probe = null, log = [];
+    // Essaie le profil actuel, puis les suivants jusqu'à obtenir une vidéo lisible
+    for (;;) {
+      $('#cam-info').innerHTML = camInfo();
+      const r = startRecorder();
+      for (let i = 5; i > 0; i--) { b.textContent = 'Test ' + PROFILES[state.profile].nom.split(' ')[0] + '… ' + i; await sleep(1000); }
+      r.stop();
+      try { res = await r.done; } catch (e) { res = { blob: new Blob([]), mime: '', duration: 0 }; }
+      b.textContent = 'Vérification…';
+      probe = await probeBlob(res.blob);
+      log.push('Profil ' + PROFILES[state.profile].nom + ' : ' + fmtBytes(res.blob.size) + (probe.ok ? ' · lisible ✔' : ' · ILLISIBLE ✖'));
+      if (probe.ok || !nextProfile()) break;
+    }
     b.disabled = false; b.textContent = 'Enregistrer un test de 5 s';
-    const tmp = document.createElement('video');
-    tmp.preload = 'metadata'; tmp.muted = true; tmp.src = URL.createObjectURL(res.blob);
-    tmp.onloadedmetadata = () => {
-      $('#cam-info').innerHTML = camInfo() + '<br>Fichier test : ' + tmp.videoWidth + ' × ' + tmp.videoHeight + ' · ' + fmtBytes(res.blob.size) + ' pour 5 s · ' + esc(res.mime) +
-        (tmp.videoHeight > tmp.videoWidth ? ' · vertical ✔' : ' · <span class="warn">HORIZONTAL : essayer le mode « Recadrage 9:16 »</span>');
-      URL.revokeObjectURL(tmp.src);
-    };
-    playBlob(res.blob, 'Test 5 s — ' + res.mime);
+    $('#cam-info').innerHTML = camInfo() + '<br>' + log.join('<br>') +
+      (probe.ok
+        ? '<br><b>Fichier test : ' + probe.w + ' × ' + probe.h + ' · ' + fmtBytes(res.blob.size) + ' pour 5 s · ' + esc(res.mime) + (probe.h > probe.w ? ' · vertical ✔' : ' · <span class="warn">horizontal ⚠</span>') + '</b>'
+        : '<br><span class="warn"><b>Aucun profil ne produit de vidéo lisible. Redémarrer la caméra puis refaire le test.</b></span>');
+    if (probe.ok) playBlob(res.blob, 'Test 5 s — ' + res.mime);
   });
+  $('#btn-profile-reset').addEventListener('click', () => { state.profile = 0; LS.set('profile', 0); $('#cam-info').innerHTML = camInfo(); toast('Profil remis sur A (haute qualité)'); });
   $('#btn-cam-restart').addEventListener('click', async () => {
     if (stream) stream.getTracks().forEach(t => t.stop()); stream = null;
     try { await ensureCamera(); await sleep(400); $('#cam-info').innerHTML = camInfo(); toast('Caméra redémarrée'); }
@@ -1282,6 +1366,8 @@
       img.onload = () => img.classList.remove('hidden');
       img.src = CFG.logo;
     });
+    if (CFG.messageFinTitre) $('#end-title').textContent = CFG.messageFinTitre;
+    if (typeof CFG.messageFin === 'string') $('#end-txt').textContent = CFG.messageFin;
     applyCamPos();
     renderHome();
     show('home');
