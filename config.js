@@ -39,9 +39,9 @@ window.BORNE_CONFIG = {
     debitAudio: 192000            // 192 kbit/s
   },
 
-  /* false = son naturel (recommandé avec un micro-cravate ou un lieu calme)
-     true  = réduction de bruit / écho façon visio                            */
-  traitementAudio: false,
+  /* true  = traitement audio de l'iPad activé (recommandé : niveau de voix correct)
+     false = son brut : sur iPad, le micro devient quasi muet, à éviter      */
+  traitementAudio: true,
 
   /* ---------- Questions ----------
      id     : court, sans espace ni accent (sert au nom du fichier)

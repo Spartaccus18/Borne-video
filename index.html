@@ -147,7 +147,8 @@
   /* ---------- Repère caméra ---------- */
   .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .5rem; background: #fff; color: var(--main); font-weight: 800; font-size: 1.1rem; padding: .5rem 1.2rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; }
   .cam-cue .arrow { font-size: 1.3rem; line-height: 1; }
-  .cue-haut { top: calc(var(--status) + 1.1rem); left: 50%; transform: translateX(-50%); }
+  .cue-haut { top: calc(var(--status) + .8rem); left: 50%; transform: translateX(-50%); flex-direction: column; gap: .1rem; padding: .3rem 1.3rem .5rem; }
+  .cue-haut .arrow { font-size: 1.6rem; line-height: 1; }
   .cue-gauche { left: calc(env(safe-area-inset-left) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
   .cue-droite { right: calc(env(safe-area-inset-right) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
 
@@ -370,7 +371,7 @@
       <h3>Journée active</h3>
       <select id="adm-day"></select>
       <h3 style="margin-top:1rem">Noms du jour (un par ligne)</h3>
-      <p class="small">Saisis ici, les noms restent uniquement sur cet iPad et remplacent ceux du fichier de configuration pour cette journée.</p>
+      <p class="small">Saisis ici, les noms restent uniquement sur cet iPad et remplacent ceux du fichier de configuration pour cette journée. Astuce : copier dans Excel la colonne des noms (ou les colonnes Prénom et Nom côte à côte) et la coller ici.</p>
       <textarea id="adm-names" style="margin-top:.5rem" spellcheck="false"></textarea>
       <div class="row">
         <button class="btn" id="btn-names-save">Enregistrer les noms</button>
@@ -405,7 +406,7 @@
 
     <div class="card">
       <h3>Test caméra et micro</h3>
-      <p class="small" style="margin-bottom:.5rem">À faire chaque matin. Si la vidéo sort vide, le test essaie automatiquement un autre profil d'enregistrement et garde celui qui fonctionne.</p>
+      <p class="small" style="margin-bottom:.5rem">À faire chaque matin, <b>en parlant normalement pendant les 5 secondes</b> (pour contrôler le son). Si la vidéo sort vide, le test essaie automatiquement un autre profil d'enregistrement et garde celui qui fonctionne.</p>
       <video id="cal-video" autoplay muted playsinline style="width:9rem;aspect-ratio:9/16;object-fit:cover;transform:scaleX(-1);border-radius:.8rem;background:#000;float:right;margin:0 0 .6rem 1rem"></video>
       <p class="mono" id="cam-info">–</p>
       <div style="clear:both"></div>
@@ -438,7 +439,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.6 · 29.09.2026';
+  const VERSION = '2.7 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -617,7 +618,8 @@
       const e = new Error('Contexte non sécurisé'); e.name = 'InsecureContext'; throw e;
     }
     const proc = !!CFG.traitementAudio;
-    const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: proc };
+    // Sur iPad, couper le traitement audio de Safari rend le micro quasi muet : il reste activé par défaut
+    const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: true, channelCount: { ideal: 1 } };
     let s = null, lastErr = null;
     // Réglage retenu lors du calibrage (menu organisateur), sinon image verticale 1080 × 1920
     const cs = CAM_SETS[state.camSet] || CAM_SETS[0];
@@ -864,6 +866,26 @@
     };
   }
 
+  /* Mesure le niveau sonore réel d'une vidéo enregistrée (test organisateur) */
+  async function audioLevel(blob) {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      const ab = await blob.arrayBuffer();
+      const buf = await new Promise((res, rej) => { const r = ctx.decodeAudioData(ab, res, rej); if (r && r.then) r.then(res, rej); });
+      let peak = 0, sum = 0, n = 0;
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        let cs = 0;
+        for (let i = 0; i < d.length; i++) { const v = Math.abs(d[i]); if (v > peak) peak = v; cs += d[i] * d[i]; }
+        sum = Math.max(sum, cs / d.length); n++;
+      }
+      try { ctx.close(); } catch (e) {}
+      const db = (x) => x > 0 ? 20 * Math.log10(x) : -120;
+      return { peak: db(peak), rms: db(Math.sqrt(sum)) };
+    } catch (e) { return null; }
+  }
+
   const MIN_BYTES = 20000;   // en dessous : enregistrement raté (fichier vide)
 
   /* Vérifie qu'une vidéo se lit vraiment (utilisé par le test organisateur) */
@@ -905,10 +927,11 @@
   function applyCamPos() {
     const cue = $('#camCue');
     cue.className = 'cam-cue cue-' + state.camPos + (CUE_SCREENS.includes(state.screen) ? '' : ' hidden');
-    cue.querySelector('.arrow').textContent = { haut: '↑', gauche: '←', droite: '→' }[state.camPos] || '↑';
+    const rot = { haut: 0, gauche: -90, droite: 90 }[state.camPos] || 0;
+    cue.querySelector('.arrow').innerHTML = '<svg viewBox="0 0 24 24" width="1.4em" height="1.4em" style="display:block;transform:rotate(' + rot + 'deg)" aria-hidden="true"><path d="M12 3 L5 11 H10 V21 H14 V11 H19 Z" fill="currentColor"/></svg>';
     cue.querySelector('.cue-txt').textContent = state.camPos === 'haut' ? 'Regardez ici' : 'Objectif';
     const root = document.documentElement.style;
-    root.setProperty('--top-pad', state.camPos === 'haut' ? '3.4rem' : '0px');
+    root.setProperty('--top-pad', state.camPos === 'haut' ? '4.6rem' : '0px');
     root.setProperty('--side-pad', state.camPos === 'haut' ? '0px' : '2.4rem');
     $('#tip-cam').textContent = state.camPos === 'haut'
       ? 'L\'objectif est tout en haut de l\'iPad, au-dessus de l\'écran.'
@@ -948,7 +971,8 @@
   }
   function renderNames() {
     const q = norm($('#search').value);
-    const list = namesFor(state.dayId).filter(n => !q || norm(n).includes(q));
+    // Sans recherche : noms du jour. Avec recherche : tous les candidats (au cas où quelqu'un vient un autre jour)
+    const list = (q ? namesFor('ALL') : namesFor(state.dayId)).filter(n => !q || norm(n).includes(q));
     const box = $('#names');
     box.innerHTML = '';
     if (!list.length) {
@@ -1294,7 +1318,10 @@
   });
   $('#btn-names-save').addEventListener('click', async () => {
     const id = $('#adm-day').value; if (id === 'ALL') return;
-    const list = $('#adm-names').value.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    // Accepte un copier-coller depuis Excel : une colonne « Prénom Nom », ou deux colonnes Prénom | Nom
+    const list = $('#adm-names').value.split(/\r?\n+/)
+      .map(l => l.split('\t').map(c => c.trim()).filter(Boolean).slice(0, 2).join(' ').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
     LS.set('noms.' + id, list); fillNamesBox(); toast(list.length + ' noms enregistrés pour ' + dayLabel(id)); await refreshStats();
   });
   $('#btn-names-reset').addEventListener('click', async () => {
@@ -1498,7 +1525,14 @@
       (probe.ok
         ? '<br><b>Vidéo test : ' + probe.w + ' × ' + probe.h + ' · ' + fmtBytes(res.blob.size) + ' pour 5 s · ' + esc(res.mime) + (probe.h > probe.w ? ' · vertical ✔' : ' · <span class="warn">horizontal ⚠</span>') + '</b>'
         : '<br><span class="warn"><b>Aucun profil ne produit de vidéo lisible. Redémarrer la caméra puis refaire le test.</b></span>');
-    if (probe.ok) playBlob(res.blob, 'Test 5 s — ' + res.mime);
+    if (probe.ok) {
+      const lv = await audioLevel(res.blob);
+      if (lv) {
+        const verdict = lv.peak > -15 ? '✔ bon niveau' : lv.peak > -30 ? '<span class="warn">un peu faible : parler plus près de l\'iPad ou utiliser un micro</span>' : '<span class="warn">⚠ QUASI MUET : prévenir Claude / vérifier le micro</span>';
+        $('#cam-info').innerHTML += '<br><b>Son : crête ' + Math.round(lv.peak) + ' dB · moyenne ' + Math.round(lv.rms) + ' dB · ' + verdict + '</b>';
+      }
+      playBlob(res.blob, 'Test 5 s — ' + res.mime);
+    }
   });
   $('#btn-profile-reset').addEventListener('click', () => { state.profile = 0; LS.set('profile', 0); $('#cam-info').innerHTML = camInfo(); toast('Profil remis sur A (haute qualité)'); });
   $('#btn-cam-restart').addEventListener('click', async () => {
