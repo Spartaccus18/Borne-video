@@ -22,6 +22,7 @@
     --glass: rgba(255,255,255,0.12);
     --glass-strong: rgba(255,255,255,0.2);
     --top-pad: 0px;
+    --status: max(env(safe-area-inset-top), 32px);   /* hauteur de la barre d'état de l'iPad */
     --side-pad: 0px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -43,7 +44,7 @@
   .screen {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center;
-    padding: calc(env(safe-area-inset-top) + 2.2rem + var(--top-pad)) calc(env(safe-area-inset-right) + 2rem + var(--side-pad)) calc(env(safe-area-inset-bottom) + 2rem) calc(env(safe-area-inset-left) + 2rem + var(--side-pad));
+    padding: calc(var(--status) + 1.4rem + var(--top-pad)) calc(env(safe-area-inset-right) + 2rem + var(--side-pad)) calc(env(safe-area-inset-bottom) + 2rem) calc(env(safe-area-inset-left) + 2rem + var(--side-pad));
     text-align: center;
   }
   .center { justify-content: center; }
@@ -124,7 +125,7 @@
   #s-question .row { margin-top: 2.6rem; }
 
   /* ---------- Enregistrement ---------- */
-  #s-record { padding-top: calc(env(safe-area-inset-top) + 1.4rem + var(--top-pad)); }
+  #s-record { padding-top: calc(var(--status) + .9rem + var(--top-pad)); }
   .rec-q { font-size: 1.55rem; font-weight: 700; line-height: 1.25; max-width: 40rem; }
   .countdown { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); font-size: 9rem; font-weight: 800; text-shadow: 0 4px 20px rgba(0,0,0,.5); }
   .rec-badge { position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: .5rem; background: rgba(0,0,0,.55); padding: .35rem .9rem; border-radius: 999px; font-weight: 800; font-size: 1.1rem; letter-spacing: .05em; }
@@ -144,7 +145,7 @@
   /* ---------- Repère caméra ---------- */
   .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .4rem; background: #fff; color: var(--main); font-weight: 800; font-size: 1rem; padding: .35rem .9rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; animation: nudge 1.6s ease-in-out infinite; }
   .cam-cue .arrow { font-size: 1.3rem; line-height: 1; }
-  .cue-haut { top: calc(env(safe-area-inset-top) + .4rem); left: 50%; transform: translateX(-50%); }
+  .cue-haut { top: calc(var(--status) + .5rem); left: 50%; transform: translateX(-50%); }
   .cue-gauche { left: calc(env(safe-area-inset-left) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
   .cue-droite { right: calc(env(safe-area-inset-right) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
   @keyframes nudge { 50% { opacity: .75; } }
@@ -436,7 +437,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '2.4 · 29.09.2026';
+  const VERSION = '2.5 · 29.09.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -760,20 +761,74 @@
     if (!c.captureStream) return null;
     const ctx = c.getContext('2d');
     let raf = 0, alive = true;
-    const draw = () => {
-      if (!alive) return;
+    const paint = () => {
       const vw = src.videoWidth, vh = src.videoHeight;
       if (vw && vh) {
         const s = Math.max(c.width / vw, c.height / vh);
         const dw = vw * s, dh = vh * s;
         ctx.drawImage(src, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
       }
-      raf = requestAnimationFrame(draw);
     };
-    draw();
-    const out = c.captureStream(V.imagesParSeconde);
+    // Une image dessinée par image caméra (plus fluide qu'un rafraîchissement d'écran à 60 Hz)
+    const vfc = typeof src.requestVideoFrameCallback === 'function';
+    const loop = () => {
+      if (!alive) return;
+      paint();
+      raf = vfc ? src.requestVideoFrameCallback(loop) : requestAnimationFrame(loop);
+    };
+    loop();
+    const out = vfc ? c.captureStream() : c.captureStream(V.imagesParSeconde);
     stream.getAudioTracks().forEach(t => out.addTrack(t));
-    return { stream: out, stop() { alive = false; cancelAnimationFrame(raf); out.getVideoTracks().forEach(t => t.stop()); } };
+    return { stream: out, stop() {
+      alive = false;
+      try { vfc ? src.cancelVideoFrameCallback(raf) : cancelAnimationFrame(raf); } catch (e) {}
+      out.getVideoTracks().forEach(t => t.stop());
+    } };
+  }
+
+  /* Safari écrit parfois une durée d'image aberrante (0xFFFFFFFF) dans le MP4 fragmenté :
+     le fichier se lit mais sa durée apparaît fausse dans certains logiciels. On la corrige. */
+  async function fixMp4(blob) {
+    try {
+      if (!/mp4/.test(blob.type)) return blob;
+      const buf = new Uint8Array(await blob.arrayBuffer());
+      const dv = new DataView(buf.buffer);
+      let fixed = 0;
+      const walk = (start, end, cb) => {
+        let p = start;
+        while (p + 8 <= end) {
+          let size = dv.getUint32(p), hdr = 8;
+          const type = String.fromCharCode(buf[p + 4], buf[p + 5], buf[p + 6], buf[p + 7]);
+          if (size === 1) { size = Number(dv.getBigUint64(p + 8)); hdr = 16; }
+          else if (size === 0) size = end - p;
+          if (size < hdr || p + size > end) break;
+          cb(type, p + hdr, p + size);
+          p += size;
+        }
+      };
+      const fixTrun = (q) => {
+        const flags = dv.getUint32(q) & 0xffffff, cnt = dv.getUint32(q + 4);
+        let p = q + 8, prev = 0;
+        if (flags & 0x1) p += 4;
+        if (flags & 0x4) p += 4;
+        for (let k = 0; k < cnt; k++) {
+          if (flags & 0x100) {
+            const d = dv.getUint32(p);
+            if (d >= 0x80000000) { dv.setUint32(p, prev); fixed++; } else prev = d;
+            p += 4;
+          }
+          if (flags & 0x200) p += 4;
+          if (flags & 0x400) p += 4;
+          if (flags & 0x800) p += 4;
+        }
+      };
+      walk(0, buf.length, (t, s, e) => {
+        if (t === 'moof') walk(s, e, (t2, s2, e2) => {
+          if (t2 === 'traf') walk(s2, e2, (t3, s3) => { if (t3 === 'trun') fixTrun(s3); });
+        });
+      });
+      return fixed ? new Blob([buf], { type: blob.type }) : blob;
+    } catch (e) { return blob; }
   }
 
   function startRecorder() {
@@ -852,7 +907,7 @@
     cue.querySelector('.arrow').textContent = { haut: '↑', gauche: '←', droite: '→' }[state.camPos] || '↑';
     cue.querySelector('.cue-txt').textContent = state.camPos === 'haut' ? 'Regardez ici' : 'Objectif';
     const root = document.documentElement.style;
-    root.setProperty('--top-pad', state.camPos === 'haut' ? '1.6rem' : '0px');
+    root.setProperty('--top-pad', state.camPos === 'haut' ? '2.4rem' : '0px');
     root.setProperty('--side-pad', state.camPos === 'haut' ? '0px' : '2.4rem');
     $('#tip-cam').textContent = state.camPos === 'haut'
       ? 'L\'objectif est tout en haut de l\'iPad, au-dessus de l\'écran.'
@@ -1057,6 +1112,7 @@
     state.noIdle = false;
     if (sess !== state.session) return;       // session abandonnée
 
+    if (result.blob.size >= MIN_BYTES) result.blob = await fixMp4(result.blob);
     if (result.blob.size < MIN_BYTES) {
       // Enregistrement vide : on bascule sur un profil plus simple et on recommence (ne compte pas comme un essai)
       if (nextProfile()) {
@@ -1430,7 +1486,7 @@
       const r = startRecorder();
       for (let i = 5; i > 0; i--) { b.textContent = 'Test ' + PROFILES[state.profile].nom.split(' ')[0] + '… ' + i; await sleep(1000); }
       r.stop();
-      try { res = await r.done; } catch (e) { res = { blob: new Blob([]), mime: '', duration: 0 }; }
+      try { res = await r.done; res.blob = await fixMp4(res.blob); } catch (e) { res = { blob: new Blob([]), mime: '', duration: 0 }; }
       b.textContent = 'Vérification…';
       probe = await probeBlob(res.blob);
       log.push('Profil ' + PROFILES[state.profile].nom + ' : ' + fmtBytes(res.blob.size) + (probe.ok ? ' · lisible ✔' : ' · ILLISIBLE ✖'));
