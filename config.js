@@ -13,13 +13,14 @@ window.BORNE_CONFIG = {
   messageFin: "Vos vidéos ont bien été enregistrées.",
 
   /* ---------- Couleurs (codes hexadécimaux) ---------- */
-  couleurPrincipale: "#0b57d0",   // fond bleu
+  couleurPrincipale: "#00a0e2",   // fond cyan PLR (charte 2027 : cyan #00A0E2, bleu foncé #074EA1, magenta #E6007D)
+  retourVideoPendantPrise: false, // false = pas de retour vidéo pendant la prise (écran blanc + cadre de la question)
   couleurAccent: "#ffffff",       // boutons
 
   /* ---------- Logo (accueil + écran « Merci ») ----------
      Nom du fichier image placé à côté d'index.html. "" = pas de logo.
      Idéalement un PNG blanc sur fond transparent.                           */
-  logo: "logo-content-camp.png",
+  logo: "fdp-logo-blanc.svg",
 
   /* ---------- Anneau lumineux pendant l'enregistrement ----------
      Cadre blanc sur tout le tour de l'écran pour éclairer le visage (activable aussi
@@ -94,6 +95,14 @@ window.BORNE_CONFIG = {
      alertesEnDirect : messages pendant la prise (« Parlez plus fort », « Le micro s'est coupé »…) */
   microExterne: "avertir",
   alertesEnDirect: true,
+
+  /* ---------- Contrôle du regard ----------
+     La borne mesure où le candidat regarde (position de l'iris et orientation de la tête). Si le regard
+     n'est pas dirigé vers l'objectif pendant plus de 40 % de la prise, elle demande de recommencer.
+     seuilRegardX : écart horizontal toléré (0,15 = environ 25° de côté) ; seuilRegardY : écart vers le bas
+     toléré (0,10 = environ 15° sous l'objectif). Augmenter = plus tolérant, diminuer = plus strict. */
+  seuilRegardX: 0.15,
+  seuilRegardY: 0.10,
 
   /* ---------- Questions ----------
      id     : court, sans espace ni accent (sert au nom du fichier)

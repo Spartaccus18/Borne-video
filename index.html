@@ -8,14 +8,21 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Borne vidéo">
-<meta name="theme-color" content="#0b57d0">
+<meta name="theme-color" content="#00a0e2">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <script src="config.js"></script>
 <style>
+  /* Charte PLR Suisse 2027 : cyan (couleur principale), bleu foncé (secondaire), magenta (appel à l'action),
+     blanc et noir pour les textes ; police Jost (version libre prévue par la charte pour la milice) */
+  @font-face { font-family: "Jost"; font-weight: 400 600; src: url("fonts/Jost-Medium.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Jost"; font-weight: 700; src: url("fonts/Jost-Bold.ttf") format("truetype"); font-display: swap; }
+  @font-face { font-family: "Jost"; font-weight: 800 900; src: url("fonts/Jost-ExtraBold.ttf") format("truetype"); font-display: swap; }
   :root {
-    --main: #0b57d0;
+    --main: #00a0e2;
+    --dark: #074ea1;
+    --cta: #e6007d;
     --accent: #ffffff;
     --danger: #ff3b30;
     --ok: #34c759;
@@ -32,7 +39,7 @@
   html, body {
     width: 100%; height: 100%; overflow: hidden;
     background: var(--main); color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    font-family: "Jost", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none;
     overscroll-behavior: none; touch-action: manipulation;
     -webkit-text-size-adjust: 100%;
@@ -57,7 +64,7 @@
 
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
-    background: var(--accent); color: var(--main);
+    background: var(--accent); color: var(--dark);
     font-size: 1.6rem; font-weight: 700;
     border-radius: 999px; padding: 1.05rem 2.6rem; min-height: 4rem;
     box-shadow: 0 8px 26px rgba(0,0,0,0.22);
@@ -67,7 +74,7 @@
   .btn[disabled] { opacity: .45; pointer-events: none; }
   .btn-ghost { background: var(--glass); color: #fff; box-shadow: none; font-weight: 600; font-size: 1.25rem; padding: .85rem 1.8rem; min-height: 3.2rem; }
   .btn-stop { background: var(--danger); color: #fff; }
-  .btn-ok { background: var(--ok); color: #fff; }
+  .btn-ok { background: var(--cta); color: #fff; }
   .row { display: flex; gap: 1.3rem; justify-content: center; flex-wrap: wrap; }
 
   .brand-logo { display: block; height: 3.4rem; width: auto; margin: 0 auto; opacity: .95; }
@@ -108,7 +115,7 @@
   .intro-card { display: flex; flex-direction: column; align-items: center; max-width: 42rem; }
   .intro-card.anim { animation: intro-in .45s cubic-bezier(.2,.8,.2,1); }
   @keyframes intro-in { from { opacity: 0; transform: translateY(1.6rem) scale(.98); } to { opacity: 1; transform: none; } }
-  .intro-icon { width: 9rem; height: 9rem; border-radius: 50%; background: #fff; color: var(--main); display: grid; place-items: center; margin-bottom: 2.6rem; box-shadow: 0 12px 34px rgba(0,0,0,.22); }
+  .intro-icon { width: 9rem; height: 9rem; border-radius: 50%; background: #fff; color: var(--dark); display: grid; place-items: center; margin-bottom: 2.6rem; box-shadow: 0 12px 34px rgba(0,0,0,.22); }
   .intro-icon svg { width: 55%; height: 55%; display: block; }
   .intro-icon.nudge svg { animation: nudge 1.3s ease-in-out infinite; }
   @keyframes nudge { 50% { transform: translateY(-14%); } }
@@ -189,7 +196,7 @@
   #mic-alert .lead { margin-top: 1.2rem; max-width: 34rem; }
   #mic-alert .row { margin-top: 2.6rem; }
 
-  #btn-retake.advised { background: #fff; color: var(--main); font-weight: 800; animation: advise 1.5s ease-in-out infinite; }
+  #btn-retake.advised { background: #fff; color: var(--dark); font-weight: 800; animation: advise 1.5s ease-in-out infinite; }
   @keyframes advise { 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.18); } }
 
   /* ---------- Question ---------- */
@@ -219,7 +226,7 @@
   .play-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,.35); font-size: 1.4rem; font-weight: 700; }
 
   /* ---------- Repère caméra ---------- */
-  .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .5rem; background: #fff; color: var(--main); font-weight: 800; font-size: 1.1rem; padding: .5rem 1.2rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; }
+  .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .5rem; background: #fff; color: var(--dark); font-weight: 800; font-size: 1.1rem; padding: .5rem 1.2rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; }
   .cam-cue .arrow { font-size: 1.3rem; line-height: 1; }
   .cue-haut { top: calc(var(--status) + .8rem); left: 50%; transform: translateX(-50%); flex-direction: column; gap: .1rem; padding: .3rem 1.3rem .5rem; }
   .cue-haut .arrow { font-size: 1.6rem; line-height: 1; }
@@ -230,15 +237,34 @@
      Tout l'écran devient une source de lumière blanche ; le contenu est posé dessus
      dans une carte bleue aux coins arrondis. */
   html.ring-on, html.ring-on body { background: var(--ring-color); transition: background .35s ease; }
-  html.ring-on #s-record {
+  html.ring-on:not(.noself) #s-record {
     inset: max(var(--ring), calc(var(--status) + 4.6rem)) var(--ring) var(--ring) var(--ring);
     border-radius: 2.6rem; background: var(--main);
     box-shadow: 0 10px 40px rgba(0,0,0,.18);
     padding: 1.6rem 1.6rem 1.8rem;
   }
-  html.ring-on #s-record .preview-wrap { margin: 1.2rem 0; }
-  html.ring-on .cam-cue { background: var(--main); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+  html.ring-on:not(.noself) #s-record .preview-wrap { margin: 1.2rem 0; }
+  html.ring-on .cam-cue { background: var(--dark); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
   html.ring-on .cue-haut { top: calc(var(--status) + .6rem); }
+
+  /* Prise sans retour vidéo : écran entièrement blanc (lumière maximale sur le visage),
+     un seul petit cadre bleu foncé près de l'objectif avec la question ou le mannequin.
+     La vidéo continue d'être filmée, mais elle est cachée (on regarde l'objectif, pas son image). */
+  html.noself #s-record { inset: 0; justify-content: space-between; background: transparent; color: var(--dark);
+    padding: calc(var(--status) + var(--top-pad) + .8rem) 1.6rem calc(env(safe-area-inset-bottom) + 2rem); }
+  html.noself #rec-wrap { position: absolute; left: 0; bottom: 0; width: 90px; height: 160px; margin: 0; opacity: .02; pointer-events: none; overflow: hidden; }
+  html.noself .rec-card { background: var(--dark); color: #fff; border-radius: 1.6rem; padding: 1.2rem 1.7rem; width: min(100%, 38rem); box-shadow: 0 8px 26px rgba(7,78,161,.3); }
+  html.noself .rec-q { font-size: 1.85rem; text-align: center; }
+  html.noself .rec-pose canvas { width: 10rem; height: 11.5rem; }
+  html.noself .countdown { background: transparent; color: var(--dark); text-shadow: none; }
+  html.noself .bar { background: rgba(7,78,161,.16); }
+  html.noself .bar > div { background: var(--dark); }
+  html.noself .rec-time { color: var(--dark); }
+  html.noself .rec-badge { top: calc(var(--status) + .5rem); left: 1.2rem; }
+  html.noself .live-chip { top: auto; bottom: calc(env(safe-area-inset-bottom) + 10.5rem); }
+  /* Si l'objectif est sur un côté de l'iPad, le cadre se place près de ce côté */
+  html.noself[data-cam="gauche"] .rec-card { align-self: flex-start; margin-top: auto; margin-bottom: auto; width: min(60%, 30rem); }
+  html.noself[data-cam="droite"] .rec-card { align-self: flex-end; margin-top: auto; margin-bottom: auto; width: min(60%, 30rem); }
 
   /* ---------- Fin / erreur ---------- */
   #s-end h1 { font-size: 5rem; line-height: 1.15; }
@@ -266,7 +292,7 @@
   .card .row { justify-content: flex-start; margin-top: .6rem; gap: .6rem; }
   .seg { display: flex; gap: .5rem; flex-wrap: wrap; }
   .seg button { background: var(--glass); padding: .6rem 1rem; border-radius: .7rem; font-size: 1rem; font-weight: 600; }
-  .seg button.on { background: #fff; color: var(--main); }
+  .seg button.on { background: #fff; color: var(--dark); }
   .adm select, .adm textarea { width: 100%; font-size: 1rem; border-radius: .7rem; border: none; padding: .7rem .8rem; color: #111; background: #fff; }
   .adm textarea { min-height: 10rem; resize: vertical; }
   .adm .btn { font-size: 1.05rem; padding: .7rem 1.3rem; min-height: 2.8rem; }
@@ -298,7 +324,7 @@
 <!-- ============ ACCUEIL ============ -->
 <section id="s-home" class="screen">
   <div id="admin-hotspot" aria-hidden="true"></div>
-  <img class="brand-logo hidden" alt="Content Camp">
+  <img class="brand-logo hidden" alt="PLR">
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
@@ -381,17 +407,17 @@
 
 <!-- ============ ENREGISTREMENT ============ -->
 <section id="s-record" class="screen hidden">
-  <p class="rec-q" id="rec-q"></p>
-  <div class="rec-pose hidden" id="rec-pose"><canvas id="mini-canvas"></canvas><div class="rec-pose-txt"><span class="rec-pose-n" id="rec-pose-n"></span><span id="rec-pose-txt"></span></div></div>
+  <p class="rec-q rec-card" id="rec-q"></p>
+  <div class="rec-pose rec-card hidden" id="rec-pose"><canvas id="mini-canvas"></canvas><div class="rec-pose-txt"><span class="rec-pose-n" id="rec-pose-n"></span><span id="rec-pose-txt"></span></div></div>
   <div class="preview-wrap" id="rec-wrap">
     <div class="preview-box" id="rec-box">
       <video id="rec-video" autoplay muted playsinline></video>
-      <div class="rec-badge hidden" id="rec-badge"><span class="rec-dot"></span>REC</div>
-      <div class="countdown" id="countdown">3</div>
       <div class="vu vu-v" id="vu-rec"><i></i></div>
-      <div class="live-chip hidden" id="live-chip"></div>
     </div>
   </div>
+  <div class="rec-badge hidden" id="rec-badge"><span class="rec-dot"></span>REC</div>
+  <div class="countdown" id="countdown">3</div>
+  <div class="live-chip hidden" id="live-chip"></div>
   <div class="rec-bottom">
     <div class="bar" id="bar"><div></div></div>
     <div class="rec-time" id="rec-time">0:30</div>
@@ -420,7 +446,7 @@
 <section id="s-end" class="screen center hidden">
   <h1 id="end-title">Merci beaucoup !</h1>
   <p class="lead" id="end-txt">Vos vidéos ont bien été enregistrées.</p>
-  <img class="brand-logo hidden" alt="Content Camp">
+  <img class="brand-logo hidden" alt="PLR">
 </section>
 
 <!-- ============ ERREUR ============ -->
@@ -515,12 +541,18 @@
     </div>
 
     <div class="card">
-      <h3>Anneau lumineux</h3>
+      <h3>Écran blanc pendant la prise</h3>
       <div class="seg" id="seg-ring">
         <button data-v="on">Activé</button>
         <button data-v="off">Désactivé</button>
       </div>
-      <p class="small" style="margin-top:.5rem">Pendant l'enregistrement, un cadre blanc sur le bord de l'écran éclaire le visage. Pour un effet maximal : luminosité de l'iPad au maximum et « Luminosité automatique » désactivée (Réglages › Accessibilité › Affichage et taille du texte). C'est un appoint : il ne remplace pas une vraie lampe, et il peut se refléter dans les lunettes.</p>
+      <p class="small" style="margin-top:.5rem">Pendant l'enregistrement, tout l'écran devient blanc pour éclairer le visage ; seul un petit cadre reste visible, près de l'objectif, avec la question. Une application web ne peut pas régler la luminosité de l'iPad : mettez-la au maximum à la main (Centre de contrôle) et désactivez « Luminosité automatique » et « True Tone » (Réglages › Accessibilité › Affichage et taille du texte ; Réglages › Luminosité). C'est un appoint : il ne remplace pas une vraie lampe, et il peut se refléter dans les lunettes.</p>
+      <h3 style="margin-top:1.1rem">Retour vidéo pendant la prise</h3>
+      <div class="seg" id="seg-selfview">
+        <button data-v="off">Masqué (recommandé)</button>
+        <button data-v="on">Affiché</button>
+      </div>
+      <p class="small" style="margin-top:.5rem">Masqué : le candidat ne se voit pas pendant qu'il parle, il regarde l'objectif au lieu de son image. Il revoit sa vidéo juste après la prise.</p>
     </div>
 
     <div class="card">
@@ -604,7 +636,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.3 · 22.10.2026';
+  const VERSION = '3.5 · 22.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -639,6 +671,7 @@
     camPos: LS.get('camPos', 'haut'),
     recMode: LS.get('recMode', 'direct'),
     ring: LS.get('ring', CFG.anneauLumineux !== false),
+    selfview: LS.get('selfview', CFG.retourVideoPendantPrise === true),   // retour vidéo pendant la prise : non par défaut (on regarde l'objectif, pas son image)
     screen: 'home',
     session: 0,          // change à chaque nouveau candidat (protège les tâches asynchrones)
     candidate: null,
@@ -656,7 +689,7 @@
   }
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
-  document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#0b57d0');
+  document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#00a0e2');
   document.documentElement.style.setProperty('--accent', CFG.couleurAccent || '#ffffff');
 
   /* ------------------------------------------------------------------
@@ -1423,7 +1456,41 @@
     const m = QA.map, side = Math.max(box.width, box.height) * 1.3 / m.sc;
     const cx = (box.x + box.width / 2 - m.ox) / m.sc, cy = (box.y + box.height / 2 - m.oy) / m.sc;
     QA.cctx.drawImage(v, cx - side / 2, cy - side / 2, side, side, 0, 0, CROP, CROP);
+    QA.cropInfo = { sx: cx - side / 2, sy: cy - side / 2, k: side / CROP };   // pour retrouver les yeux en pleine définition
     return QA.crop;
+  }
+  /* Direction du regard : position de l'iris (zone la plus sombre) dans l'œil, mesurée sur l'image caméra en pleine définition.
+     dx : décalage horizontal (en largeur d'œil, 0 = centré), dy : décalage vertical (positif = vers le bas). */
+  const EYES = [[36, 37, 38, 39, 40, 41], [42, 43, 44, 45, 46, 47]];
+  function irisGaze(v, lm) {
+    const ci = QA.cropInfo; if (!ci) return null;
+    if (!QA.eye) { QA.eye = document.createElement('canvas'); QA.eye.width = 64; QA.eye.height = 40; QA.ectx = QA.eye.getContext('2d', { willReadFrequently: true }); }
+    const P = lm.positions, W = 64, H = 40, out = [];
+    for (const idx of EYES) {
+      const pts = idx.map(i => ({ x: ci.sx + P[i].x * ci.k, y: ci.sy + P[i].y * ci.k }));
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+      const ew = x1 - x0; if (ew < 14) continue;                      // œil trop petit : mesure peu fiable
+      const ecx = (x0 + x1) / 2, ecy = (y0 + y1) / 2;
+      const rw = ew * 1.3, rh = rw * H / W;
+      QA.ectx.drawImage(v, ecx - rw / 2, ecy - rh / 2, rw, rh, 0, 0, W, H);
+      const d = QA.ectx.getImageData(0, 0, W, H).data;
+      // zone utile : l'intérieur de l'œil (entre les paupières, sans les coins)
+      const pxPerSrc = W / rw, ax = Math.round((x0 + ew * 0.18 - (ecx - rw / 2)) * pxPerSrc), bx = Math.round((x1 - ew * 0.18 - (ecx - rw / 2)) * pxPerSrc);
+      const ay = Math.round((y0 + (y1 - y0) * 0.12 - (ecy - rh / 2)) * pxPerSrc), by = Math.round((y1 - (y1 - y0) * 0.12 - (ecy - rh / 2)) * pxPerSrc);
+      const g = [];
+      for (let y = Math.max(0, ay); y < Math.min(H, by); y++) for (let x = Math.max(0, ax); x < Math.min(W, bx); x++) { const i = (y * W + x) * 4; g.push([x, y, 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]]); }
+      if (g.length < 30) continue;
+      const sorted = g.map(a => a[2]).sort((a, b) => a - b), T = sorted[Math.floor(sorted.length * 0.2)], lo = sorted[0], hi = sorted[sorted.length - 1];
+      if (hi - lo < 25) continue;                                       // pas de contraste : œil fermé, reflet…
+      let sw = 0, sx = 0, sy = 0;
+      for (const [x, y, l] of g) if (l <= T) { const w = T - l + 1; sw += w; sx += w * x; sy += w * y; }
+      if (!sw) continue;
+      const cxs = (sx / sw) / pxPerSrc + (ecx - rw / 2), cys = (sy / sw) / pxPerSrc + (ecy - rh / 2);
+      out.push({ dx: (cxs - ecx) / ew, dy: (cys - ecy) / ew });
+    }
+    if (!out.length) return null;
+    return { dx: out.reduce((a, o) => a + o.dx, 0) / out.length, dy: out.reduce((a, o) => a + o.dy, 0) / out.length };
   }
   function sharpness() {   // variance du laplacien sur le centre du visage, rapportée au contraste
     const d = QA.cctx.getImageData(0, 0, CROP, CROP).data, g = new Float32Array(CROP * CROP);
@@ -1468,7 +1535,7 @@
           const c = cropFace(v, b0);
           sharp = sharpness();
           const lm = await QA.api.detectFaceLandmarksTiny(c);
-          if (lm) geo = faceGeometry(lm);
+          if (lm) { geo = faceGeometry(lm); const gz = irisGaze(v, lm); if (gz) { geo.gx = gz.dx; geo.gy = gz.dy; } }
         } catch (e) {}
       }
     }
@@ -1482,7 +1549,7 @@
       top: box ? box.y / QH : null,
       luma: L.face != null ? L.face : L.bg, bg: L.bg, hot: L.hot, hash: L.hash,
       happy: det && det.expressions ? det.expressions.happy : null,
-      faces, sharp, yaw: geo.yaw != null ? geo.yaw : null, roll: geo.roll != null ? geo.roll : null, ear: geo.ear != null ? geo.ear : null
+      faces, sharp, gx: geo.gx != null ? geo.gx : null, gy: geo.gy != null ? geo.gy : null, yaw: geo.yaw != null ? geo.yaw : null, roll: geo.roll != null ? geo.roll : null, ear: geo.ear != null ? geo.ear : null
     };
   }
   function startSampling(v, isPose, dur) {
@@ -1556,10 +1623,16 @@
         else if (top < 0.025) add('tip', 'headroom', 'Le haut de votre tête est coupé : reculez un peu.');
         if (!isPose && F.length >= 6 && Math.max(sd(F.map(x => x.cx)), sd(F.map(x => x.cy))) > 0.06) add('tip', 'moving', 'Vous bougez beaucoup : restez bien en place, épaules face à l\'iPad.');
         const G = F.filter(x => x.yaw != null);
-        if (!isPose && G.length >= 5) {
-          if (G.filter(x => Math.abs(x.yaw) > 0.28).length / G.length > 0.4) add('tip', 'gaze', 'Regardez l\'objectif (en haut de l\'iPad), pas l\'écran ni une personne à côté.');
-          else if (G.filter(x => x.ear != null && x.ear < 0.14).length / G.length > 0.35) add('tip', 'eyes', 'On voit peu vos yeux : levez le regard vers l\'objectif, en haut de l\'iPad.');
-          if (Math.abs(median(G.map(x => x.roll))) > 12) add('tip', 'roll', 'Votre tête est penchée sur le côté : redressez-la.');
+        // Regard : le candidat doit fixer l'objectif, pas l'écran (ni une personne à côté). Deux mesures :
+        // orientation de la tête (yaw) et position de l'iris dans l'œil (gx horizontal, gy vertical, positif = vers le bas).
+        const Z = F.filter(x => x.gx != null), GX = Number(CFG.seuilRegardX) || 0.15, GY = Number(CFG.seuilRegardY) || 0.1;
+        if (!isPose && (G.length >= 5 || Z.length >= 5)) {
+          const headOff = G.length >= 5 ? G.filter(x => Math.abs(x.yaw) > 0.28).length / G.length : 0;
+          const eyeOff = (Z.length >= 5 && state.camPos === 'haut') ? Z.filter(x => Math.abs(x.gx) > GX || x.gy > GY).length / Z.length : 0;
+          live.gazeOff = Math.round(100 * Math.max(headOff, eyeOff));
+          if (headOff > 0.4 || eyeOff > 0.4) add('redo', 'gaze', 'Vous ne regardez pas l\'objectif de la caméra : recommencez en fixant le petit objectif, en haut de l\'iPad, pas l\'écran.');
+          else if (G.filter(x => x.ear != null && x.ear < 0.14).length / Math.max(1, G.length) > 0.35) add('tip', 'eyes', 'On voit peu vos yeux : levez le regard vers l\'objectif, en haut de l\'iPad.');
+          if (G.length >= 5 && Math.abs(median(G.map(x => x.roll))) > 12) add('tip', 'roll', 'Votre tête est penchée sur le côté : redressez-la.');
         }
         const M = S.filter(x => x.faces != null);
         if (M.length >= 3 && M.filter(x => x.faces >= 2).length / M.length > 0.3) add('tip', 'others', 'Une autre personne apparaît derrière vous : demandez-lui de sortir du champ.');
@@ -1665,7 +1738,8 @@
     const rep = buildReport(step, samples, audio, byTimer, live);
     // Bilan conservé avec la vidéo (visible dans le suivi du menu organisateur)
     meta.qa = { redo: rep.redo, codes: [...new Set(rep.codes)], mic: live.info ? live.info.label : '',
-      voix: live.st && live.st.speech != null ? Math.round(live.st.speech) : null, bruit: live.st ? Math.round(live.st.noise) : null };
+      voix: live.st && live.st.speech != null ? Math.round(live.st.speech) : null, bruit: live.st ? Math.round(live.st.noise) : null,
+      regard: live.gazeOff != null ? live.gazeOff : null };
     try { await DB.put(meta); } catch (e) {}
     if (live.sharp != null && !rep.codes.includes('blur')) { const h = LS.get('sharpHist', []); h.push(live.sharp); LS.set('sharpHist', h.slice(-40)); }
     if (sess !== state.session || state.screen !== 'review') return;
@@ -1728,6 +1802,7 @@
     SCREENS.forEach(s => $('#s-' + s).classList.toggle('hidden', s !== name));
     $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
     document.documentElement.classList.toggle('ring-on', !!state.ring && name === 'record');
+    document.documentElement.classList.toggle('noself', !!state.ring && !state.selfview && name === 'record');
     if (name !== 'pose' && demoMan) demoMan.stop();
     if (name !== 'intro') stopIntroTimer();
     if (name === 'prep') startAssist();
@@ -1741,6 +1816,7 @@
     const rot = { haut: 0, gauche: -90, droite: 90 }[state.camPos] || 0;
     cue.querySelector('.arrow').innerHTML = '<svg viewBox="0 0 24 24" width="1.4em" height="1.4em" style="display:block;transform:rotate(' + rot + 'deg)" aria-hidden="true"><path d="M12 3 L5 11 H10 V21 H14 V11 H19 Z" fill="currentColor"/></svg>';
     cue.querySelector('.cue-txt').textContent = state.camPos === 'haut' ? 'Regardez ici' : 'Objectif';
+    document.documentElement.dataset.cam = state.camPos;
     const root = document.documentElement.style;
     root.setProperty('--top-pad', state.camPos === 'haut' ? '4.6rem' : '0px');
     root.setProperty('--side-pad', state.camPos === 'haut' ? '0px' : '2.4rem');
@@ -2289,6 +2365,7 @@
     setSeg('#seg-cam', state.camPos);
     setSeg('#seg-mode', state.recMode);
     setSeg('#seg-ring', state.ring ? 'on' : 'off');
+    setSeg('#seg-selfview', state.selfview ? 'on' : 'off');
     $('#app-info').textContent = 'Version ' + VERSION + ' · ' + (navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'lancée depuis l\'écran d\'accueil ✔' : 'lancée dans le navigateur (préférer l\'icône de l\'écran d\'accueil)') + ' · ' + (window.isSecureContext ? 'HTTPS ✔' : 'NON SÉCURISÉ ⚠');
     $('#cam-info').innerHTML = camInfo();
     micCtx(); setSeg('#seg-micext', micMode()); micNameUi(); fillMicSelect();
@@ -2356,6 +2433,9 @@
   }));
   document.querySelectorAll('#seg-ring button').forEach(b => b.addEventListener('click', () => {
     state.ring = b.dataset.v === 'on'; LS.set('ring', state.ring); setSeg('#seg-ring', b.dataset.v);
+  }));
+  document.querySelectorAll('#seg-selfview button').forEach(b => b.addEventListener('click', () => {
+    state.selfview = b.dataset.v === 'on'; LS.set('selfview', state.selfview); setSeg('#seg-selfview', b.dataset.v);
   }));
   document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => {
     state.recMode = b.dataset.v; LS.set('recMode', state.recMode); setSeg('#seg-mode', state.recMode); $('#cam-info').innerHTML = camInfo(); fitAll();
