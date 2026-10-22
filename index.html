@@ -77,9 +77,11 @@
   .btn-ok { background: var(--cta); color: #fff; }
   .row { display: flex; gap: 1.3rem; justify-content: center; flex-wrap: wrap; }
 
-  .brand-logo { display: block; height: 3.4rem; width: auto; margin: 0 auto; opacity: .95; }
-  #s-home .brand-logo { margin-bottom: 1.2rem; }
-  #s-end .brand-logo { height: 7.5rem; margin-top: 5.5rem; }
+  .brand-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; pointer-events: none; }
+  #s-end .brand-bar { position: absolute; top: calc(var(--status) + 2rem + var(--top-pad)); left: calc(env(safe-area-inset-left) + 2.6rem + var(--side-pad)); right: calc(env(safe-area-inset-right) + 2.6rem + var(--side-pad)); width: auto; margin: 0; }
+  .brand-logo { display: block; height: 3.4rem; width: auto; opacity: .97; }
+  .brand-logo.brand-right { height: 5.4rem; }
+  #s-end .brand-logo { height: 3.8rem; } #s-end .brand-logo.brand-right { height: 6rem; }
   /* ---------- Accueil ---------- */
   #s-home h1 { margin-top: .4rem; }
   #s-home .lead { margin-top: 1rem; }
@@ -324,7 +326,7 @@
 <!-- ============ ACCUEIL ============ -->
 <section id="s-home" class="screen">
   <div id="admin-hotspot" aria-hidden="true"></div>
-  <img class="brand-logo hidden" alt="PLR">
+  <div class="brand-bar"><img class="brand-logo brand-left hidden" alt="PLR"><img class="brand-logo brand-right hidden" alt="Content Camp"></div>
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
@@ -445,8 +447,8 @@
 <!-- ============ FIN ============ -->
 <section id="s-end" class="screen center hidden">
   <h1 id="end-title">Merci beaucoup !</h1>
+  <div class="brand-bar"><img class="brand-logo brand-left hidden" alt="PLR"><img class="brand-logo brand-right hidden" alt="Content Camp"></div>
   <p class="lead" id="end-txt">Vos vidéos ont bien été enregistrées.</p>
-  <img class="brand-logo hidden" alt="PLR">
 </section>
 
 <!-- ============ ERREUR ============ -->
@@ -636,7 +638,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.5 · 22.10.2026';
+  const VERSION = '3.6 · 22.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -2680,9 +2682,15 @@
      Démarrage
      ------------------------------------------------------------------ */
   async function boot() {
-    if (CFG.logo) document.querySelectorAll('.brand-logo').forEach(img => {
+    document.querySelectorAll('.brand-left').forEach(img => {
+      if (!CFG.logo) return;
       img.onload = () => img.classList.remove('hidden');
       img.src = CFG.logo;
+    });
+    document.querySelectorAll('.brand-right').forEach(img => {
+      if (!CFG.logoDroite) return;
+      img.onload = () => img.classList.remove('hidden');
+      img.src = CFG.logoDroite;
     });
     if (CFG.messageFinTitre) $('#end-title').textContent = CFG.messageFinTitre;
     if (typeof CFG.messageFin === 'string') $('#end-txt').textContent = CFG.messageFin;

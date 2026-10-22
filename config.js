@@ -21,6 +21,7 @@ window.BORNE_CONFIG = {
      Nom du fichier image placé à côté d'index.html. "" = pas de logo.
      Idéalement un PNG blanc sur fond transparent.                           */
   logo: "fdp-logo-blanc.svg",
+  logoDroite: "logo-content-camp.png",   // logo Content Camp, en haut à droite (symétrique du logo PLR)
 
   /* ---------- Anneau lumineux pendant l'enregistrement ----------
      Cadre blanc sur tout le tour de l'écran pour éclairer le visage (activable aussi
