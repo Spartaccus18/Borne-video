@@ -160,6 +160,35 @@
   .qa ul { list-style: none; }
   .qa li { display: flex; gap: .65rem; font-size: 1.05rem; line-height: 1.5; padding: .25rem 0; }
   .qa li .i { flex: none; width: 1.4rem; text-align: center; }
+  .qa li.tech { font-size: .92rem; opacity: .88; }
+  .qa-tech { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid rgba(255,255,255,.18); }
+  .qa-tech p { font-size: .85rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .7; margin-bottom: .2rem; }
+
+  /* ---------- Contrôle du son ---------- */
+  .vu { position: relative; width: 100%; height: .75rem; border-radius: 999px; background: rgba(255,255,255,.18); overflow: hidden; }
+  .vu > i { position: absolute; left: 0; top: 0; bottom: 0; width: var(--v, 0%); background: rgba(255,255,255,.6); border-radius: 999px; transition: width .07s linear, height .07s linear, background .2s; }
+  .vu::after { content: ""; position: absolute; top: 0; bottom: 0; left: 30%; width: 50%; border-left: 2px solid rgba(255,255,255,.55); border-right: 2px solid rgba(255,255,255,.55); }
+  .vu[data-s="ok"] > i { background: #5be37d; }
+  .vu[data-s="hot"] > i { background: #ff5a4e; }
+  .vu[data-s="off"] > i { width: 0; }
+  .vu-v { position: absolute; left: .9rem; bottom: 1rem; width: .8rem; height: 32%; background: rgba(0,0,0,.35); }
+  .vu-v > i { top: auto; width: 100%; height: var(--v, 0%); }
+  .vu-v::after { left: 0; width: auto; right: 0; top: 20%; bottom: 30%; border: none; border-top: 2px solid rgba(255,255,255,.6); border-bottom: 2px solid rgba(255,255,255,.6); }
+  .mic-check { width: min(100%, 30rem); margin: 0 0 1.1rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+  .mic-top { font-size: 1.3rem; font-weight: 800; line-height: 1.3; min-height: 1.7rem; transition: color .25s; }
+  .mic-check[data-s="good"] .mic-top { color: #8affb0; }
+  .mic-check[data-s="warn"] .mic-top { color: #ffd54a; }
+  .mic-check[data-s="bad"] .mic-top { color: #ff9a90; }
+  .mic-name { font-size: .9rem; opacity: .7; min-height: 1.1rem; }
+  .mic-name.warn { opacity: 1; color: #ffd54a; font-weight: 700; }
+  .live-chip { position: absolute; top: 3.4rem; left: 50%; transform: translateX(-50%); z-index: 3; white-space: nowrap; padding: .6rem 1.3rem; border-radius: 999px; font-weight: 800; font-size: 1.3rem; background: #ffcc00; color: #111; box-shadow: 0 6px 20px rgba(0,0,0,.35); animation: pop .25s ease-out; }
+  .live-chip[data-s="bad"] { background: #ff3b30; color: #fff; }
+  .mic-banner { position: fixed; z-index: 30; left: calc(env(safe-area-inset-left) + .8rem); bottom: calc(env(safe-area-inset-bottom) + .7rem); background: #ff3b30; color: #fff; font-weight: 700; font-size: .9rem; padding: .45rem .85rem; border-radius: .7rem; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  #mic-alert { justify-content: center; text-align: center; z-index: 55; }
+  #mic-alert h2 { margin-top: 1rem; }
+  #mic-alert .lead { margin-top: 1.2rem; max-width: 34rem; }
+  #mic-alert .row { margin-top: 2.6rem; }
+
   #btn-retake.advised { background: #fff; color: var(--main); font-weight: 800; animation: advise 1.5s ease-in-out infinite; }
   @keyframes advise { 50% { box-shadow: 0 0 0 10px rgba(255,255,255,.18); } }
 
@@ -311,6 +340,11 @@
       <div class="assist hidden" id="prep-assist"></div>
     </div>
   </div>
+  <div class="mic-check" id="mic-check" data-s="idle">
+    <p class="mic-top" id="mic-msg">Dites quelques mots pour tester le son</p>
+    <div class="vu" id="vu-prep"><i></i></div>
+    <p class="mic-name" id="mic-name-prep"></p>
+  </div>
   <div class="row">
     <button class="btn btn-ghost" id="btn-prep-back">Revoir les conseils</button>
     <button class="btn" id="btn-prep-go">C'est parti</button>
@@ -354,6 +388,8 @@
       <video id="rec-video" autoplay muted playsinline></video>
       <div class="rec-badge hidden" id="rec-badge"><span class="rec-dot"></span>REC</div>
       <div class="countdown" id="countdown">3</div>
+      <div class="vu vu-v" id="vu-rec"><i></i></div>
+      <div class="live-chip hidden" id="live-chip"></div>
     </div>
   </div>
   <div class="rec-bottom">
@@ -372,7 +408,7 @@
       <button class="play-overlay hidden" id="rev-play">▶ Revoir ma réponse</button>
     </div>
   </div>
-  <div class="qa hidden" id="rev-qa"><p class="qa-title" id="qa-title"></p><ul id="qa-list"></ul></div>
+  <div class="qa hidden" id="rev-qa"><p class="qa-title" id="qa-title"></p><ul id="qa-list"></ul><div class="qa-tech hidden" id="qa-tech"><p>Pour l'organisateur</p><ul id="qa-tech-list"></ul></div></div>
   <div class="row">
     <button class="btn btn-ghost" id="btn-retake">Recommencer</button>
     <button class="btn btn-ok" id="btn-keep">C'est parfait</button>
@@ -497,6 +533,27 @@
     </div>
 
     <div class="card">
+      <h3>Micro et contrôle du son</h3>
+      <p>Micro utilisé : <b id="adm-mic-name">–</b></p>
+      <div class="vu" id="vu-adm" style="margin-top:.6rem"><i></i></div>
+      <p class="mono" id="adm-mic-live" style="margin-top:.4rem">–</p>
+      <p class="small" style="margin-top:.8rem">Choix du micro (si l'iPad en propose plusieurs) :</p>
+      <select id="adm-mic-sel" style="margin-top:.3rem"></select>
+      <p class="small" style="margin-top:.8rem">Micro externe (Bluetooth ou sans fil) :</p>
+      <div class="seg" id="seg-micext" style="margin-top:.3rem">
+        <button data-v="avertir">Avertir s'il manque</button>
+        <button data-v="bloquer">Obligatoire (bloque les prises)</button>
+        <button data-v="non">Pas de micro externe</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="btn-mic-test">Test du son (10 s)</button>
+        <button class="btn btn-ghost" id="btn-mic-restart">Reconnecter le micro</button>
+      </div>
+      <p class="mono" id="mic-test-res" style="margin-top:.6rem"></p>
+      <p class="small" style="margin-top:.6rem">Test à faire chaque matin et après chaque changement de batterie : 3 secondes de silence, puis 6 secondes en parlant normalement, micro porté à la place prévue (à environ une main sous le menton).</p>
+    </div>
+
+    <div class="card">
       <h3>Test caméra et micro</h3>
       <p class="small" style="margin-bottom:.5rem">À faire chaque matin, <b>en parlant normalement pendant les 5 secondes</b> (pour contrôler le son). Si la vidéo sort vide, le test essaie automatiquement un autre profil d'enregistrement et garde celui qui fonctionne.</p>
       <video id="cal-video" autoplay muted playsinline style="width:9rem;aspect-ratio:9/16;object-fit:cover;transform:scaleX(-1);border-radius:.8rem;background:#000;float:right;margin:0 0 .6rem 1rem"></video>
@@ -527,11 +584,27 @@
 
 <div id="toast" class="toast hidden"></div>
 
+<!-- Bandeau permanent pour l'organisateur quand le micro externe manque -->
+<div id="mic-banner" class="mic-banner hidden"></div>
+
+<!-- Alerte bloquante avant une prise : micro absent, coupé ou muet -->
+<div id="mic-alert" class="overlay hidden">
+  <div style="font-size:4.5rem;line-height:1">🎤</div>
+  <h2 id="mic-alert-title">Problème de micro</h2>
+  <p class="lead" id="mic-alert-txt"></p>
+  <p class="small" style="margin-top:1rem">Appelez un organisateur.</p>
+  <div class="row">
+    <button class="btn btn-ghost" id="btn-mic-home">Accueil</button>
+    <button class="btn btn-ghost" id="btn-mic-go">Continuer quand même</button>
+    <button class="btn" id="btn-mic-retry">Réessayer</button>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
-  const VERSION = '3.1 · 29.09.2026';
+  const VERSION = '3.2 · 22.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -724,10 +797,14 @@
     let s = null, lastErr = null;
     // Réglage retenu lors du calibrage (menu organisateur), sinon image verticale 1080 × 1920
     const cs = CAM_SETS[state.camSet] || CAM_SETS[0];
-    const tries = [
-      { video: { facingMode: 'user', width: { ideal: cs.w }, height: { ideal: cs.h }, frameRate: { ideal: V.imagesParSeconde } }, audio },
+    const vid = { facingMode: 'user', width: { ideal: cs.w }, height: { ideal: cs.h }, frameRate: { ideal: V.imagesParSeconde } };
+    // Micro choisi dans le menu organisateur, sinon le micro externe s'il est déjà connu
+    let want = LS.get('micId', '');
+    if (!want && micExternalWanted()) { const ext = (MIC.devices || []).find(d => d.label && !BUILTIN_RE.test(d.label) && d.deviceId && d.deviceId !== 'default'); if (ext) want = ext.deviceId; }
+    const tries = (want ? [{ video: vid, audio: Object.assign({}, audio, { deviceId: { exact: want } }) }] : []).concat([
+      { video: vid, audio },
       { video: { facingMode: 'user' }, audio: true }
-    ];
+    ]);
     for (const c of tries) {
       try { s = await navigator.mediaDevices.getUserMedia(c); break; }
       catch (e) { lastErr = e; if (e.name === 'NotAllowedError' || e.name === 'SecurityError') break; }
@@ -736,6 +813,7 @@
     stream = s;
     stream.getTracks().forEach(t => t.addEventListener('ended', () => { if (stream === s) stream = null; }));
     ['#prep-video', '#rec-video', '#cal-video'].forEach(sel => { const v = $(sel); v.srcObject = stream; v.play().catch(() => {}); });
+    micAttach();
     await waitFrames($('#rec-video'));
     return stream;
   }
@@ -1012,13 +1090,297 @@
   }
 
   /* ------------------------------------------------------------------
-     Analyse automatique des prises (100 % locale, hors ligne)
-     - visage : présence, taille, centrage, sourire (modèles face-api intégrés)
-     - lumière : luminosité du visage
-     - son : volume de la voix, saturation, phrase coupée, durée
+     Contrôle du son en direct (100 % local, sans internet)
+     Écoute le micro en continu pendant le parcours : niveau de la voix,
+     bruit de fond, saturation, coupures et grésillements (micro sans fil),
+     bourdonnement électrique, son « téléphone » (Bluetooth mains libres),
+     micro débranché ou micro de l'iPad utilisé à la place du micro externe.
      ------------------------------------------------------------------ */
-  const QA = { api: null, loading: null, canvas: null, ctx: null };
-  const QW = 144, QH = 256;
+  const BUILTIN_RE = /ipad|iphone|macbook|imac|mac mini|mac studio|int[ée]gr|built.?in|internal|interne|front microphone|back microphone|bottom microphone|top microphone/i;
+  const MIC = {
+    ctx: null, src: null, an: null, sink: null, td: null, fd: null, track: null, timer: null,
+    tick: 0, hist: [], phase: null, info: { label: '', builtin: null, rate: null, id: '' }, devices: [],
+    deadMs: 0, lastT: 0, lost: false, okAt: 0, lvl: -120
+  };
+  const quant = (a, p) => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); return b[Math.min(b.length - 1, Math.floor(p * b.length))]; };
+  const dbp = (x) => 10 * Math.log10(x + 1e-12);
+  const micMode = () => LS.get('micExt', CFG.microExterne || 'avertir');
+  const micExternalWanted = () => micMode() !== 'non';
+
+  /* L'iPad n'autorise le son que si le contexte audio est (re)lancé par un geste : chaque toucher le relance */
+  function micCtx() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    if (!MIC.ctx) { try { MIC.ctx = new Ctx(); } catch (e) { return null; } }
+    if (MIC.ctx.state !== 'running') { try { const r = MIC.ctx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+    return MIC.ctx;
+  }
+  ['click', 'touchend'].forEach(ev => document.addEventListener(ev, () => { if (MIC.ctx && MIC.ctx.state !== 'running') micCtx(); }, true));
+
+  function micAttach() {
+    const tr = stream && stream.getAudioTracks()[0];
+    if (!tr) { MIC.track = null; micIdentify(); return; }
+    if (MIC.track === tr && MIC.an) return;
+    const ctx = micCtx(); if (!ctx) return;
+    try { if (MIC.src) MIC.src.disconnect(); } catch (e) {}
+    MIC.track = tr; MIC.lost = false; MIC.deadMs = 0; MIC.hist = []; MIC.okAt = 0;
+    try {
+      MIC.src = ctx.createMediaStreamSource(new MediaStream([tr]));
+      MIC.an = ctx.createAnalyser(); MIC.an.fftSize = 8192; MIC.an.smoothingTimeConstant = 0;
+      MIC.sink = ctx.createGain(); MIC.sink.gain.value = 0;      // sortie muette : oblige Safari à traiter le son
+      MIC.src.connect(MIC.an); MIC.an.connect(MIC.sink); MIC.sink.connect(ctx.destination);
+      MIC.td = new Float32Array(MIC.an.fftSize); MIC.fd = new Float32Array(MIC.an.frequencyBinCount);
+    } catch (e) { console.warn('Analyse du son indisponible', e); MIC.an = null; }
+    tr.addEventListener('ended', () => { if (MIC.track === tr) micEvent('ended'); });
+    tr.addEventListener('mute', () => { if (MIC.track === tr) micEvent('mute'); });
+    if (!MIC.timer) MIC.timer = setInterval(micTick, 60);
+    micIdentify();
+  }
+  function micEvent(type) {
+    if (MIC.phase) MIC.phase.events.push(type);
+    if (type === 'ended') MIC.lost = true;
+    micBanner(); micNameUi();
+  }
+
+  async function micIdentify() {
+    const tr = MIC.track;
+    let set = {}; try { set = tr && tr.getSettings ? tr.getSettings() : {}; } catch (e) {}
+    MIC.info = { label: tr ? (tr.label || '') : '', builtin: tr && tr.label ? BUILTIN_RE.test(tr.label) : null, rate: set.sampleRate || null, id: set.deviceId || '' };
+    try { MIC.devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) { MIC.devices = []; }
+    micBanner(); micNameUi();
+  }
+  function micBanner() {
+    const b = $('#mic-banner'); let t = '';
+    if (stream && !MIC.track) t = '⚠ Aucun micro';
+    else if (MIC.lost) t = '⚠ Micro déconnecté';
+    else if (micExternalWanted() && MIC.info.builtin) t = '⚠ Micro de l\'iPad utilisé : micro externe non connecté';
+    b.textContent = t; b.classList.toggle('hidden', !t);
+  }
+  function micNameUi() {
+    const el = $('#mic-name-prep');
+    const warn = !!(micExternalWanted() && MIC.info.builtin);
+    el.textContent = MIC.track ? '🎤 ' + (MIC.info.label || 'Micro') + (warn ? ' · le micro externe n\'est pas connecté' : '') : '';
+    el.classList.toggle('warn', warn || MIC.lost);
+    const an = $('#adm-mic-name');
+    if (an) an.textContent = MIC.track ? (MIC.info.label || 'Micro (nom inconnu)') + (MIC.info.rate ? ' · ' + Math.round(MIC.info.rate / 100) / 10 + ' kHz' : '') +
+      (MIC.info.builtin ? ' · micro intégré de l\'iPad' : MIC.info.builtin === false ? ' · micro externe ✔' : '') : 'aucun (caméra fermée : touchez « Reconnecter le micro »)';
+  }
+
+  /* Le micro sans fil se connecte ou se déconnecte : on le signale et on se reconnecte entre deux prises */
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', async () => {
+    let ds = []; try { ds = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) {}
+    const labels = ds.map(d => d.label).filter(Boolean);
+    const gone = !!(MIC.info.label && labels.length && !labels.includes(MIC.info.label));
+    const extNow = labels.some(l => !BUILTIN_RE.test(l));
+    MIC.devices = ds;
+    if (MIC.phase) MIC.phase.events.push(gone ? 'gone' : 'change');
+    if (gone) MIC.lost = true;
+    if ((gone || (MIC.info.builtin && extNow && micExternalWanted())) && !state.recording && stream) await micReconnect();
+    micBanner(); micNameUi();
+  });
+
+  async function micReconnect() {
+    if (state.recording) return false;
+    try { if (stream) stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    stream = null; MIC.track = null; MIC.lost = false;
+    try { await ensureCamera(); micAttach(); fitAll(); return !!MIC.track; }
+    catch (e) { micBanner(); return false; }
+  }
+
+  function bandDb(lo, hi) {
+    const bin = MIC.ctx.sampleRate / MIC.an.fftSize;
+    const a = Math.max(1, Math.floor(lo / bin)), b = Math.min(MIC.fd.length - 1, Math.ceil(hi / bin));
+    let s = 0, n = 0;
+    for (let i = a; i <= b; i++) { const v = MIC.fd[i]; if (v > -200) s += Math.pow(10, v / 10); n++; }
+    return n ? dbp(s / n) : -200;
+  }
+  function humDb() {   // pic à 50, 100 ou 150 Hz par rapport aux fréquences voisines (secteur électrique)
+    const bin = MIC.ctx.sampleRate / MIC.an.fftSize; let best = -99;
+    [50, 100, 150].forEach(f => {
+      const c = Math.round(f / bin); if (c < 9 || c + 9 >= MIC.fd.length) return;
+      const pk = Math.max(MIC.fd[c - 1], MIC.fd[c], MIC.fd[c + 1]);
+      let s = 0, n = 0; [-8, -7, -6, -5, 5, 6, 7, 8].forEach(k => { const v = MIC.fd[c + k]; if (v > -200) { s += v; n++; } });
+      if (n && pk > -90) best = Math.max(best, pk - s / n);
+    });
+    return best;
+  }
+
+  function micTick() {
+    const now = performance.now(), dt = MIC.lastT ? now - MIC.lastT : 60; MIC.lastT = now;
+    if (!MIC.an || !MIC.ctx || MIC.ctx.state !== 'running' || !MIC.track) { micUi(null); return; }
+    const td = MIC.td, N = td.length, sr = MIC.ctx.sampleRate;
+    if (MIC.an.getFloatTimeDomainData) MIC.an.getFloatTimeDomainData(td);
+    else { const b = new Uint8Array(N); MIC.an.getByteTimeDomainData(b); for (let i = 0; i < N; i++) td[i] = (b[i] - 128) / 128; }
+    // seuls les échantillons arrivés depuis le dernier passage sont examinés
+    const n = Math.min(N - 1, Math.round(sr * Math.min(0.2, Math.max(0.04, dt / 1000))));
+    // Claquement = rupture brutale de la forme d'onde (pic isolé ou marche) : forte dérivée seconde.
+    // Une voix, même forte, varie de façon continue et ne déclenche pas ce test.
+    let s = 0, pk = 0, clip = 0, z = 0, zMax = 0, clicks = 0, lastClick = -999, p2 = td[N - n - 2], p1 = td[N - n - 1];
+    const gapClick = Math.round(sr * 0.002);
+    for (let i = N - n; i < N; i++) {
+      const v = td[i], a = v < 0 ? -v : v;
+      s += v * v; if (a > pk) pk = a; if (a > 0.985) clip++;
+      if (a < 3e-5) { if (++z > zMax) zMax = z; } else z = 0;
+      const d2 = p2 - 2 * p1 + v;
+      if ((d2 > 0.35 || d2 < -0.35) && a < 0.9 && i - lastClick > gapClick) { clicks++; lastClick = i; }
+      p2 = p1; p1 = v;
+    }
+    const f = { t: now, rms: dbp(s / n), pk: 20 * Math.log10(pk + 1e-9), clip, gap: zMax / sr, clicks };
+    if (++MIC.tick % 2 === 0) {
+      MIC.an.getFloatFrequencyData(MIC.fd);
+      f.sp = bandDb(300, 3400); f.hi = bandDb(8500, 12000); f.lo = bandDb(20, 70); f.hum = humDb();
+    }
+    MIC.deadMs = f.rms < -100 ? MIC.deadMs + dt : 0;
+    MIC.hist.push(f); while (MIC.hist.length && now - MIC.hist[0].t > 10000) MIC.hist.shift();
+    if (MIC.phase) MIC.phase.frames.push(f);
+    micUi(f);
+  }
+
+  function micBegin(name, noise) { MIC.phase = { name, t0: performance.now(), frames: [], events: [], noise: noise == null ? null : noise }; }
+  function micEnd() { const p = MIC.phase; MIC.phase = null; return p; }
+
+  /* Mesures sur une série d'instantanés (prise, test…) */
+  function micStats(frames, extraNoise) {
+    const F = (frames || []).filter(f => isFinite(f.rms));
+    if (F.length < 5) return null;
+    const dur = (F[F.length - 1].t - F[0].t) / 1000 + 0.06;
+    let noise = quant(F.map(f => f.rms), 0.1);
+    if (extraNoise != null) noise = Math.min(noise, extraNoise);
+    const thr = Math.max(noise + 9, -62);
+    const vf = F.map(f => f.rms > thr), V = F.filter((f, i) => vf[i]), Q = F.filter((f, i) => !vf[i]);
+    const speech = V.length ? quant(V.map(f => f.rms), 0.5) : null;
+    const sp = V.filter(f => f.sp != null && f.sp > -150), sq = Q.filter(f => f.sp != null && f.sp > -150);
+    const qh = Q.filter(f => f.hum != null);
+    // Son « téléphone » (Bluetooth mains libres, 16 kHz) : les aigus (sifflantes, > 8,5 kHz) ne montent pas
+    // quand on parle, alors que les médiums montent. Avec un bon micro, les deux montent ensemble.
+    let narrow = null;
+    if (sp.length >= 8) {
+      const hiV = quant(sp.map(f => f.hi), 0.8), spV = quant(sp.map(f => f.sp), 0.5);
+      const flat = hiV - spV < -32;
+      if (sq.length >= 5) {
+        const riseHi = hiV - quant(sq.map(f => f.hi), 0.5), riseSp = spV - quant(sq.map(f => f.sp), 0.5);
+        narrow = riseSp >= 10 ? (riseHi < 0.4 * riseSp && flat) : flat;
+      } else narrow = flat;
+    }
+    let gaps = 0;
+    // coupure = trou de silence numérique au milieu de la parole (voix juste avant ET juste après)
+    for (let i = 1; i < F.length - 1; i++) if (F[i].gap >= 0.008 && F[i].gap < 0.3 && vf[i - 1] && vf[i + 1]) gaps++;
+    const iFirst = vf.indexOf(true), iLast = vf.lastIndexOf(true);
+    let pause = 0, run = 0;
+    for (let i = iFirst; i >= 0 && i <= iLast; i++) { if (!vf[i]) { run++; pause = Math.max(pause, run); } else run = 0; }
+    return {
+      dur, noise, thr, speech, snr: speech != null ? speech - noise : null, voiced: V.length / F.length,
+      clipV: V.length ? V.filter(f => f.clip >= 3).length / V.length : 0, gaps,
+      clicksPs: F.reduce((a, f) => a + f.clicks, 0) / dur,
+      narrow,
+      rub: sp.length >= 5 ? sp.filter(f => f.lo - f.sp > -3).length / sp.length : 0,
+      hum: qh.length >= 5 ? quant(qh.map(f => f.hum), 0.5) : null,
+      dead: F.filter(f => f.rms < -100).length / F.length,
+      first: iFirst >= 0 ? (F[iFirst].t - F[0].t) / 1000 : null,
+      last: iLast >= 0 ? (F[F.length - 1].t - F[iLast].t) / 1000 : null,
+      span: iFirst >= 0 ? (F[iLast].t - F[iFirst].t) / 1000 : 0,
+      pause: pause * dur / F.length
+    };
+  }
+
+  /* Affichage : vumètres, message de la préparation, alertes pendant la prise, menu organisateur */
+  function micUi(f) {
+    const lv = f ? Math.max(f.rms, -90) : -120;
+    MIC.lvl = lv > MIC.lvl ? lv : MIC.lvl - 2.5;
+    const v = Math.max(0, Math.min(100, (MIC.lvl + 60) / 60 * 100));
+    const cls = !f ? 'off' : f.clip > 2 ? 'hot' : MIC.lvl > -42 ? 'ok' : 'low';
+    document.querySelectorAll('.vu').forEach(el => { if (el.offsetParent === null) return; el.style.setProperty('--v', v + '%'); el.dataset.s = cls; });
+    if (MIC.tick % 4) return;
+    if (state.screen === 'prep') micPrepStatus();
+    else if (state.screen === 'record' && MIC.phase && MIC.phase.name === 'rec') micLiveChip();
+    if (!$('#admin').classList.contains('hidden')) micAdminLive();
+  }
+
+  let micMsgKey = '';
+  function micVerdictLive() {
+    const idle = { key: 'wait', lvl: 'idle', txt: 'Dites quelques mots pour tester le son' };
+    if (stream && !MIC.track) return { key: 'none', lvl: 'bad', txt: 'Aucun micro : appelez un organisateur' };
+    if (!MIC.an || !MIC.ctx || MIC.ctx.state !== 'running') return idle;
+    if (MIC.lost) return { key: 'lost', lvl: 'bad', txt: 'Le micro s\'est déconnecté : appelez un organisateur' };
+    if (MIC.deadMs > 4000) return { key: 'dead', lvl: 'bad', txt: 'Le micro ne capte aucun son : appelez un organisateur' };
+    const now = performance.now(), H = MIC.hist.filter(f => now - f.t < 4000);
+    const st = micStats(MIC.hist);
+    if (!st) return idle;
+    const V = H.filter(f => f.rms > st.thr);
+    if (H.filter(f => f.clip > 2).length >= 3) return { key: 'hot', lvl: 'warn', txt: 'Le son sature : parlez un peu moins fort' };
+    if (V.length < 8 && st.noise > -42) return { key: 'noise', lvl: 'warn', txt: 'Il y a beaucoup de bruit autour de vous' };
+    if (V.length < 8) return now - MIC.okAt < 8000 ? { key: 'ok', lvl: 'good', txt: 'Le son est parfait ✔' } : idle;
+    const lvl = quant(V.map(f => f.rms), 0.5);
+    if (lvl < -42) return { key: 'low', lvl: 'warn', txt: 'On vous entend mal : parlez plus fort ou rapprochez le micro' };
+    if (st.snr != null && st.snr < 14) return { key: 'noise', lvl: 'warn', txt: 'Il y a beaucoup de bruit autour de vous' };
+    MIC.okAt = now;
+    return { key: 'ok', lvl: 'good', txt: 'Le son est parfait ✔' };
+  }
+  function micPrepStatus() {
+    const r = micVerdictLive();
+    if (r.key === micMsgKey) return;
+    micMsgKey = r.key; $('#mic-msg').textContent = r.txt; $('#mic-check').dataset.s = r.lvl;
+  }
+
+  let chipKey = '', chipSince = 0;
+  function micLiveChip() {
+    if (CFG.alertesEnDirect === false) return;
+    const now = performance.now(), ph = MIC.phase, el = $('#live-chip');
+    const elapsed = (now - ph.t0) / 1000;
+    let k = '', txt = '', lvl = 'warn';
+    if (MIC.lost || ph.events.includes('ended') || ph.events.includes('gone')) { k = 'lost'; txt = '⚠ Le micro s\'est coupé'; lvl = 'bad'; }
+    else if (MIC.deadMs > 2500) { k = 'dead'; txt = '⚠ Aucun son ne nous parvient'; lvl = 'bad'; }
+    else if (ph.frames.filter(f => now - f.t < 800 && f.clip > 2).length >= 3) { k = 'hot'; txt = 'Un peu moins fort'; }
+    else if (elapsed > 4) {
+      const st = micStats(ph.frames, ph.noise);
+      const V = st ? ph.frames.filter(f => now - f.t < 3000 && f.rms > st.thr) : [];
+      if (V.length >= 10 && quant(V.map(f => f.rms), 0.5) < -44) { k = 'low'; txt = '🔊 Parlez plus fort'; }
+    }
+    if (!k && (state.liveFaceMiss || 0) >= 5) { k = 'face'; txt = 'Revenez face à l\'iPad'; }
+    if (k) { chipSince = now; if (k !== chipKey) { chipKey = k; el.textContent = txt; el.dataset.s = lvl; el.classList.remove('hidden'); } }
+    else if (chipKey && now - chipSince > 1500) { chipKey = ''; el.classList.add('hidden'); }
+  }
+  function hideLiveChip() { chipKey = ''; $('#live-chip').classList.add('hidden'); }
+
+  function micAdminLive() {
+    const el = $('#adm-mic-live');
+    if (!MIC.track) { el.textContent = 'Micro fermé'; return; }
+    if (!MIC.an || !MIC.ctx || MIC.ctx.state !== 'running') { el.textContent = 'Analyse du son en pause : touchez l\'écran'; return; }
+    const st = micStats(MIC.hist);
+    const r = (x) => x == null ? '–' : String(Math.round(x)).replace('-', '−');
+    el.textContent = 'Niveau ' + r(MIC.lvl) + ' dB · bruit de fond (10 s) ' + r(st && st.noise) + ' dB' + (st && st.speech != null ? ' · voix ' + r(st.speech) + ' dB' : '');
+  }
+
+  /* Avant chaque prise : on ne tourne pas sans son exploitable */
+  function micBlockReason() {
+    if (!stream) return null;
+    if (!MIC.track) return 'Aucun micro n\'est disponible.';
+    if (MIC.lost) return 'Le micro s\'est déconnecté.';
+    if (micMode() === 'bloquer' && MIC.info.builtin) return 'Le micro externe n\'est pas connecté : l\'iPad utiliserait son propre micro.';
+    if (MIC.deadMs > 4000 && !MIC.hist.some(f => f.rms > -60)) return 'Le micro ne capte aucun son.';
+    return null;
+  }
+  function micAlert(reason) {
+    return new Promise(res => {
+      $('#mic-alert-txt').textContent = reason;
+      $('#btn-mic-go').classList.toggle('hidden', micMode() === 'bloquer' && !!MIC.info.builtin && !MIC.lost);
+      $('#mic-alert').classList.remove('hidden');
+      const done = (v) => { $('#mic-alert').classList.add('hidden'); ['#btn-mic-home', '#btn-mic-go', '#btn-mic-retry'].forEach(s => { $(s).onclick = null; }); res(v); };
+      $('#btn-mic-home').onclick = () => done('home');
+      $('#btn-mic-go').onclick = () => done('go');
+      $('#btn-mic-retry').onclick = () => { micCtx(); done('retry'); };
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Analyse automatique des prises (100 % locale, hors ligne)
+     - visage : présence, taille, centrage, hauteur (sous-titres), mouvements,
+       regard (orientation de la tête, yeux), autre personne dans le champ, sourire
+     - image : lumière, contre-jour, reflets, netteté, image figée
+     - son : voir « Contrôle du son en direct » ci-dessus
+     ------------------------------------------------------------------ */
+  const QA = { api: null, lm: false, loading: null, canvas: null, ctx: null, map: null, crop: null, cctx: null };
+  const QW = 144, QH = 256, CROP = 128;
   function qaEnabled() { return CFG.analyseAuto !== false; }
   function loadFaceApi() {
     if (!qaEnabled()) return Promise.resolve();
@@ -1031,6 +1393,7 @@
         await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
         await faceapi.nets.faceExpressionNet.loadFromUri('./models');
         QA.api = faceapi;
+        try { await faceapi.nets.faceLandmark68TinyNet.loadFromUri('./models'); QA.lm = true; } catch (e) { console.warn('Repères du visage indisponibles', e); }
       } catch (e) { console.warn('Analyse du visage indisponible', e); }
     })();
     return QA.loading;
@@ -1039,27 +1402,74 @@
     if (!v || !v.videoWidth) return false;
     if (!QA.canvas) { QA.canvas = document.createElement('canvas'); QA.canvas.width = QW; QA.canvas.height = QH; QA.ctx = QA.canvas.getContext('2d', { willReadFrequently: true }); }
     const vw = v.videoWidth, vh = v.videoHeight, sc = Math.max(QW / vw, QH / vh), dw = vw * sc, dh = vh * sc;
-    QA.ctx.drawImage(v, (QW - dw) / 2, (QH - dh) / 2, dw, dh);
+    QA.map = { ox: (QW - dw) / 2, oy: (QH - dh) / 2, sc };
+    QA.ctx.drawImage(v, QA.map.ox, QA.map.oy, dw, dh);
     return true;
   }
   function lumaStats(box) {
     const d = QA.ctx.getImageData(0, 0, QW, QH).data;
-    let fs = 0, fn = 0, bs = 0, bn = 0;
+    let fs = 0, fn = 0, bs = 0, bn = 0, hot = 0, hash = 0;
     for (let y = 0; y < QH; y += 2) for (let x = 0; x < QW; x += 2) {
       const i = (y * QW + x) * 4, l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
-      if (box && x >= box.x && x < box.x + box.width && y >= box.y && y < box.y + box.height) { fs += l; fn++; } else { bs += l; bn++; }
+      hash += d[i] * (1 + (x % 7)) + d[i + 1] * (1 + (y % 5));
+      if (box && x >= box.x && x < box.x + box.width && y >= box.y && y < box.y + box.height) { fs += l; fn++; if (l > 245) hot++; } else { bs += l; bn++; }
     }
-    return { face: fn ? fs / fn : null, bg: bn ? bs / bn : null };
+    return { face: fn ? fs / fn : null, bg: bn ? bs / bn : null, hot: fn ? hot / fn : null, hash };
   }
-  async function analyseFrame(v, withExpr) {
+  /* Visage agrandi (pleine définition de la caméra) pour les repères et la netteté */
+  function cropFace(v, box) {
+    if (!QA.crop) { QA.crop = document.createElement('canvas'); QA.crop.width = CROP; QA.crop.height = CROP; QA.cctx = QA.crop.getContext('2d', { willReadFrequently: true }); }
+    const m = QA.map, side = Math.max(box.width, box.height) * 1.3 / m.sc;
+    const cx = (box.x + box.width / 2 - m.ox) / m.sc, cy = (box.y + box.height / 2 - m.oy) / m.sc;
+    QA.cctx.drawImage(v, cx - side / 2, cy - side / 2, side, side, 0, 0, CROP, CROP);
+    return QA.crop;
+  }
+  function sharpness() {   // variance du laplacien sur le centre du visage, rapportée au contraste
+    const d = QA.cctx.getImageData(0, 0, CROP, CROP).data, g = new Float32Array(CROP * CROP);
+    for (let i = 0; i < CROP * CROP; i++) g[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+    let s = 0, s2 = 0, l = 0, l2 = 0, n = 0;
+    const a = Math.round(CROP * 0.25), b = Math.round(CROP * 0.75);
+    for (let y = a; y < b; y++) for (let x = a; x < b; x++) {
+      const i = y * CROP + x, v = g[i], lap = 4 * v - g[i - 1] - g[i + 1] - g[i - CROP] - g[i + CROP];
+      s += v; s2 += v * v; l += lap; l2 += lap * lap; n++;
+    }
+    const vg = s2 / n - (s / n) ** 2, vl = l2 / n - (l / n) ** 2;
+    return vg > 20 ? vl / vg : null;
+  }
+  function faceGeometry(lm) {
+    const P = lm.positions, dist = (a, b) => Math.hypot(P[a].x - P[b].x, P[a].y - P[b].y);
+    const eye = dist(36, 45); if (eye < 4) return {};
+    const midx = (P[36].x + P[45].x) / 2;
+    const ear = (o) => (dist(o + 1, o + 5) + dist(o + 2, o + 4)) / (2 * dist(o, o + 3) || 1);
+    return {
+      yaw: (P[30].x - midx) / eye,                                                     // tête tournée
+      roll: Math.atan2(P[45].y - P[36].y, P[45].x - P[36].x) * 180 / Math.PI,        // tête penchée
+      ear: (ear(36) + ear(42)) / 2                                                     // ouverture des yeux
+    };
+  }
+  async function analyseFrame(v, o) {
+    o = o || {};
     if (!grabFrame(v)) return null;
-    let det = null;
+    let det = null, faces = null, geo = {}, sharp = null;
     if (QA.api) {
+      const opt = () => new QA.api.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
       try {
-        let task = QA.api.detectSingleFace(QA.canvas, new QA.api.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 }));
-        if (withExpr) task = task.withFaceExpressions();
+        let task = QA.api.detectSingleFace(QA.canvas, opt());
+        if (o.expr) task = task.withFaceExpressions();
         det = await task;
       } catch (e) { det = null; }
+      if (o.multi) {
+        try { faces = (await QA.api.detectAllFaces(QA.canvas, opt())).filter(d => d.score > 0.5 && d.box.height / QH > 0.08).length; } catch (e) {}
+      }
+      const b0 = det ? (det.detection || det).box : null;
+      if (b0 && o.lm && QA.lm) {
+        try {
+          const c = cropFace(v, b0);
+          sharp = sharpness();
+          const lm = await QA.api.detectFaceLandmarksTiny(c);
+          if (lm) geo = faceGeometry(lm);
+        } catch (e) {}
+      }
     }
     const box = det ? (det.detection || det).box : null;
     const L = lumaStats(box);
@@ -1068,24 +1478,32 @@
       cx: box ? (box.x + box.width / 2) / QW : null,
       cy: box ? (box.y + box.height / 2) / QH : null,
       h: box ? box.height / QH : null,
-      luma: L.face != null ? L.face : L.bg, bg: L.bg,
-      happy: det && det.expressions ? det.expressions.happy : null
+      top: box ? box.y / QH : null,
+      luma: L.face != null ? L.face : L.bg, bg: L.bg, hot: L.hot, hash: L.hash,
+      happy: det && det.expressions ? det.expressions.happy : null,
+      faces, sharp, yaw: geo.yaw != null ? geo.yaw : null, roll: geo.roll != null ? geo.roll : null, ear: geo.ear != null ? geo.ear : null
     };
   }
   function startSampling(v, isPose, dur) {
     const samples = [], t0 = performance.now();
+    state.liveFaceMiss = 0;
     if (!qaEnabled()) return { stop: () => samples };
-    let alive = true, busy = false;
+    let alive = true, busy = false, i = 0;
     const k = dur / 9;
     const iv = setInterval(async () => {
       if (!alive || busy) return;
       busy = true;
       const t = (performance.now() - t0) / 1000;
-      const r = await analyseFrame(v, isPose && t > 3.2 * k && t < 6.6 * k);
-      if (r && alive) { r.t = t; samples.push(r); }
+      const n = i++;
+      const r = await analyseFrame(v, {
+        expr: isPose ? (t > 3.2 * k && t < 6.6 * k) : n % 3 === 1,
+        lm: n % 2 === 0,
+        multi: n % 4 === 3
+      });
+      if (r && alive) { r.t = t; samples.push(r); if (QA.api) state.liveFaceMiss = r.face ? 0 : (state.liveFaceMiss || 0) + 1; }
       busy = false;
     }, 380);
-    return { stop() { alive = false; clearInterval(iv); return samples; } };
+    return { stop() { alive = false; clearInterval(iv); state.liveFaceMiss = 0; return samples; } };
   }
   async function audioProfile(blob) {
     try {
@@ -1110,60 +1528,140 @@
     } catch (e) { return null; }
   }
   const median = (a) => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
-  function buildReport(step, samples, audio, byTimer) {
-    const items = []; let redo = false;
+  const sd = (a) => { if (a.length < 2) return 0; const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
+
+  /* Bilan d'une prise.
+     redo : la prise n'est pas publiable, on conseille de recommencer
+     tip  : conseil pour la suite (prise utilisable)
+     tech : remarque pour l'organisateur (matériel), affichée à part */
+  function buildReport(step, samples, audio, byTimer, live) {
+    const items = [];
+    const add = (lvl, code, txt) => items.push({ lvl, code, txt });
     const isPose = step.type === 'pose';
+
+    // ---------- Image
     const S = samples || [], F = S.filter(x => x.face);
+    let run = 1, maxRun = 1;
+    for (let i = 1; i < S.length; i++) { run = S[i].hash === S[i - 1].hash ? run + 1 : 1; if (run > maxRun) maxRun = run; }
+    if (S.length >= 6 && maxRun >= 6) { add('redo', 'frozen', 'L\'image s\'est figée pendant la prise : recommencez.'); add('tech', 'frozen', 'Image figée : si cela se répète, « Redémarrer la caméra » dans ce menu (iPad trop chaud ?).'); }
     const faceOk = !!QA.api && S.length >= 3;
     if (faceOk) {
-      if (F.length / S.length < 0.5) { items.push({ lvl: 'redo', txt: "Votre visage sort souvent de l'image : restez bien face à l'iPad." }); redo = true; }
+      if (F.length / S.length < 0.5) add('redo', 'face', 'Votre visage sort souvent de l\'image : restez bien face à l\'iPad.');
       else {
-        const h = median(F.map(x => x.h)), cx = median(F.map(x => x.cx));
-        if (h < 0.15) items.push({ lvl: 'tip', txt: "Rapprochez-vous un peu : votre visage paraîtra plus grand à l'écran." });
-        else if (h > 0.56) items.push({ lvl: 'tip', txt: 'Reculez légèrement : votre visage est très proche.' });
-        if (Math.abs(cx - 0.5) > 0.16) items.push({ lvl: 'tip', txt: "Placez-vous bien au centre de l'image." });
+        const h = median(F.map(x => x.h)), cx = median(F.map(x => x.cx)), cy = median(F.map(x => x.cy)), top = median(F.map(x => x.top));
+        if (h < 0.15) add('tip', 'far', 'Rapprochez-vous un peu : votre visage paraîtra plus grand à l\'écran.');
+        else if (h > 0.56) add('tip', 'near', 'Reculez légèrement : votre visage est très proche.');
+        if (Math.abs(cx - 0.5) > 0.16) add('tip', 'center', 'Placez-vous bien au centre de l\'image.');
+        if (cy > 0.5) add('tip', 'low', 'Votre visage est un peu bas dans l\'image : redressez-vous (les sous-titres s\'affichent en bas).');
+        else if (top < 0.025) add('tip', 'headroom', 'Le haut de votre tête est coupé : reculez un peu.');
+        if (!isPose && F.length >= 6 && Math.max(sd(F.map(x => x.cx)), sd(F.map(x => x.cy))) > 0.06) add('tip', 'moving', 'Vous bougez beaucoup : restez bien en place, épaules face à l\'iPad.');
+        const G = F.filter(x => x.yaw != null);
+        if (!isPose && G.length >= 5) {
+          if (G.filter(x => Math.abs(x.yaw) > 0.28).length / G.length > 0.4) add('tip', 'gaze', 'Regardez l\'objectif (en haut de l\'iPad), pas l\'écran ni une personne à côté.');
+          else if (G.filter(x => x.ear != null && x.ear < 0.14).length / G.length > 0.35) add('tip', 'eyes', 'On voit peu vos yeux : levez le regard vers l\'objectif, en haut de l\'iPad.');
+          if (Math.abs(median(G.map(x => x.roll))) > 12) add('tip', 'roll', 'Votre tête est penchée sur le côté : redressez-la.');
+        }
+        const M = S.filter(x => x.faces != null);
+        if (M.length >= 3 && M.filter(x => x.faces >= 2).length / M.length > 0.3) add('tip', 'others', 'Une autre personne apparaît derrière vous : demandez-lui de sortir du champ.');
+        // Netteté : comparée aux prises précédentes de la journée (objectif sale, flou de mouvement)
+        const sh = median(F.map(x => x.sharp).filter(x => x != null));
+        if (sh != null) {
+          const hist = LS.get('sharpHist', []);
+          if (hist.length >= 6 && sh < 0.45 * median(hist)) add('tech', 'blur', 'Image moins nette que d\'habitude : essuyer l\'objectif de la caméra frontale (traces de doigts).');
+          live.sharp = sh;
+        }
       }
     }
     const lum = median((F.length ? F : S).map(x => x.luma).filter(x => x != null));
     if (lum != null) {
-      if (lum < 55) { items.push({ lvl: 'redo', txt: 'Votre visage est très sombre : avancez vers la lumière.' }); redo = true; }
-      else if (lum < 80) items.push({ lvl: 'tip', txt: "Votre visage est un peu sombre : avancez d'un pas vers la lumière." });
-      else if (lum > 235) items.push({ lvl: 'tip', txt: "Beaucoup de lumière sur votre visage : reculez d'un pas." });
-      else if (F.length) { const bg = median(F.map(x => x.bg)); if (bg - lum > 55) items.push({ lvl: 'tip', txt: 'Vous êtes à contre-jour : tournez-vous vers la lumière.' }); }
+      if (lum < 55) add('redo', 'dark', 'Votre visage est très sombre : avancez vers la lumière.');
+      else if (lum < 80) add('tip', 'dark', 'Votre visage est un peu sombre : avancez d\'un pas vers la lumière.');
+      else if (lum > 235) add('tip', 'bright', 'Beaucoup de lumière sur votre visage : reculez d\'un pas.');
+      else if (F.length) {
+        const bg = median(F.map(x => x.bg)), hot = median(F.map(x => x.hot).filter(x => x != null));
+        if (bg - lum > 55) add('tip', 'backlight', 'Vous êtes à contre-jour : tournez-vous vers la lumière.');
+        else if (hot != null && hot > 0.2) add('tip', 'shine', 'Reflet ou lumière trop forte sur le visage : reculez d\'un pas ou tournez-vous légèrement.');
+      }
     }
+
+    // ---------- Son
     if (isPose) {
       if (faceOk) {
         const hs = S.filter(x => x.happy != null).map(x => x.happy);
-        if (hs.length && Math.max(...hs) < 0.5) items.push({ lvl: 'tip', txt: 'Votre sourire était discret : osez un vrai grand sourire !' });
+        if (hs.length && Math.max(...hs) < 0.5) add('tip', 'smile', 'Votre sourire était discret : osez un vrai grand sourire !');
       }
-    } else if (audio && audio.frames.length) {
+    } else if (live && live.st) {
+      const st = live.st;
+      if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
+      else if (st.dead > 0.85) { add('redo', 'micdead', 'On n\'entend rien : le micro ne capte pas.'); add('tech', 'micdead', 'Aucun signal du micro : vérifier qu\'il est allumé, chargé et connecté.'); }
+      else if ((st.voiced < 0.08 || st.speech == null) && st.noise > -42) add('redo', 'noise', 'Trop de bruit autour de vous : on n\'entend pas votre voix. Recommencez quand le calme revient.');
+      else if (st.voiced < 0.08 || st.speech == null) add('redo', 'silent', 'On ne vous entend presque pas : parlez plus fort, face à l\'iPad.');
+      else {
+        if (st.speech < -44) add('redo', 'quiet', 'Le son est trop faible : parlez plus fort (ou rapprochez le micro de votre bouche).');
+        else if (st.speech < -35) add('tip', 'quiet', 'Parlez un peu plus fort, comme à quelqu\'un placé à deux mètres.');
+        if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : parlez un peu moins fort (ou éloignez un peu le micro).');
+        else if (st.clipV > 0.01) add('tip', 'clip', 'Le son sature par moments : parlez un peu moins fort.');
+        if (st.snr < 10) add('redo', 'noise', 'Trop de bruit autour de vous : recommencez quand le calme revient.');
+        else if (st.snr < 16) add('tip', 'noise', 'Il y a du bruit de fond : demandez le calme autour de la borne.');
+        if (st.gaps >= 2) add('redo', 'gap', 'Le son a été coupé à plusieurs reprises : recommencez.');
+        if (st.gaps >= 1) add('tech', 'gap', 'Coupures du micro sans fil (' + st.gaps + ') : rapprocher le récepteur, vérifier la batterie, éviter les obstacles.');
+        if (st.clicksPs > 1.2) add('redo', 'crackle', 'Le son grésille : recommencez.');
+        if (st.clicksPs > 0.5) add('tech', 'crackle', 'Grésillements dans le son : vérifier le micro et sa connexion.');
+        if (st.rub > 0.15) add('tip', 'rub', 'Le micro frotte (vêtement, cheveux, bijou) : ne le touchez pas pendant la prise.');
+        if (st.hum != null && st.hum > 18) add('tech', 'hum', 'Bourdonnement électrique (50 Hz) : éloigner le micro et le récepteur des câbles et des chargeurs.');
+        if (st.narrow || (MIC.info.rate && MIC.info.rate <= 16000)) add('tech', 'narrow', 'Son de qualité « téléphone » : le micro Bluetooth fonctionne en mode mains libres (16 kHz).');
+        const tail = live.preTail || [];
+        if (st.first != null && st.first < 0.2 && tail.filter(f => f.rms > st.thr).length >= 3) add('redo', 'early', 'Vous avez commencé à parler pendant le décompte : votre premier mot est coupé.');
+        if (byTimer && st.last != null && st.last < 0.5) add('redo', 'cut', 'Vous avez été coupé en fin de phrase : visez un peu plus court.');
+        else if (st.span < 5 && !items.some(i => i.code === 'quiet' || i.code === 'noise')) add('tip', 'short', 'Réponse très courte : vous pouvez développer un peu.');
+        if (st.pause > 4) add('tip', 'pause', 'Il y a un long silence au milieu de votre réponse : restez dans l\'élan.');
+      }
+      if (micExternalWanted() && live.info && live.info.builtin) add('tech', 'builtin', 'Prise enregistrée avec le micro de l\'iPad : le micro externe n\'était pas connecté.');
+    } else if (audio && audio.frames.length) {   // repli : analyse du fichier enregistré
       const fr = audio.frames, voiced = fr.filter(x => x > -42);
-      if (voiced.length / fr.length < 0.08) { items.push({ lvl: 'redo', txt: "On ne vous entend presque pas : parlez plus fort, face à l'iPad." }); redo = true; }
+      if (voiced.length / fr.length < 0.08) add('redo', 'silent', 'On ne vous entend presque pas : parlez plus fort, face à l\'iPad.');
       else {
         const lvl = median(voiced);
-        if (lvl < -33) items.push({ lvl: 'tip', txt: "Parlez un peu plus fort, comme à quelqu'un placé à deux mètres." });
-        if (audio.clipRatio > 0.0008) items.push({ lvl: 'tip', txt: 'Le son sature par moments : parlez un peu moins fort ou reculez légèrement.' });
-        let first = fr.findIndex(x => x > -42), last = fr.length - 1 - fr.slice().reverse().findIndex(x => x > -42);
-        if (byTimer && (last + 1) * 0.1 > audio.duration - 0.6) { items.push({ lvl: 'redo', txt: 'Vous avez été coupé en fin de phrase : visez un peu plus court.' }); redo = true; }
-        else if ((last - first) * 0.1 < 5) items.push({ lvl: 'tip', txt: 'Réponse très courte : vous pouvez développer un peu.' });
+        if (lvl < -33) add('tip', 'quiet', 'Parlez un peu plus fort, comme à quelqu\'un placé à deux mètres.');
+        if (audio.clipRatio > 0.0008) add('tip', 'clip', 'Le son sature par moments : parlez un peu moins fort ou reculez légèrement.');
+        const first = fr.findIndex(x => x > -42), last = fr.length - 1 - fr.slice().reverse().findIndex(x => x > -42);
+        if (byTimer && (last + 1) * 0.1 > audio.duration - 0.6) add('redo', 'cut', 'Vous avez été coupé en fin de phrase : visez un peu plus court.');
+        else if ((last - first) * 0.1 < 5) add('tip', 'short', 'Réponse très courte : vous pouvez développer un peu.');
       }
     }
-    return { items: items.slice(0, 3), redo };
+    if (!isPose && faceOk && !items.some(i => i.lvl !== 'tech')) {
+      const hs = S.filter(x => x.happy != null).map(x => x.happy);
+      if (hs.length >= 4 && Math.max(...hs) < 0.12) add('tip', 'smile', 'Un petit sourire au début et à la fin rend la vidéo plus chaleureuse.');
+    }
+    const seen = new Set(), uniq = (a) => a.filter(i => { const k = i.lvl + i.code; if (seen.has(k)) return false; seen.add(k); return true; });
+    const all = uniq(items);
+    const cand = all.filter(i => i.lvl === 'redo').concat(all.filter(i => i.lvl === 'tip')).slice(0, 3);
+    return { items: cand, tech: all.filter(i => i.lvl === 'tech').slice(0, 3), redo: all.some(i => i.lvl === 'redo'), codes: all.map(i => i.code) };
   }
-  async function analyseTake(step, blob, samples, dur, byTimer, sess) {
+  async function analyseTake(step, blob, samples, dur, byTimer, sess, live, meta) {
     if (!qaEnabled()) return;
-    const audio = step.type === 'pose' ? null : await audioProfile(blob);
+    live = live || {};
+    const audio = step.type === 'pose' || live.st ? null : await audioProfile(blob);
+    const rep = buildReport(step, samples, audio, byTimer, live);
+    // Bilan conservé avec la vidéo (visible dans le suivi du menu organisateur)
+    meta.qa = { redo: rep.redo, codes: [...new Set(rep.codes)], mic: live.info ? live.info.label : '',
+      voix: live.st && live.st.speech != null ? Math.round(live.st.speech) : null, bruit: live.st ? Math.round(live.st.noise) : null };
+    try { await DB.put(meta); } catch (e) {}
+    if (live.sharp != null && !rep.codes.includes('blur')) { const h = LS.get('sharpHist', []); h.push(live.sharp); LS.set('sharpHist', h.slice(-40)); }
     if (sess !== state.session || state.screen !== 'review') return;
-    const rep = buildReport(step, samples, audio, byTimer);
     const left = (CFG.prisesMax || 3) - state.takesThisQ;
-    const icon = { ok: '✔', tip: '💡', redo: '⚠' };
+    const icon = { ok: '✔', tip: '💡', redo: '⚠', tech: '🔧' };
+    const callOrg = rep.tech.some(t => ['miclost', 'micdead', 'frozen'].includes(t.code));
     let title;
     if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière et sourire : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
     else if (rep.redo && left > 0) { title = 'Nous vous conseillons de recommencer'; $('#btn-retake').classList.add('advised'); }
     else if (rep.redo) title = 'Prise enregistrée. Un conseil pour la suite :';
     else title = 'Bonne prise ✔ Un petit conseil :';
+    if (callOrg) title += ' · appelez un organisateur';
     $('#qa-title').textContent = title;
     $('#qa-list').innerHTML = rep.items.map(it => '<li><span class="i">' + icon[it.lvl] + '</span><span>' + esc(it.txt) + '</span></li>').join('');
+    $('#qa-tech').classList.toggle('hidden', !rep.tech.length);
+    $('#qa-tech-list').innerHTML = rep.tech.map(it => '<li class="tech"><span class="i">🔧</span><span>' + esc(it.txt) + '</span></li>').join('');
   }
 
   /* Aide au cadrage en direct sur l'écran de préparation */
@@ -1324,6 +1822,7 @@
     state.session++;
     if (state.recording) { try { state.recording.stop(); } catch (e) {} state.recording = null; }
     state.candidate = null; state.pending = null; state.noIdle = false;
+    MIC.phase = null; hideLiveChip(); $('#mic-alert').classList.add('hidden');
     const rv = $('#rev-video'); rv.pause(); if (rv.src) { URL.revokeObjectURL(rv.src); rv.removeAttribute('src'); rv.load(); }
     $('#search').value = '';
     $('#add-name').classList.add('hidden');
@@ -1336,6 +1835,7 @@
      Parcours du candidat
      ------------------------------------------------------------------ */
   async function startSession(name) {
+    micCtx();
     state.session++;
     state.candidate = name;
     state.qIndex = 0;
@@ -1459,8 +1959,9 @@
     if (q.type === 'pose') return showPose();
     const k = STEPS.slice(0, i + 1).filter(x => x.type === 'question').length;
     const offset = POSE.active ? 1 : 0;
-    $('#q-count').textContent = (offset ? 'Étape ' + (i + 1) + ' · ' : '') + 'Question ' + k + ' sur ' + QUESTIONS.length;
+    $('#q-count').textContent = (offset ? 'Étape ' + (i + 1) + ' · ' : '') + 'Question ' + k + ' sur ' + QUESTIONS.length + (q.facultative ? ' · facultative' : '');
     $('#q-text').textContent = q.texte;
+    $('#q-text').style.fontSize = q.texte.length > 95 ? '2.2rem' : q.texte.length > 60 ? '2.6rem' : '';
     $('#q-help').textContent = q.aide || '';
     $('#q-dur').textContent = 'Jusqu\'à ' + (q.duree || 30) + ' secondes · vous pouvez terminer avant';
     show('question');
@@ -1515,6 +2016,16 @@
   async function record() {
     const sess = state.session;
     if (!streamLive()) { show('prep'); if (!(await openCamera())) return; }
+    micCtx(); micAttach();
+    // Pas de prise sans son exploitable : micro absent, déconnecté ou muet
+    for (let why = micBlockReason(); why; why = micBlockReason()) {
+      const a = await micAlert(why);
+      if (sess !== state.session) return;
+      if (a === 'home') return goHome();
+      if (a === 'go') break;
+      await micReconnect(); await sleep(1500);
+      if (sess !== state.session) return;
+    }
     const q = STEPS[state.qIndex];
     const isPose = q.type === 'pose';
     const dur = q.duree || (isPose ? 9 : 30);
@@ -1548,6 +2059,8 @@
       take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0
     };
 
+    hideLiveChip();
+    micBegin('pre');      // le décompte sert à mesurer le bruit de fond (le candidat se tait)
     for (let n = CFG.compteARebours || 3; n > 0; n--) {
       cd.textContent = n;
       await sleep(1000);
@@ -1559,6 +2072,9 @@
     try { rec = startRecorder(); }
     catch (e) { state.noIdle = false; showCamError(e); return; }
     state.recording = rec;
+    const pre = micEnd();
+    micBegin('rec', pre && pre.frames.length >= 8 ? quant(pre.frames.map(f => f.rms), 0.3) : null);
+    const micInfo = Object.assign({}, MIC.info);
     const sampler = startSampling($('#rec-video'), isPose, dur);
     $('#rec-badge').classList.remove('hidden');
     $('#btn-stop').disabled = false;
@@ -1579,9 +2095,15 @@
 
     let result;
     try { result = await rec.done; }
-    catch (e) { clearInterval(tick); sampler.stop(); state.recording = null; state.noIdle = false; if (sess === state.session) showCamError(e); return; }
+    catch (e) { clearInterval(tick); sampler.stop(); micEnd(); hideLiveChip(); state.recording = null; state.noIdle = false; if (sess === state.session) showCamError(e); return; }
     clearInterval(tick);
     const samples = sampler.stop();
+    const recPh = micEnd(); hideLiveChip();
+    const live = recPh ? {
+      st: micStats(recPh.frames, recPh.noise),
+      lost: MIC.lost || recPh.events.some(e => e === 'ended' || e === 'gone'),
+      preTail: pre ? pre.frames.slice(-5) : [], info: micInfo
+    } : {};
     if (miniMan) miniMan.stop();
     state.recording = null;
     state.noIdle = false;
@@ -1612,7 +2134,7 @@
     state.takesThisQ++;
     state.pending = meta;
     showReview(result.blob, meta);
-    analyseTake(q, result.blob, samples, dur, byTimer, sess);
+    analyseTake(q, result.blob, samples, dur, byTimer, sess, live, meta);
   }
 
   function showReview(blob, meta) {
@@ -1751,8 +2273,63 @@
     setSeg('#seg-ring', state.ring ? 'on' : 'off');
     $('#app-info').textContent = 'Version ' + VERSION + ' · ' + (navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'lancée depuis l\'écran d\'accueil ✔' : 'lancée dans le navigateur (préférer l\'icône de l\'écran d\'accueil)') + ' · ' + (window.isSecureContext ? 'HTTPS ✔' : 'NON SÉCURISÉ ⚠');
     $('#cam-info').innerHTML = camInfo();
+    micCtx(); setSeg('#seg-micext', micMode()); micNameUi(); fillMicSelect();
     await refreshStats();
   }
+  async function fillMicSelect() {
+    try { MIC.devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) {}
+    const cur = LS.get('micId', '');
+    const sel = $('#adm-mic-sel');
+    sel.innerHTML = '<option value="">Automatique (micro externe en priorité)</option>' +
+      MIC.devices.filter(d => d.deviceId && d.deviceId !== 'default').map((d, i) => '<option value="' + esc(d.deviceId) + '">' + esc(d.label || ('Micro ' + (i + 1))) + (BUILTIN_RE.test(d.label || '') ? ' (iPad)' : '') + '</option>').join('');
+    sel.value = cur; if (sel.value !== cur) sel.value = '';
+  }
+  $('#adm-mic-sel').addEventListener('change', async (e) => {
+    LS.set('micId', e.target.value);
+    toast(await micReconnect() ? 'Micro changé : ' + (MIC.info.label || 'micro') : 'Impossible d\'ouvrir ce micro', 4000);
+    micNameUi();
+  });
+  document.querySelectorAll('#seg-micext button').forEach(b => b.addEventListener('click', () => {
+    LS.set('micExt', b.dataset.v); setSeg('#seg-micext', b.dataset.v); micBanner(); micNameUi();
+  }));
+  $('#btn-mic-restart').addEventListener('click', async () => {
+    micCtx();
+    toast(await micReconnect() ? 'Micro reconnecté : ' + (MIC.info.label || 'micro') : 'Aucun micro trouvé', 4000);
+    fillMicSelect();
+  });
+  /* Test du son : 3 s de silence (bruit de fond) puis 6 s de voix */
+  $('#btn-mic-test').addEventListener('click', async () => {
+    micCtx();
+    const b = $('#btn-mic-test'), out = $('#mic-test-res');
+    try { await ensureCamera(); } catch (e) { out.textContent = 'Erreur micro : ' + (e.name || '') + ' ' + (e.message || ''); return; }
+    micAttach(); b.disabled = true; out.innerHTML = '';
+    await sleep(300);
+    micBegin('test-silence'); for (let i = 3; i > 0; i--) { b.textContent = 'Silence s.v.p.… ' + i; await sleep(1000); } const q = micEnd();
+    micBegin('test-voix'); for (let i = 6; i > 0; i--) { b.textContent = 'Parlez normalement… ' + i; await sleep(1000); } const v = micEnd();
+    b.disabled = false; b.textContent = 'Test du son (10 s)';
+    if (!MIC.an || !MIC.ctx || MIC.ctx.state !== 'running' || q.frames.length < 10) { out.textContent = 'Analyse du son impossible : touchez une nouvelle fois le bouton.'; return; }
+    const noise = quant(q.frames.map(f => f.rms), 0.5);
+    const st = micStats(v.frames, noise);
+    const qs = micStats(q.frames);
+    const r = (x) => x == null ? '–' : String(Math.round(x)).replace('-', '−');
+    const ok = '<span style="color:#8affb0">✔</span>', ko = '<span class="warn">⚠</span>';
+    const L = [], pb = [];
+    L.push('Micro : ' + esc(MIC.info.label || 'inconnu') + (MIC.info.rate ? ' · ' + Math.round(MIC.info.rate / 100) / 10 + ' kHz' : '') + (MIC.info.builtin ? ' · micro intégré de l\'iPad ' + (micExternalWanted() ? ko : '') : ''));
+    if (micExternalWanted() && MIC.info.builtin) pb.push('le micro externe n\'est pas utilisé');
+    const nOk = noise < -50; L.push('Bruit de fond : ' + r(noise) + ' dB ' + (nOk ? ok : ko) + ' (bon : sous −50)'); if (!nOk) pb.push('bruit de fond élevé');
+    if (!st || st.speech == null || st.voiced < 0.2) { L.push('Voix : <span class="warn">⚠ presque rien entendu</span>'); pb.push('voix non détectée'); }
+    else {
+      const vOk = st.speech >= -35 && st.speech <= -10; L.push('Voix : ' + r(st.speech) + ' dB ' + (vOk ? ok : ko) + ' (cible : −35 à −10)'); if (!vOk) pb.push(st.speech < -35 ? 'voix trop faible' : 'voix trop forte');
+      const snr = st.speech - noise, sOk = snr >= 25; L.push('Écart voix / bruit : ' + r(snr) + ' dB ' + (sOk ? ok : ko) + ' (bon : 25 et plus)'); if (!sOk) pb.push('trop de bruit par rapport à la voix');
+      L.push('Saturation : ' + (st.clipV > 0.01 ? 'oui ' + ko : 'non ' + ok)); if (st.clipV > 0.01) pb.push('saturation');
+      L.push('Coupures : ' + st.gaps + ' ' + (st.gaps ? ko : ok) + ' · grésillements : ' + (st.clicksPs > 0.5 ? 'oui ' + ko : 'non ' + ok)); if (st.gaps || st.clicksPs > 0.5) pb.push('coupures ou grésillements');
+      const narrow = st.narrow || (MIC.info.rate && MIC.info.rate <= 16000);
+      L.push('Bande passante : ' + (st.narrow == null && !narrow ? '–' : narrow ? 'limitée, son « téléphone » ' + ko : 'complète ' + ok)); if (narrow) pb.push('son « téléphone » (Bluetooth mains libres)');
+    }
+    const hum = qs && qs.hum; L.push('Bourdonnement 50 Hz : ' + (hum != null && hum > 18 ? 'oui ' + ko : 'non ' + ok)); if (hum != null && hum > 18) pb.push('bourdonnement électrique');
+    L.push('<b>' + (pb.length ? '⚠ À corriger : ' + pb.join(', ') + '.' : '✔ Son prêt pour le tournage.') + '</b>');
+    out.innerHTML = L.join('<br>');
+  });
   $('#btn-adm-close').addEventListener('click', () => { $('#admin').classList.add('hidden'); state.exportBatch = null; $('#btn-exp-share').disabled = true; goHome(); });
 
   function setSeg(sel, v) { document.querySelectorAll(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
@@ -1826,7 +2403,8 @@
         ms.forEach(m => {
           const c = document.createElement('button');
           c.className = 'chip' + (m.status === 'rejected' ? ' rej' : '') + (m.exported ? ' exp' : '');
-          c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt);
+          c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt) + (m.qa && m.qa.redo ? ' ⚠' : '');
+          if (m.qa && m.qa.codes && m.qa.codes.length) c.title = m.qa.codes.join(', ');
           c.addEventListener('click', () => playMeta(m));
           chips.appendChild(c);
         });
@@ -2023,7 +2601,6 @@
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
   }
-  window.__borne = { state, DB, fileName };  // pour les tests
   boot();
 })();
 </script>

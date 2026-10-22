@@ -88,6 +88,15 @@ window.BORNE_CONFIG = {
      cadrage, lumière, son, sourire. Conseils affichés au candidat. */
   analyseAuto: true,
 
+  /* ---------- Contrôle du son (micro Bluetooth ou sans fil) ----------
+     microExterne : "avertir" = bandeau rouge et remarque si l'iPad utilise son propre micro
+                    "bloquer" = aucune prise possible sans le micro externe
+                    "non"     = on tourne avec le micro de l'iPad
+     (modifiable aussi dans le menu organisateur, carte « Micro et contrôle du son »)
+     alertesEnDirect : messages pendant la prise (« Parlez plus fort », « Le micro s'est coupé »…) */
+  microExterne: "avertir",
+  alertesEnDirect: true,
+
   /* ---------- Questions ----------
      id     : court, sans espace ni accent (sert au nom du fichier)
      texte  : la question affichée en grand
@@ -96,27 +105,28 @@ window.BORNE_CONFIG = {
   questions: [
     {
       id: "Q1-presentation",
-      texte: "Présentez-vous",
-      aide: "Prénom, nom, métier et commune. « Je m'appelle…, je suis… et j'habite à… »",
-      duree: 30
+      texte: "Présentez-vous en quelques mots.",
+      aide: "Votre nom, votre commune, votre métier, un détail qui vous ressemble, et votre candidature. (environ 5 secondes)",
+      duree: 20
     },
     {
       id: "Q2-engagement",
-      texte: "Pour quoi vous engagez-vous ?",
-      aide: "Deux thèmes qui vous tiennent à cœur, et pourquoi.",
+      texte: "Pourquoi vous engagez-vous ? Quels thèmes politiques vous tiennent à cœur ?",
+      aide: "Ce que vous observez autour de vous, puis ce que vous voulez changer. Un ou deux thèmes suffisent. (environ 10 secondes)",
       duree: 30
     },
     {
       id: "Q3-vaud-2037",
-      texte: "Complétez : « Le Canton de Vaud dans dix ans, j'aimerais qu'il soit… »",
-      aide: "Une phrase, avec votre cœur.",
-      duree: 20
+      texte: "Quelle est votre vision pour le futur du canton ?",
+      aide: "Par exemple : « Dans dix ans, j'aimerais que le canton de Vaud… » ou « Je veux un canton où… ». (environ 10 secondes)",
+      duree: 30
     },
     {
       id: "Q4-coin-prefere",
-      texte: "Votre coin préféré du canton ?",
-      aide: "Dites où, et pourquoi en une phrase.",
-      duree: 20
+      texte: "Voulez-vous partager une anecdote personnelle, un coin du canton qui vous est cher, ou porter un autre message ?",
+      aide: "Question facultative : si rien ne vous vient, touchez « Passer ». (environ 10 secondes)",
+      facultative: true,
+      duree: 30
     }
   ],
 
