@@ -65,22 +65,20 @@ window.BORNE_CONFIG = {
     { icone: "refaire",  titre: "Pas de stress", texte: "Vous pourrez revoir chaque réponse et la refaire si besoin." }
   ],
 
-  /* ---------- Étape « La pose » (vidéo muette en ouverture) ----------
-     Un mannequin 3D montre la pose ; la borne enregistre ensuite quelques
-     secondes guidées (regard, sourire, mouvement de tête) pour les montages. */
+  /* ---------- Étape « La pose » (ouverture de la séance) ----------
+     Un mannequin 3D montre les cinq gestes ; la borne enregistre ensuite
+     12 secondes guidées, avec le son (le « Bon film ! » final). */
   pose: {
     active: true,
-    duree: 9,
+    duree: 12,
     titre: "D'abord, la pose",
-    etapesAvant: [
-      "Tournez légèrement le corps, visage vers l'objectif",
-      "Menton un peu en avant et vers le bas",
-      "Épaules relâchées, penchez-vous un peu vers nous"
-    ],
-    etapesPendant: [
-      "Regard dans l'objectif, visage détendu",
-      "Souriez, naturellement",
-      "Tournez un peu la tête… et revenez vers nous"
+    /* Cinq gestes, dans cet ordre ; le dernier est parlé : « Bon film ! » (diffusion au cinéma) */
+    etapes: [
+      "Droit, face à l'objectif",
+      "Tournez-vous : profil de trois-quarts, visage vers l'objectif",
+      "Croisez les bras",
+      "Souriez",
+      "Dites « Bon film ! » en montrant l'objectif de l'index"
     ]
   },
 

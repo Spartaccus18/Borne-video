@@ -604,7 +604,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.2 · 22.10.2026';
+  const VERSION = '3.3 · 22.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -624,12 +624,13 @@
 
   const QUESTIONS = CFG.questions || [];
   const POSE = Object.assign({
-    active: false, duree: 9, titre: "D'abord, la pose",
-    etapesAvant: ["Tournez légèrement le corps, visage vers l'objectif", "Menton un peu en avant et vers le bas", "Épaules relâchées, penchez-vous un peu vers nous"],
-    etapesPendant: ["Regard dans l'objectif, visage détendu", "Souriez, naturellement", "Tournez un peu la tête… et revenez vers nous"]
+    active: false, duree: 12, titre: "D'abord, la pose",
+    etapes: ["Droit, face à l'objectif", "Tournez-vous : profil de trois-quarts, visage vers l'objectif", "Croisez les bras", "Souriez", "Dites « Bon film ! » en montrant l'objectif de l'index"]
   }, CFG.pose || {});
+  const POSE_TIMES = [0, 2.0, 4.4, 6.8, 9.0, 12];   // début de chaque geste, sur une prise de 12 s (mise à l'échelle de la durée réelle)
+  const poseCueAt = (el, dur) => { const f = el * 12 / (dur || 12); let k = 0; for (let i = 1; i < POSE_TIMES.length - 1; i++) if (f >= POSE_TIMES[i]) k = i; return Math.min(k, (POSE.etapes || []).length - 1); };
   // Suite des étapes : la pose (facultative) puis les questions
-  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 9 }] : [])
+  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 12 }] : [])
     .concat(QUESTIONS.map(q => Object.assign({ type: 'question' }, q)));
   const DAYS = CFG.journees || [];
 
@@ -1489,14 +1490,13 @@
     state.liveFaceMiss = 0;
     if (!qaEnabled()) return { stop: () => samples };
     let alive = true, busy = false, i = 0;
-    const k = dur / 9;
     const iv = setInterval(async () => {
       if (!alive || busy) return;
       busy = true;
       const t = (performance.now() - t0) / 1000;
       const n = i++;
       const r = await analyseFrame(v, {
-        expr: isPose ? (t > 3.2 * k && t < 6.6 * k) : n % 3 === 1,
+        expr: isPose ? (t / dur > 0.6 && t / dur < 0.76) : n % 3 === 1,
         lm: n % 2 === 0,
         multi: n % 4 === 3
       });
@@ -1590,6 +1590,26 @@
         const hs = S.filter(x => x.happy != null).map(x => x.happy);
         if (hs.length && Math.max(...hs) < 0.5) add('tip', 'smile', 'Votre sourire était discret : osez un vrai grand sourire !');
       }
+      // « Bon film ! » : on doit l'entendre clairement (la pose dure 12 s, la voix n'en occupe qu'une petite partie)
+      if (live && live.st) {
+        const st = live.st;
+        if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
+        else if (st.dead > 0.85) { add('redo', 'micdead', 'On n\'entend rien : le micro ne capte pas.'); add('tech', 'micdead', 'Aucun signal du micro : vérifier qu\'il est allumé, chargé et connecté.'); }
+        else if (st.voiced < 0.02 || st.speech == null) add('redo', 'nobonfilm', st.noise > -42 ? 'Trop de bruit autour de vous : on n\'entend pas votre « Bon film\u202f! ».' : 'On ne vous entend pas dire « Bon film\u202f! » : parlez plus fort à la fin de la pose.');
+        else {
+          if (st.speech < -44) add('redo', 'quiet', 'Votre « Bon film\u202f! » est trop faible : dites-le plus fort.');
+          else if (st.speech < -35) add('tip', 'quiet', 'Dites « Bon film\u202f! » un peu plus fort.');
+          if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : dites « Bon film\u202f! » un peu moins fort.');
+          if (st.snr < 10) add('redo', 'noise', 'Trop de bruit autour de vous : recommencez quand le calme revient.');
+          else if (st.snr < 16) add('tip', 'noise', 'Il y a du bruit de fond : demandez le calme autour de la borne.');
+          if (st.gaps >= 2) add('redo', 'gap', 'Le son a été coupé à plusieurs reprises : recommencez.');
+          if (st.gaps >= 1) add('tech', 'gap', 'Coupures du micro sans fil (' + st.gaps + ') : rapprocher le récepteur, vérifier la batterie, éviter les obstacles.');
+          if (st.clicksPs > 1.2) add('redo', 'crackle', 'Le son grésille : recommencez.');
+          if (st.hum != null && st.hum > 18) add('tech', 'hum', 'Bourdonnement électrique (50 Hz) : éloigner le micro et le récepteur des câbles et des chargeurs.');
+          if (st.narrow || (MIC.info.rate && MIC.info.rate <= 16000)) add('tech', 'narrow', 'Son de qualité « téléphone » : le micro Bluetooth fonctionne en mode mains libres (16 kHz).');
+        }
+        if (micExternalWanted() && live.info && live.info.builtin) add('tech', 'builtin', 'Prise enregistrée avec le micro de l\'iPad : le micro externe n\'était pas connecté.');
+      }
     } else if (live && live.st) {
       const st = live.st;
       if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
@@ -1653,7 +1673,7 @@
     const icon = { ok: '✔', tip: '💡', redo: '⚠', tech: '🔧' };
     const callOrg = rep.tech.some(t => ['miclost', 'micdead', 'frozen'].includes(t.code));
     let title;
-    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière et sourire : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
+    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière, sourire et « Bon film\u202f! » : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
     else if (rep.redo && left > 0) { title = 'Nous vous conseillons de recommencer'; $('#btn-retake').classList.add('advised'); }
     else if (rep.redo) title = 'Prise enregistrée. Un conseil pour la suite :';
     else title = 'Bonne prise ✔ Un petit conseil :';
@@ -1979,18 +1999,16 @@
   }
   function fillPoseLists() {
     $('#pose-title').textContent = POSE.titre || "D'abord, la pose";
-    $('#pose-lead').textContent = 'Imitez le mannequin : une courte vidéo muette de ' + (POSE.duree || 9) + ' secondes.';
+    $('#pose-lead').textContent = 'Imitez le mannequin, geste après geste. Silence jusqu\'au dernier geste : vous dites alors « Bon film\u202f! ».';
     state.poseStep = -2; highlightPoseStep(0);
   }
   function highlightPoseStep(i) {
-    const av = POSE.etapesAvant || [], pe = POSE.etapesPendant || [];
-    if (i < 0 || i >= av.length + pe.length || i === state.poseStep) return;   // hors étape : on garde la consigne affichée
+    const et = POSE.etapes || [];
+    if (i < 0 || i >= et.length || i === state.poseStep) return;   // hors étape : on garde la consigne affichée
     state.poseStep = i;
-    const avant = i < av.length;
-    $('#pose-cap-n').textContent = (avant ? 'Avant de tourner · ' + (i + 1) + ' / ' + av.length
-      : 'Pendant les ' + (POSE.duree || 9) + ' secondes · ' + (i - av.length + 1) + ' / ' + pe.length);
+    $('#pose-cap-n').textContent = 'Geste ' + (i + 1) + ' / ' + et.length;
     const t = $('#pose-cap-t');
-    t.textContent = avant ? av[i] : pe[i - av.length];
+    t.textContent = et[i];
     t.classList.remove('anim'); void t.offsetWidth; t.classList.add('anim');
   }
   async function showPose() {
@@ -2028,12 +2046,12 @@
     }
     const q = STEPS[state.qIndex];
     const isPose = q.type === 'pose';
-    const dur = q.duree || (isPose ? 9 : 30);
+    const dur = q.duree || (isPose ? 12 : 30);
     $('#rec-q').textContent = q.texte;
     $('#rec-q').classList.toggle('hidden', isPose);
     $('#rec-pose').classList.toggle('hidden', !isPose);
     $('#btn-stop').classList.toggle('hidden', isPose);
-    const cues = POSE.etapesPendant || [];
+    const cues = POSE.etapes || [];
     const setCue = (k) => { $('#rec-pose-n').textContent = (k + 1) + ' / ' + cues.length; $('#rec-pose-txt').textContent = cues[k] || ''; };
     if (isPose) {
       setCue(0);
@@ -2086,7 +2104,7 @@
     const tick = setInterval(() => {
       const el = (performance.now() - t0) / 1000;
       const left = dur - el;
-      if (isPose) { setCue(Math.min(cues.length - 1, Math.floor(el / (dur / Math.max(1, cues.length))))); if (miniMan) miniMan.setTime(el, dur); }
+      if (isPose) { setCue(poseCueAt(el, dur)); if (miniMan) miniMan.setTime(el, dur); }
       $('#bar > div').style.width = Math.min(100, (el / dur) * 100) + '%';
       $('#bar').classList.toggle('late', !isPose && left <= 5);
       $('#rec-time').textContent = fmtTime(left);
