@@ -185,3 +185,7 @@ Réglages utiles dans `config.js` : `duree` de chaque question, `prisesMax`, `co
 **Organisation**
 - [ ] Mac avec AirDrop + environ 15 Go libres par journée + disque externe de sauvegarde
 - [ ] Code organisateur noté, liste des candidats du jour
+
+## Revenir à l'ancien mannequin (v3.7)
+
+La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `versions/pose3d-v3.7-xbot.js`. Pour y revenir : remplacer `vendor/pose3d.js` par ce fichier (même contenu, renommé `pose3d.js`), puis changer le numéro de cache dans `sw.js` (`borne-video-v3-8` → un nouveau nom) pour que l'iPad recharge. Sur GitHub, le commit `aad155a` correspond exactement à la v3.7.
