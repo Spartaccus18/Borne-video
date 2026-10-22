@@ -101,7 +101,7 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 - **Écran de tournage sans retour vidéo** : pendant la prise, l'écran est entièrement blanc (lumière maximale sur le visage). Seul un cadre bleu foncé, placé près de l'objectif, affiche la question (ou le mannequin pour la pose). Le candidat revoit sa vidéo juste après la prise. Le retour vidéo peut être réaffiché dans le menu organisateur (« Retour vidéo pendant la prise »).
 - **Luminosité** : une application web ne peut pas régler la luminosité de l'iPad. Avant le shooting : luminosité au maximum (Centre de contrôle), « Luminosité automatique » et « True Tone » désactivés.
 - **Contrôle du regard** : la borne mesure la position de l'iris et l'orientation de la tête. Si le candidat ne regarde pas l'objectif pendant plus de 40 % de la prise, elle conseille de recommencer. Réglage : `seuilRegardX` et `seuilRegardY` dans `config.js`. Le contrôle suppose l'objectif en haut de l'iPad.
-- **Pose** : le mannequin (corps 3D de vitrine, musculature, visage animé, mains à doigts séparés, fichiers `models/mannequin.json` et `.bin`) reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire visible, « Bon film ! » en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
+- **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, « Bon film ! » en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
 
 ## 7. Récupérer les vidéos (fin de journée)
 
