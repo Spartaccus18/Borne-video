@@ -189,3 +189,9 @@ Réglages utiles dans `config.js` : `duree` de chaque question, `prisesMax`, `co
 ## Revenir à l'ancien mannequin (v3.7)
 
 La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `versions/pose3d-v3.7-xbot.js`. Pour y revenir : remplacer `vendor/pose3d.js` par ce fichier (même contenu, renommé `pose3d.js`), puis changer le numéro de cache dans `sw.js` (`borne-video-v3-8` → un nouveau nom) pour que l'iPad recharge. Sur GitHub, le commit `aad155a` correspond exactement à la v3.7.
+
+## Importer le planning Excel et faire le rapport de fin de journée (v3.11)
+
+**Importer le planning** : menu organisateur > carte « Importer le planning (Excel) » > choisir « planning et infos shooting photo.xlsx » (ou un CSV). L'app lit les colonnes Date, Heure, Nom, Prénom et Arrondissement, répartit les candidats dans les journées J1 à J5 (dates dans `config.js`) et les classe par heure d'arrivée. L'heure et l'arrondissement s'affichent sous chaque nom. Les personnes sans date restent trouvables avec la recherche.
+
+**Rapport de fin de journée** : menu organisateur > carte « Suivi des candidats » > « Rapport de fin de journée ». L'app produit un CSV (ouvrable dans Excel) et un texte lisible : pour chaque candidat, quelles vidéos ont été tournées (Pose, Q1, Q2, Q3, Q4), avec « Oui (prise N) » ou « Rejetée ». Les colonnes portent les mêmes noms que celles ajoutées dans l'Excel du planning (« Vidéo Pose », « Vidéo Q1 Présentation »…).
