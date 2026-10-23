@@ -673,13 +673,13 @@
 
   const QUESTIONS = CFG.questions || [];
   const POSE = Object.assign({
-    active: false, duree: 12, titre: "D'abord, la pose",
-    etapes: ["Droit, face à l'objectif", "Tournez-vous : profil de trois-quarts, visage vers l'objectif", "Croisez les bras", "Souriez", "Dites « Bon film ! » en montrant l'objectif de l'index"]
+    active: false, duree: 16, titre: "D'abord, la pose",
+    etapes: ["Droit, face à l'objectif", "Tournez-vous : profil de trois-quarts, visage vers l'objectif", "Croisez les bras", "Souriez", "Montrez l'objectif de l'index et dites « Le 28 février on vote ! », puis, après une courte pause, « En attendant, bon film ! »"]
   }, CFG.pose || {});
-  const POSE_TIMES = [0, 2.0, 4.4, 6.8, 9.0, 12];   // début de chaque geste, sur une prise de 12 s (mise à l'échelle de la durée réelle)
-  const poseCueAt = (el, dur) => { const f = el * 12 / (dur || 12); let k = 0; for (let i = 1; i < POSE_TIMES.length - 1; i++) if (f >= POSE_TIMES[i]) k = i; return Math.min(k, (POSE.etapes || []).length - 1); };
+  const POSE_TIMES = [0, 2.0, 4.4, 6.8, 9.0, 16];   // début de chaque geste, sur une prise de 16 s (mise à l'échelle de la durée réelle)
+  const poseCueAt = (el, dur) => { const f = el * 16 / (dur || 16); let k = 0; for (let i = 1; i < POSE_TIMES.length - 1; i++) if (f >= POSE_TIMES[i]) k = i; return Math.min(k, (POSE.etapes || []).length - 1); };
   // Suite des étapes : la pose (facultative) puis les questions
-  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 12 }] : [])
+  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 16 }] : [])
     .concat(QUESTIONS.map(q => Object.assign({ type: 'question' }, q)));
   const DAYS = CFG.journees || [];
 
@@ -1581,7 +1581,7 @@
       const t = (performance.now() - t0) / 1000;
       const n = i++;
       const r = await analyseFrame(v, {
-        expr: isPose ? (t / dur > 0.6 && t / dur < 0.76) : n % 3 === 1,
+        expr: isPose ? (t / dur > 0.47 && t / dur < 0.56) : n % 3 === 1,
         lm: n % 2 === 0,
         multi: n % 4 === 3
       });
@@ -1681,16 +1681,16 @@
         const hs = S.filter(x => x.happy != null).map(x => x.happy);
         if (hs.length && Math.max(...hs) < 0.5) add('tip', 'smile', 'Votre sourire était discret : osez un vrai grand sourire !');
       }
-      // « Bon film ! » : on doit l'entendre clairement (la pose dure 12 s, la voix n'en occupe qu'une petite partie)
+      // phrase finale (« Le 28 février on vote ! … En attendant, bon film ! ») : on doit l'entendre clairement (la pose dure 16 s, la voix n'en occupe qu'une partie)
       if (live && live.st) {
         const st = live.st;
         if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
         else if (st.dead > 0.85) { add('redo', 'micdead', 'On n\'entend rien : le micro ne capte pas.'); add('tech', 'micdead', 'Aucun signal du micro : vérifier qu\'il est allumé, chargé et connecté.'); }
-        else if (st.voiced < 0.02 || st.speech == null) add('redo', 'nobonfilm', st.noise > -42 ? 'Trop de bruit autour de vous : on n\'entend pas votre « Bon film\u202f! ».' : 'On ne vous entend pas dire « Bon film\u202f! » : parlez plus fort à la fin de la pose.');
+        else if (st.voiced < 0.02 || st.speech == null) add('redo', 'nobonfilm', st.noise > -42 ? 'Trop de bruit autour de vous : on n\'entend pas votre phrase finale.' : 'On ne vous entend pas dire la phrase finale : parlez plus fort à la fin de la pose.');
         else {
-          if (st.speech < -44) add('redo', 'quiet', 'Votre « Bon film\u202f! » est trop faible : dites-le plus fort.');
-          else if (st.speech < -35) add('tip', 'quiet', 'Dites « Bon film\u202f! » un peu plus fort.');
-          if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : dites « Bon film\u202f! » un peu moins fort.');
+          if (st.speech < -44) add('redo', 'quiet', 'Votre phrase finale est trop faible : dites-la plus fort.');
+          else if (st.speech < -35) add('tip', 'quiet', 'Dites la phrase finale un peu plus fort.');
+          if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : parlez un peu moins fort.');
           if (st.snr < 10) add('redo', 'noise', 'Trop de bruit autour de vous : recommencez quand le calme revient.');
           else if (st.snr < 16) add('tip', 'noise', 'Il y a du bruit de fond : demandez le calme autour de la borne.');
           if (st.gaps >= 2) add('redo', 'gap', 'Le son a été coupé à plusieurs reprises : recommencez.');
@@ -1765,7 +1765,7 @@
     const icon = { ok: '✔', tip: '💡', redo: '⚠', tech: '🔧' };
     const callOrg = rep.tech.some(t => ['miclost', 'micdead', 'frozen'].includes(t.code));
     let title;
-    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière, sourire et « Bon film\u202f! » : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
+    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière, sourire et phrase finale : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
     else if (rep.redo && left > 0) { title = 'Nous vous conseillons de recommencer'; $('#btn-retake').classList.add('advised'); }
     else if (rep.redo) title = 'Prise enregistrée. Un conseil pour la suite :';
     else title = 'Bonne prise ✔ Un petit conseil :';
@@ -2096,7 +2096,7 @@
   }
   function fillPoseLists() {
     $('#pose-title').textContent = POSE.titre || "D'abord, la pose";
-    $('#pose-lead').textContent = 'Imitez le mannequin, geste après geste. Silence jusqu\'au dernier geste : vous dites alors « Bon film\u202f! ».';
+    $('#pose-lead').textContent = 'Imitez le mannequin, geste après geste. Silence jusqu\'au dernier geste : vous dites alors « Le 28 février on vote\u202f! », une courte pause, puis « En attendant, bon film\u202f! ».';
     state.poseStep = -2; highlightPoseStep(0);
   }
   function highlightPoseStep(i) {
@@ -2143,7 +2143,7 @@
     }
     const q = STEPS[state.qIndex];
     const isPose = q.type === 'pose';
-    const dur = q.duree || (isPose ? 12 : 30);
+    const dur = q.duree || (isPose ? 16 : 30);
     $('#rec-q').textContent = q.texte;
     $('#rec-q').classList.toggle('hidden', isPose);
     $('#rec-pose').classList.toggle('hidden', !isPose);
@@ -2592,7 +2592,7 @@
      ------------------------------------------------------------------ */
   const VIDEO_LABELS = { 'Q0-pose': 'Pose', 'Q1-presentation': 'Q1 Présentation', 'Q2-engagement': 'Q2 Engagement', 'Q3-vaud-2037': 'Q3 Vision Vaud 2037', 'Q4-coin-prefere': 'Q4 Coin préféré' };
   const videoCol = st => 'Vidéo ' + (VIDEO_LABELS[st.id] || st.id.replace(/-/g, ' '));
-  async function buildReport() {
+  async function buildDayReport() {
     const all = await DB.all();
     const dayId = state.dayId;
     const info = LS.get('plan.info', {}) || {};
@@ -2632,7 +2632,7 @@
   $('#btn-report').addEventListener('click', async () => {
     const out = $('#report-info');
     try {
-      const r = await buildReport(); const files = reportFiles(r);
+      const r = await buildDayReport(); const files = reportFiles(r);
       out.textContent = r.rows.length + ' candidats dans le rapport.';
       if (navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files, title: 'Rapport vidéos ' + r.label }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
       files.forEach(f => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); });

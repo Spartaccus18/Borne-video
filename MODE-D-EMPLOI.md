@@ -66,7 +66,7 @@ Accueil (liste des noms + recherche) › « Bonjour [nom] ! » › 3 conseils, u
 
 ## 6 bis. Nouveautés v3 : la pose et l'analyse automatique
 
-- **La pose** (étape 1, 12 s, avec le son) : un mannequin 3D montre cinq gestes, puis le candidat les enchaîne devant la caméra : droit face à l'objectif → profil de trois-quarts → bras croisés → sourire → « Bon film ! » en montrant l'objectif de l'index (clip pour la pub au cinéma). Le son du « Bon film ! » est contrôlé comme celui des réponses. Réglable ou désactivable dans `config.js` (`pose`).
+- **La pose** (étape 1, 16 s, avec le son) : un mannequin 3D montre cinq gestes, puis le candidat les enchaîne devant la caméra : droit face à l'objectif → profil de trois-quarts → bras croisés → sourire → en montrant l'objectif de l'index, « Le 28 février on vote ! », une courte pause, puis « En attendant, bon film ! » (clip pour la pub au cinéma). Le son de cette phrase est contrôlé comme celui des réponses. Réglable ou désactivable dans `config.js` (`pose`).
 - **Aide au cadrage en direct** sur l'écran de préparation : « Approchez-vous », « Placez-vous au centre », « Cadrage parfait ✔ »…
 - **Analyse de chaque prise** (sur l'iPad, sans internet) : cadrage, lumière, volume de la voix, saturation, phrase coupée, sourire. Si un défaut important est détecté, le bouton « Recommencer » est mis en avant. Désactivable : `analyseAuto: false`.
 - Fichiers à envoyer sur GitHub en plus : le dossier `vendor` (3D et analyse) et le dossier `models` (modèles de détection du visage).
@@ -101,7 +101,7 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 - **Écran de tournage sans retour vidéo** : pendant la prise, l'écran est entièrement blanc (lumière maximale sur le visage). Seul un cadre bleu foncé, placé près de l'objectif, affiche la question (ou le mannequin pour la pose). Le candidat revoit sa vidéo juste après la prise. Le retour vidéo peut être réaffiché dans le menu organisateur (« Retour vidéo pendant la prise »).
 - **Luminosité** : une application web ne peut pas régler la luminosité de l'iPad. Avant le shooting : luminosité au maximum (Centre de contrôle), « Luminosité automatique » et « True Tone » désactivés.
 - **Contrôle du regard** : la borne mesure la position de l'iris et l'orientation de la tête. Si le candidat ne regarde pas l'objectif pendant plus de 40 % de la prise, elle conseille de recommencer. Réglage : `seuilRegardX` et `seuilRegardY` dans `config.js`. Le contrôle suppose l'objectif en haut de l'iPad.
-- **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, « Bon film ! » en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
+- **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, phrase finale (« Le 28 février on vote ! », pause, « En attendant, bon film ! ») en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
 
 ## 7. Récupérer les vidéos (fin de journée)
 

@@ -69,18 +69,18 @@ window.BORNE_CONFIG = {
 
   /* ---------- Étape « La pose » (ouverture de la séance) ----------
      Un mannequin 3D montre les cinq gestes ; la borne enregistre ensuite
-     12 secondes guidées, avec le son (le « Bon film ! » final). */
+     16 secondes guidées, avec le son (la phrase finale : « Le 28 février on vote ! … En attendant, bon film ! »). */
   pose: {
     active: true,
-    duree: 12,
+    duree: 16,
     titre: "D'abord, la pose",
-    /* Cinq gestes, dans cet ordre ; le dernier est parlé : « Bon film ! » (diffusion au cinéma) */
+    /* Cinq gestes, dans cet ordre ; le dernier est parlé : « Le 28 février on vote ! » [pause] « En attendant, bon film ! » (diffusion au cinéma) */
     etapes: [
       "Droit, face à l'objectif",
       "Tournez-vous : profil de trois-quarts, visage vers l'objectif",
       "Croisez les bras",
       "Souriez",
-      "Dites « Bon film ! » en montrant l'objectif de l'index"
+      "Montrez l'objectif de l'index et dites « Le 28 février on vote ! », puis, après une courte pause, « En attendant, bon film ! »"
     ]
   },
 
