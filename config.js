@@ -145,26 +145,31 @@ window.BORNE_CONFIG = {
   journees: [
     {
       id: "J1",
+      date: "2026-10-27",
       libelle: "Mar 27 oct · Lausanne",
       candidats: ["Personne 1", "Personne 2", "Personne 3"]
     },
     {
       id: "J2",
+      date: "2026-10-29",
       libelle: "Jeu 29 oct · Lausanne",
       candidats: ["Personne 1", "Personne 2", "Personne 3"]
     },
     {
       id: "J3",
+      date: "2026-10-31",
       libelle: "Sam 31 oct · Féchy",
       candidats: ["Personne 1", "Personne 2", "Personne 3"]
     },
     {
       id: "J4",
+      date: "2026-11-04",
       libelle: "Mer 4 nov · Villeneuve",
       candidats: ["Personne 1", "Personne 2", "Personne 3"]
     },
     {
       id: "J5",
+      date: "2026-11-07",
       libelle: "Sam 7 nov · Yverdon",
       candidats: ["Personne 1", "Personne 2", "Personne 3"]
     }

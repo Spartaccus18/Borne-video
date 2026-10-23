@@ -515,6 +515,13 @@
     </div>
 
     <div class="card">
+      <h3>Importer le planning (Excel)</h3>
+      <p class="small">Choisissez le fichier « planning et infos shooting photo.xlsx » (ou un export CSV). Les colonnes Date, Heure, Nom, Prénom et Arrondissement sont lues automatiquement : chaque journée reçoit ses candidats dans l'ordre de passage. Rien n'est envoyé en ligne : le fichier est lu sur l'iPad.</p>
+      <div class="row"><input type="file" id="plan-file" accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
+      <p class="small" id="plan-info" style="margin-top:.5rem"></p>
+    </div>
+
+    <div class="card">
       <h3>Journée active</h3>
       <select id="adm-day"></select>
       <h3 style="margin-top:1rem">Noms du jour (un par ligne)</h3>
@@ -529,6 +536,8 @@
     <div class="card">
       <h3>Suivi des candidats de la journée</h3>
       <p class="small" id="track-sum"></p>
+      <div class="row"><button class="btn btn-ok" id="btn-report">Rapport de fin de journée (qui a tourné quoi)</button></div>
+      <p class="small" id="report-info"></p>
       <ul class="cand-list" id="track-list"></ul>
     </div>
 
@@ -638,7 +647,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.10 · 23.10.2026';
+  const VERSION = '3.11 · 23.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -722,6 +731,7 @@
     if (id === 'ALL') {
       const all = new Set();
       DAYS.forEach(d => namesFor(d.id).forEach(n => all.add(n)));
+      (LS.get('noms.extra', []) || []).forEach(n => all.add(n));
       return [...all].sort((a, b) => a.localeCompare(b, 'fr'));
     }
     const local = LS.get('noms.' + id, null);
@@ -730,7 +740,6 @@
     // L'ordre de la liste est conservé : c'est l'ordre de passage du planning
     return [...new Set(list.map(s => String(s).trim()).filter(Boolean))];
   }
-
   /* ------------------------------------------------------------------
      Stockage des vidéos (IndexedDB) : métadonnées et fichiers séparés
      ------------------------------------------------------------------ */
@@ -1897,7 +1906,10 @@
     if (!list.length) { box.innerHTML = '<p class="empty">Aucun nom pour cette journée : cherchez votre nom ci-dessus.</p>'; return; }
     list.forEach(n => {
       const b = document.createElement('button');
-      b.className = 'name-btn'; b.textContent = n;
+      b.className = 'name-btn';
+      const inf = (LS.get('plan.info', {}) || {})[n];
+      if (inf && (inf.h || inf.arr)) b.innerHTML = esc(n) + '<small style="display:block;font-weight:500;opacity:.75;font-size:.85rem;margin-top:.25rem">' + esc([inf.h, inf.arr].filter(Boolean).join(' · ')) + '</small>';
+      else b.textContent = n;
       b.addEventListener('click', () => startSession(n));
       box.appendChild(b);
     });
@@ -2443,6 +2455,183 @@
   document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => {
     state.recMode = b.dataset.v; LS.set('recMode', state.recMode); setSeg('#seg-mode', state.recMode); $('#cam-info').innerHTML = camInfo(); fitAll();
   }));
+
+
+  /* ------------------------------------------------------------------
+     Import du planning Excel (.xlsx) ou CSV, lu directement sur l'iPad
+     ------------------------------------------------------------------ */
+  async function unzipEntries(buf) {
+    const dv = new DataView(buf), u8 = new Uint8Array(buf);
+    let e = u8.length - 22;
+    while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('Fichier .xlsx illisible');
+    const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true);
+    const td = new TextDecoder(), out = {};
+    for (let i = 0; i < n; i++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+      const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+      const name = td.decode(u8.subarray(p + 46, p + 46 + nl));
+      p += 46 + nl + xl + cl;
+      if (!/^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^/]+\.xml)$/.test(name)) continue;
+      const ds = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true);
+      const raw = u8.subarray(ds, ds + csize);
+      if (method === 0) out[name] = td.decode(raw);
+      else if (method === 8) {
+        const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        out[name] = td.decode(await new Response(stream).arrayBuffer());
+      }
+    }
+    return out;
+  }
+  const colIdx = ref => { let n = 0; for (const ch of ref.replace(/[^A-Z]/g, '')) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  async function readXlsx(buf) {
+    const files = await unzipEntries(buf);
+    const xml = t => new DOMParser().parseFromString(t, 'application/xml');
+    const wb = xml(files['xl/workbook.xml'] || ''), rels = xml(files['xl/_rels/workbook.xml.rels'] || '');
+    const sheets = [...wb.getElementsByTagName('sheet')];
+    // On prend la feuille « Planning » si elle existe, sinon la première
+    const sh = sheets.find(x => /planning/i.test(x.getAttribute('name') || '')) || sheets[0];
+    let path = 'xl/worksheets/sheet1.xml';
+    if (sh) {
+      const rid = sh.getAttribute('r:id') || sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id');
+      const rel = [...rels.getElementsByTagName('Relationship')].find(r => r.getAttribute('Id') === rid);
+      if (rel) { const t = rel.getAttribute('Target'); path = t.startsWith('/') ? t.slice(1) : 'xl/' + t.replace(/^\.\//, ''); }
+    }
+    if (!files[path]) throw new Error('Feuille introuvable dans le fichier');
+    const ss = files['xl/sharedStrings.xml'] ? [...xml(files['xl/sharedStrings.xml']).getElementsByTagName('si')].map(si => [...si.getElementsByTagName('t')].map(t => t.textContent).join('')) : [];
+    const rows = [];
+    for (const r of xml(files[path]).getElementsByTagName('row')) {
+      const row = [];
+      for (const c of r.getElementsByTagName('c')) {
+        const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0], is = c.getElementsByTagName('is')[0];
+        let val = null;
+        if (t === 's' && v) val = ss[Number(v.textContent)];
+        else if (t === 'inlineStr' && is) val = [...is.getElementsByTagName('t')].map(x => x.textContent).join('');
+        else if (v) val = (t === 'str' || t === 'e' || t === 'b') ? v.textContent : Number(v.textContent);
+        row[colIdx(c.getAttribute('r') || 'A1')] = val;
+      }
+      rows.push(row);
+    }
+    return rows;
+  }
+  function readCsv(text) {
+    text = text.replace(/^﻿/, '');
+    const first = text.split(/\r?\n/)[0] || '';
+    const sep = [';', '\t', ','].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+    return text.split(/\r?\n/).filter(l => l.trim()).map(l => l.split(sep).map(c => c.replace(/^"|"$/g, '').trim()));
+  }
+  const planNorm = v => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  function planDate(v) {
+    if (v == null || v === '') return '';
+    if (typeof v === 'number') return new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5).toISOString().slice(0, 10);
+    const s = String(v).trim(); let m;
+    if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return m[1] + '-' + m[2] + '-' + m[3];
+    if ((m = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{2,4})/))) return (m[3].length === 2 ? '20' + m[3] : m[3]) + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+    return '';
+  }
+  function planTime(v) {
+    if (v == null || v === '') return '';
+    if (typeof v === 'number') { const mins = Math.round((v % 1) * 1440); return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
+    const m = String(v).match(/(\d{1,2})\s*[:h]\s*(\d{2})/); return m ? m[1].padStart(2, '0') + ':' + m[2] : '';
+  }
+  function parsePlanning(rows) {
+    const hi = rows.findIndex(r => r && r.some(c => planNorm(c) === 'nom') && r.some(c => /^pr[eé]nom$/.test(planNorm(c)) || planNorm(c) === 'prenom'));
+    if (hi < 0) throw new Error('Colonnes « Nom » et « Prénom » introuvables');
+    const head = rows[hi].map(planNorm), col = n => head.findIndex(h => h === n);
+    const iD = col('date'), iH = col('heure'), iN = col('nom'), iP = col('prenom'), iA = col('arrondissement');
+    const out = [];
+    rows.slice(hi + 1).forEach(r => {
+      if (!r) return;
+      const nom = String(r[iN] == null ? '' : r[iN]).trim(), pre = String(r[iP] == null ? '' : r[iP]).trim();
+      if (!nom && !pre) return;
+      out.push({ d: planDate(r[iD]), h: planTime(r[iH]), nom, pre, arr: iA >= 0 ? String(r[iA] == null ? '' : r[iA]).trim() : '' });
+    });
+    return out;
+  }
+  function applyPlanning(list) {
+    const info = {}; let ignored = 0; const extra = [];
+    const full = p => (p.pre + ' ' + p.nom).replace(/\s+/g, ' ').trim();
+    list.forEach(p => { info[full(p)] = { h: p.h, arr: p.arr, nom: p.nom, pre: p.pre, d: p.d }; });
+    const used = new Set(); const counts = [];
+    DAYS.forEach(day => {
+      if (!day.date) return;
+      const rows = list.map((p, i) => ({ p, i })).filter(x => x.p.d === day.date)
+        .sort((a, b) => (a.p.h ? 0 : 1) - (b.p.h ? 0 : 1) || (a.p.h || '').localeCompare(b.p.h || '') || a.i - b.i);
+      rows.forEach(x => used.add(x.i));
+      LS.set('noms.' + day.id, rows.map(x => full(x.p)));
+      counts.push(day.id + ' : ' + rows.length);
+    });
+    list.forEach((p, i) => { if (!used.has(i)) { if (p.d) ignored++; else extra.push(full(p)); } });
+    LS.set('noms.extra', extra);
+    LS.set('plan.info', info);
+    return { counts, extra: extra.length, ignored, total: list.length };
+  }
+  $('#plan-file').addEventListener('change', async ev => {
+    const f = ev.target.files[0]; if (!f) return;
+    const out = $('#plan-info'); out.textContent = 'Lecture de « ' + f.name + ' »…';
+    try {
+      const rows = /\.xlsx$/i.test(f.name) ? await readXlsx(await f.arrayBuffer()) : readCsv(await f.text());
+      const r = applyPlanning(parsePlanning(rows));
+      out.innerHTML = '<b>' + r.total + ' candidats lus.</b> ' + r.counts.join(' · ') +
+        (r.extra ? '<br>' + r.extra + ' sans date (retrouvables avec la recherche).' : '') +
+        (r.ignored ? '<br>' + r.ignored + ' avec une date qui ne correspond à aucune journée.' : '');
+      fillNamesBox(); renderNames(); await refreshStats();
+    } catch (e) { out.textContent = 'Import impossible : ' + (e && e.message || e); }
+    ev.target.value = '';
+  });
+
+  /* ------------------------------------------------------------------
+     Rapport de fin de journée : qui a tourné quelle vidéo (CSV pour Excel + texte lisible)
+     ------------------------------------------------------------------ */
+  const VIDEO_LABELS = { 'Q0-pose': 'Pose', 'Q1-presentation': 'Q1 Présentation', 'Q2-engagement': 'Q2 Engagement', 'Q3-vaud-2037': 'Q3 Vision Vaud 2037', 'Q4-coin-prefere': 'Q4 Coin préféré' };
+  const videoCol = st => 'Vidéo ' + (VIDEO_LABELS[st.id] || st.id.replace(/-/g, ' '));
+  async function buildReport() {
+    const all = await DB.all();
+    const dayId = state.dayId;
+    const info = LS.get('plan.info', {}) || {};
+    const inDay = all.filter(m => dayId === 'ALL' || m.dayId === dayId);
+    const byCand = {}; inDay.forEach(m => { (byCand[m.candidate] = byCand[m.candidate] || []).push(m); });
+    const planned = namesFor(dayId);
+    const names = dayId === 'ALL' ? [...new Set([...planned, ...Object.keys(byCand)])] : [...planned, ...Object.keys(byCand).filter(n => !planned.includes(n))];
+    const cols = STEPS.map(videoCol);
+    const head = ['Date', 'Rang', 'Heure', 'Nom', 'Prénom', 'Arrondissement'].concat(cols, ['Vidéos tournées']);
+    const day = DAYS.find(d => d.id === dayId);
+    const rows = names.map((n, i) => {
+      const inf = info[n] || {}, ms = byCand[n] || [];
+      const cells = STEPS.map(st => {
+        const t = ms.filter(m => m.questionId === st.id);
+        const ok = t.filter(m => m.status !== 'rejected').sort((a, b) => b.take - a.take)[0];
+        return ok ? 'Oui (prise ' + ok.take + ')' : t.length ? 'Rejetée' : '';
+      });
+      const nb = cells.filter(c => c.startsWith('Oui')).length;
+      const sp = n.split(' ');
+      return [day ? day.date || '' : '', i + 1, inf.h || '', inf.nom || sp.slice(1).join(' '), inf.pre || sp[0], inf.arr || '', ...cells, nb + ' / ' + STEPS.length];
+    });
+    return { head, rows, label: dayLabel(dayId), dayId, date: day && day.date || today() };
+  }
+  function reportFiles(r) {
+    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
+    const csv = '﻿' + [r.head, ...r.rows].map(l => l.map(q).join(';')).join('\r\n');
+    const done = r.rows.filter(x => x[x.length - 1].startsWith(String(STEPS.length) + ' /')).length;
+    const txt = ['RAPPORT VIDÉOS · ' + r.label, 'Date : ' + r.date, r.rows.length + ' candidats · ' + done + ' avec les ' + STEPS.length + ' vidéos', ''].concat(
+      r.rows.map(x => {
+        const fait = [], manque = [];
+        r.head.slice(6, 6 + STEPS.length).forEach((h, i) => { const v = x[6 + i]; (v.startsWith('Oui') ? fait : manque).push(h.replace('Vidéo ', '') + (v === 'Rejetée' ? ' (rejetée)' : '')); });
+        return (x[2] ? x[2] + '  ' : '') + x[4] + ' ' + x[3] + ' : ' + (fait.length ? 'tourné ' + fait.join(', ') : 'rien tourné') + (manque.length && fait.length ? ' · manque ' + manque.join(', ') : '');
+      })).join('\n');
+    const base = 'Rapport-videos_' + r.dayId + '_' + r.date;
+    return [new File([csv], base + '.csv', { type: 'text/csv' }), new File([txt], base + '.txt', { type: 'text/plain' })];
+  }
+  $('#btn-report').addEventListener('click', async () => {
+    const out = $('#report-info');
+    try {
+      const r = await buildReport(); const files = reportFiles(r);
+      out.textContent = r.rows.length + ' candidats dans le rapport.';
+      if (navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files, title: 'Rapport vidéos ' + r.label }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      files.forEach(f => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); });
+    } catch (e) { out.textContent = 'Rapport impossible : ' + (e && e.message || e); }
+  });
 
   function fillNamesBox() {
     const id = $('#adm-day').value;
