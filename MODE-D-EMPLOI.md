@@ -57,7 +57,7 @@ Ouverture : **5 touches rapides dans le coin en haut à droite** de l'écran d'a
 
 ## 6. Parcours du candidat
 
-Accueil (liste des noms + recherche) › « Bonjour [nom] ! » › 3 conseils, un par écran, sans caméra (ils défilent seuls ; toucher l'écran avance) › vérification du cadrage › la pose › pour chaque question : écran de la question › décompte 3-2-1 › enregistrement (barre de temps, bouton « Terminer ») › relecture › « C'est parfait » ou « Recommencer » (3 essais max) › « Merci ! » › retour automatique à l'accueil.
+Accueil (liste des noms + recherche) › « Bonjour [nom] ! » › 3 conseils, un par écran, sans caméra (ils défilent seuls ; toucher l'écran avance) › vérification du cadrage › pour chaque question (1 à 4) : écran de la question › décompte 3-2-1 › enregistrement (barre de temps, bouton « Terminer ») › relecture › « C'est parfait » ou « Recommencer » (3 essais max) › puis, en dernier, la pose finale (même déroulé, 16 s) › « Merci ! » › retour automatique à l'accueil.
 
 - « Passer » permet de sauter une question.
 - Si personne ne touche l'écran pendant 90 s, la borne revient à l'accueil (une prise en attente de relecture est conservée).
@@ -66,7 +66,7 @@ Accueil (liste des noms + recherche) › « Bonjour [nom] ! » › 3 conseils, u
 
 ## 6 bis. Nouveautés v3 : la pose et l'analyse automatique
 
-- **La pose** (étape 1, 16 s, avec le son) : un mannequin 3D montre cinq gestes, puis le candidat les enchaîne devant la caméra : droit face à l'objectif → profil de trois-quarts → bras croisés → sourire → en montrant l'objectif de l'index, « Le 28 février on vote ! », une courte pause, puis « En attendant, bon film ! » (clip pour la pub au cinéma). Le son de cette phrase est contrôlé comme celui des réponses. Réglable ou désactivable dans `config.js` (`pose`).
+- **La pose** (dernière étape, après les questions 1 à 4, 16 s, avec le son) : un mannequin 3D montre cinq gestes, puis le candidat les enchaîne devant la caméra : droit face à l'objectif → profil de trois-quarts → bras croisés → sourire → en montrant l'objectif de l'index, « Le 28 février on vote ! », une courte pause, puis « En attendant, bon film ! » (clip pour la pub au cinéma). Le son de cette phrase est contrôlé comme celui des réponses. Réglable ou désactivable dans `config.js` (`pose`).
 - **Aide au cadrage en direct** sur l'écran de préparation : « Approchez-vous », « Placez-vous au centre », « Cadrage parfait ✔ »…
 - **Analyse de chaque prise** (sur l'iPad, sans internet) : cadrage, lumière, volume de la voix, saturation, phrase coupée, sourire. Si un défaut important est détecté, le bouton « Recommencer » est mis en avant. Désactivable : `analyseAuto: false`.
 - Fichiers à envoyer sur GitHub en plus : le dossier `vendor` (3D et analyse) et le dossier `models` (modèles de détection du visage).
@@ -194,7 +194,7 @@ La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `ver
 
 **Importer le planning** : menu organisateur > carte « Importer le planning (Excel) » > choisir « planning et infos shooting photo.xlsx » (ou un CSV). L'app lit les colonnes Date, Heure, Nom, Prénom et Arrondissement, répartit les candidats dans les journées J1 à J5 (dates dans `config.js`) et les classe par heure d'arrivée. L'heure et l'arrondissement s'affichent sous chaque nom. Les personnes sans date restent trouvables avec la recherche.
 
-**Rapport de fin de journée** : menu organisateur > carte « Suivi des candidats » > « Rapport de fin de journée ». L'app produit un CSV (ouvrable dans Excel) et un texte lisible : pour chaque candidat, quelles vidéos ont été tournées (Pose, Q1, Q2, Q3, Q4), avec « Oui (prise N) » ou « Rejetée ». Les colonnes portent les mêmes noms que celles ajoutées dans l'Excel du planning (« Vidéo Pose », « Vidéo Q1 Présentation »…).
+**Rapport de fin de journée** : menu organisateur > carte « Suivi des candidats » > « Rapport de fin de journée ». L'app produit un seul fichier CSV, prêt à être importé dans l'app contrôle des infos (Administration > « Importer le récap vidéo (borne) »), et ouvrable dans Excel : pour chaque candidat, quelles vidéos ont été tournées (Pose, Q1, Q2, Q3, Q4), avec « Oui (prise N) » ou « Rejetée ». Les colonnes portent les mêmes noms que celles ajoutées dans l'Excel du planning (« Vidéo Pose », « Vidéo Q1 Présentation »…).
 
 ## Contrôle des exports (v3.12)
 

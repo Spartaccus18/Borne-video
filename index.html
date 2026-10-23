@@ -382,7 +382,7 @@
 <!-- ============ LA POSE ============ -->
 <section id="s-pose" class="screen hidden">
   <p class="q-count">Étape 1 · La pose</p>
-  <h2 id="pose-title" style="margin-top:.9rem">D'abord, la pose</h2>
+  <h2 id="pose-title" style="margin-top:.9rem">Pour finir, la pose</h2>
   <p class="lead" style="margin-top:.7rem" id="pose-lead">Imitez le mannequin : une courte vidéo muette de 9 secondes.</p>
   <div class="pose-wrap">
     <div class="pose-stage"><canvas id="pose-canvas"></canvas></div>
@@ -542,7 +542,7 @@
     <div class="card">
       <h3>Suivi des candidats de la journée</h3>
       <p class="small" id="track-sum"></p>
-      <div class="row"><button class="btn btn-ok" id="btn-report">Rapport de fin de journée (qui a tourné quoi)</button></div>
+      <div class="row"><button class="btn btn-ok" id="btn-report">Rapport de fin de journée (fichier à importer dans l'app contrôle des infos)</button></div>
       <p class="small" id="report-info"></p>
       <ul class="cand-list" id="track-list"></ul>
     </div>
@@ -653,7 +653,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.13 · 23.10.2026';
+  const VERSION = '3.14 · 23.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -673,14 +673,15 @@
 
   const QUESTIONS = CFG.questions || [];
   const POSE = Object.assign({
-    active: false, duree: 16, titre: "D'abord, la pose",
+    active: false, duree: 16, titre: "Pour finir, la pose",
     etapes: ["Droit, face à l'objectif", "Tournez-vous : profil de trois-quarts, visage vers l'objectif", "Croisez les bras", "Souriez", "Montrez l'objectif de l'index et dites « Le 28 février on vote ! », puis, après une courte pause, « En attendant, bon film ! »"]
   }, CFG.pose || {});
   const POSE_TIMES = [0, 2.0, 4.4, 6.8, 9.0, 16];   // début de chaque geste, sur une prise de 16 s (mise à l'échelle de la durée réelle)
   const poseCueAt = (el, dur) => { const f = el * 16 / (dur || 16); let k = 0; for (let i = 1; i < POSE_TIMES.length - 1; i++) if (f >= POSE_TIMES[i]) k = i; return Math.min(k, (POSE.etapes || []).length - 1); };
   // Suite des étapes : la pose (facultative) puis les questions
-  const STEPS = (POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 16 }] : [])
-    .concat(QUESTIONS.map(q => Object.assign({ type: 'question' }, q)));
+  // Ordre de passage : d'abord les questions, puis la pose finale (gestes + « Le 28 février on vote ! … bon film ! »)
+  const STEPS = QUESTIONS.map(q => Object.assign({ type: 'question' }, q))
+    .concat(POSE.active ? [{ id: 'Q0-pose', type: 'pose', texte: 'La pose', duree: POSE.duree || 16 }] : []);
   const DAYS = CFG.journees || [];
 
   const state = {
@@ -1981,7 +1982,7 @@
   function stopIntroTimer() { clearTimeout(introTimer); introTimer = null; }
   function introCards() {
     const nQ = QUESTIONS.length;
-    const prog = (POSE.active ? 'une pose de quelques secondes, puis ' : '') + nQ + ' courte' + (nQ > 1 ? 's' : '') + ' question' + (nQ > 1 ? 's' : '') + '.';
+    const prog = nQ + ' courte' + (nQ > 1 ? 's' : '') + ' question' + (nQ > 1 ? 's' : '') + (POSE.active ? ', puis une pose finale de quelques secondes.' : '.');
     return [{ icone: 'bonjour', titre: 'Bonjour ' + state.candidate + '\u202f!', texte: 'Au programme : ' + prog, bonjour: true }].concat(CONSIGNES);
   }
   function objectifTexte() {
@@ -2095,7 +2096,7 @@
     return MannequinLib;
   }
   function fillPoseLists() {
-    $('#pose-title').textContent = POSE.titre || "D'abord, la pose";
+    $('#pose-title').textContent = POSE.titre || "Pour finir, la pose";
     $('#pose-lead').textContent = 'Imitez le mannequin, geste après geste. Silence jusqu\'au dernier geste : vous dites alors « Le 28 février on vote\u202f! », une courte pause, puis « En attendant, bon film\u202f! ».';
     state.poseStep = -2; highlightPoseStep(0);
   }
@@ -2600,34 +2601,28 @@
     const byCand = {}; inDay.forEach(m => { (byCand[m.candidate] = byCand[m.candidate] || []).push(m); });
     const planned = namesFor(dayId);
     const names = dayId === 'ALL' ? [...new Set([...planned, ...Object.keys(byCand)])] : [...planned, ...Object.keys(byCand).filter(n => !planned.includes(n))];
-    const cols = STEPS.map(videoCol);
+    const RSTEPS = [...STEPS].sort((a, b) => a.id.localeCompare(b.id));   // colonnes toujours dans l'ordre Pose, Q1…Q4, quel que soit l'ordre de passage
+    const cols = RSTEPS.map(videoCol);
     const head = ['Date', 'Rang', 'Heure', 'Nom', 'Prénom', 'Arrondissement'].concat(cols, ['Vidéos tournées']);
     const day = DAYS.find(d => d.id === dayId);
     const rows = names.map((n, i) => {
       const inf = info[n] || {}, ms = byCand[n] || [];
-      const cells = STEPS.map(st => {
+      const cells = RSTEPS.map(st => {
         const t = ms.filter(m => m.questionId === st.id);
         const ok = t.filter(m => m.status !== 'rejected').sort((a, b) => b.take - a.take)[0];
         return ok ? 'Oui (prise ' + ok.take + ')' : t.length ? 'Rejetée' : '';
       });
       const nb = cells.filter(c => c.startsWith('Oui')).length;
       const sp = n.split(' ');
-      return [day ? day.date || '' : '', i + 1, inf.h || '', inf.nom || sp.slice(1).join(' '), inf.pre || sp[0], inf.arr || '', ...cells, nb + ' / ' + STEPS.length];
+      return [day ? day.date || '' : '', i + 1, inf.h || '', inf.nom || sp.slice(1).join(' '), inf.pre || sp[0], inf.arr || '', ...cells, nb + ' / ' + RSTEPS.length];
     });
     return { head, rows, label: dayLabel(dayId), dayId, date: day && day.date || today() };
   }
   function reportFiles(r) {
     const q = v => '"' + String(v).replace(/"/g, '""') + '"';
     const csv = '﻿' + [r.head, ...r.rows].map(l => l.map(q).join(';')).join('\r\n');
-    const done = r.rows.filter(x => x[x.length - 1].startsWith(String(STEPS.length) + ' /')).length;
-    const txt = ['RAPPORT VIDÉOS · ' + r.label, 'Date : ' + r.date, r.rows.length + ' candidats · ' + done + ' avec les ' + STEPS.length + ' vidéos', ''].concat(
-      r.rows.map(x => {
-        const fait = [], manque = [];
-        r.head.slice(6, 6 + STEPS.length).forEach((h, i) => { const v = x[6 + i]; (v.startsWith('Oui') ? fait : manque).push(h.replace('Vidéo ', '') + (v === 'Rejetée' ? ' (rejetée)' : '')); });
-        return (x[2] ? x[2] + '  ' : '') + x[4] + ' ' + x[3] + ' : ' + (fait.length ? 'tourné ' + fait.join(', ') : 'rien tourné') + (manque.length && fait.length ? ' · manque ' + manque.join(', ') : '');
-      })).join('\n');
     const base = 'Rapport-videos_' + r.dayId + '_' + r.date;
-    return [new File([csv], base + '.csv', { type: 'text/csv' }), new File([txt], base + '.txt', { type: 'text/plain' })];
+    return [new File([csv], base + '.csv', { type: 'text/csv' })];
   }
   $('#btn-report').addEventListener('click', async () => {
     const out = $('#report-info');

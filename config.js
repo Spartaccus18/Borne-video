@@ -73,7 +73,7 @@ window.BORNE_CONFIG = {
   pose: {
     active: true,
     duree: 16,
-    titre: "D'abord, la pose",
+    titre: "Pour finir, la pose",
     /* Cinq gestes, dans cet ordre ; le dernier est parlé : « Le 28 février on vote ! » [pause] « En attendant, bon film ! » (diffusion au cinéma) */
     etapes: [
       "Droit, face à l'objectif",
