@@ -40,6 +40,12 @@ window.BORNE_CONFIG = {
   exportParLot: 0,                // vidéos par envoi à l'export : 0 = tout en une fois (sinon 50, 25 ou 10)
                                   // modifiable aussi directement dans le menu organisateur
 
+  /* ---------- Dashboard PLR Vaud (module Shooting) ----------
+     Liste du jour, statut des prises et envoi des vidéos au serveur.
+     La clé n'est PAS ici : elle se colle dans le menu organisateur (carte « Dashboard »)
+     ou arrive par le lien donné dans l'onglet Shooting du dashboard.                 */
+  dashboardUrl: "https://plr-vd.contentcamp.ch/ipad/api",
+
   /* Qualité vidéo : l'iPad fait au mieux dans la limite de ces valeurs */
   video: {
     largeur: 1080,

@@ -199,3 +199,13 @@ La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `ver
 ## Contrôle des exports (v3.12)
 
 Tout en haut du menu organisateur, la carte « Contrôle des exports » indique combien de vidéos gardées n'ont pas encore été exportées, journée par journée. Bordure verte : tout est exporté. Bordure orange : des vidéos ne sont pas encore exportées, n'effacez rien. Pensez aussi au « Rapport de fin de journée ».
+
+## Liaison avec le dashboard PLR Vaud (v3.15)
+
+**Relier la borne (une seule fois)** : dans le dashboard, onglet Shooting > bouton « iPads » > copier le lien « Borne vidéo » et l'ouvrir sur l'iPad. Si la borne est déjà installée sur l'écran d'accueil, coller plutôt la clé dans le menu organisateur > carte « Dashboard » > « Enregistrer la clé » (Safari et l'icône n'ont pas le même stockage).
+
+**Liste du jour** : elle arrive toute seule du dashboard (au démarrage, puis toutes les 3 minutes quand la borne est à l'accueil), dans l'ordre de passage, avec heure et arrondissement. Plus besoin d'importer le planning Excel (l'import reste possible en secours).
+
+**Statut des prises** : chaque prise gardée ou rejetée est signalée au dashboard (colonne 🎬 de l'onglet Shooting). Sans réseau, rien ne se perd : le statut part plus tard.
+
+**Envoyer les vidéos au serveur** : menu organisateur > carte « Dashboard » > « Envoyer les vidéos au serveur ». À faire sur un bon Wi-Fi (environ 200 Mo par candidat). Les vidéos partent une par une, par morceaux de 8 Mo ; si le réseau coupe, toucher de nouveau le bouton : l'envoi reprend là où il s'était arrêté. Une vidéo n'est marquée « exportée » que lorsque le serveur l'a reçue en entier. Si le serveur est presque plein, l'envoi s'arrête et les vidéos restent sur l'iPad. L'export AirDrop reste disponible.

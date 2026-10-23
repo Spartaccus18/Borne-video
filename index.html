@@ -485,6 +485,23 @@
       <div id="exp-days" class="small"></div>
     </div>
 
+    <div class="card" id="dash-card">
+      <h3>Dashboard (liste du jour et envoi des vidéos)</h3>
+      <p class="small" id="dash-status">–</p>
+      <div class="row">
+        <button class="btn btn-ok" id="btn-dash-upload">Envoyer les vidéos au serveur</button>
+        <button class="btn hidden" id="btn-dash-stop">Arrêter l'envoi</button>
+        <button class="btn btn-ghost" id="btn-dash-pull">Actualiser la liste du jour</button>
+      </div>
+      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="dash-rej"> <span>Envoyer aussi les prises rejetées</span></label>
+      <p class="small" id="dash-info" style="margin-top:.5rem"></p>
+      <p class="small" style="margin-top:.7rem">À faire sur un bon Wi-Fi (fin de journée ou pause) : environ 200 Mo par candidat. Une vidéo n'est marquée « exportée » que lorsque le serveur l'a reçue en entier ; si le réseau coupe, l'envoi reprend là où il s'était arrêté.</p>
+      <div class="row" style="align-items:center;gap:.5rem">
+        <input type="password" id="dash-key" placeholder="Clé iPad (onglet Shooting du dashboard)" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:14rem;padding:.6rem;border-radius:.5rem;border:0;font:inherit">
+        <button class="btn btn-ghost" id="btn-dash-key">Enregistrer la clé</button>
+      </div>
+    </div>
+
     <div class="card">
       <h3>Vidéos sur cet iPad</h3>
       <div class="stats">
@@ -653,7 +670,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.14 · 23.10.2026';
+  const VERSION = '3.15 · 23.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -827,6 +844,153 @@
     return [m.date, m.dayId, slug(m.candidate), m.questionId, 'p' + m.take].join('_') +
       (m.status === 'rejected' ? '_rejetee' : '') + '.' + ext;
   }
+
+  /* ------------------------------------------------------------------
+     Dashboard PLR Vaud : liste du jour, statut des prises, envoi des vidéos
+     (clé X-Ipad-Key ; sans réseau, tout reste sur l'iPad et repart plus tard)
+     ------------------------------------------------------------------ */
+  const DASH = {
+    url: (CFG.dashboardUrl || '').replace(/\/+$/, ''), key: LS.get('dash.key', ''),
+    last: LS.get('dash.last', ''), err: '', uploading: false, stop: false, statusBusy: false
+  };
+  const CHUNK = 8 * 1024 * 1024;
+  const deviceId = () => { let d = LS.get('dash.device', ''); if (!d) { d = 'borne-' + Math.random().toString(36).slice(2, 10); LS.set('dash.device', d); } return d; };
+  const takeUid = (m) => deviceId() + '-' + m.id;
+  function dashOn() { return !!(DASH.url && DASH.key); }
+  async function dapi(path, opts) {
+    opts = opts || {};
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), opts.timeout || 20000);
+    try {
+      const r = await fetch(DASH.url + path, Object.assign({}, opts, { cache: 'no-store', signal: ctl.signal,
+        headers: Object.assign({ 'X-Ipad-Key': DASH.key }, opts.headers || {}) }));
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { const e = new Error(j.error || ('Erreur ' + r.status)); e.status = r.status; e.body = j; throw e; }
+      return j;
+    } finally { clearTimeout(t); }
+  }
+  function dashErr(e) { return e && e.name === 'AbortError' ? 'délai dépassé (réseau lent ?)' : e && e.status === 401 ? 'clé refusée' : (e && e.message) || String(e); }
+
+  /* Liste du jour : remplace les noms des journées (comme l'import du planning Excel) */
+  async function pullRoster() {
+    if (!dashOn()) return;
+    try {
+      const data = await dapi('/roster');
+      const list = (data.candidates || []).map(c => ({ d: c.date || '', h: c.time || '', nom: c.nom || '', pre: c.prenom || '', arr: c.liste || '', id: c.id }));
+      applyPlanning(list);
+      DASH.last = new Date().toISOString(); LS.set('dash.last', DASH.last); DASH.err = '';
+      if (state.screen === 'home' && !$('#search').value) renderNames();
+      if (!$('#admin').classList.contains('hidden')) fillNamesBox();
+    } catch (e) { DASH.err = dashErr(e); }
+    refreshDash();
+  }
+
+  /* Statut des prises (gardée / rejetée) : envoyé après chaque prise, et repris plus tard si besoin */
+  async function pushStatuses() {
+    if (!dashOn() || DASH.statusBusy || !DB.db) return;
+    DASH.statusBusy = true;
+    try {
+      const todo = (await DB.all()).filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status);
+      if (!todo.length) return;
+      const items = todo.map(m => ({ uid: takeUid(m), cid: m.cid || '', name: m.candidate, date: m.date, dayId: m.dayId,
+        questionId: m.questionId, take: m.take, status: m.status, size: m.size, duration: m.duration }));
+      const res = await dapi('/videos/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
+      const ok = new Set(res.ok || []);
+      for (const m of todo) if (ok.has(takeUid(m))) { m.statusSent = m.status; await DB.put(m); }
+      DASH.err = '';
+    } catch (e) { DASH.err = dashErr(e); }
+    finally { DASH.statusBusy = false; }
+  }
+
+  const toUpload = (all, incl) => all.filter(m => !m.uploaded && m.status !== 'pending' && (m.size || 0) >= MIN_BYTES && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id);
+  async function uploadOne(m, onProgress) {
+    const blob = await DB.blob(m.id);
+    if (!blob || blob.size < MIN_BYTES) return false;
+    const uid = takeUid(m), total = blob.size;
+    const qs = new URLSearchParams({ uid, cid: m.cid || '', cname: m.candidate || '', questionId: m.questionId || '', take: String(m.take || ''),
+      status: m.status || '', name: fileName(m), total: String(total) }).toString();
+    let st = await dapi('/videos/upload?uid=' + encodeURIComponent(uid)), fails = 0;
+    while (!st.done) {
+      if (DASH.stop) throw new Error('arrêté');
+      const off = st.size;
+      onProgress(off, total);
+      try {
+        st = await dapi('/videos/upload?' + qs + '&offset=' + off, { method: 'POST', timeout: 120000,
+          headers: { 'Content-Type': 'application/octet-stream' }, body: blob.slice(off, Math.min(total, off + CHUNK)) });
+        fails = 0;
+      } catch (e) {
+        if (e.status === 409 && e.body && typeof e.body.size === 'number') { st = { done: false, size: e.body.size }; continue; }
+        if (e.status === 401 || e.status === 507 || ++fails > 4) throw e;
+        await sleep(2000 * fails);   // coupure réseau : on réessaie le même morceau
+        st = await dapi('/videos/upload?uid=' + encodeURIComponent(uid)).catch(() => ({ done: false, size: off }));
+      }
+    }
+    if (st.size !== total) throw new Error('taille reçue différente (' + st.size + ' / ' + total + ')');
+    m.uploaded = true; m.uploadedAt = Date.now();
+    if (!m.exported) { m.exported = true; m.exportedAt = Date.now(); }
+    await DB.put(m);
+    return true;
+  }
+  async function uploadAll() {
+    if (!dashOn()) { $('#dash-info').textContent = 'Collez d\'abord la clé iPad (ci-dessous).'; return; }
+    if (DASH.uploading) return;
+    DASH.uploading = true; DASH.stop = false; state.noIdle = true; keepAwake();
+    $('#btn-dash-upload').classList.add('hidden'); $('#btn-dash-stop').classList.remove('hidden');
+    const info = $('#dash-info');
+    let sent = 0, bytes = 0;
+    try {
+      await pushStatuses();
+      const list = toUpload(await DB.all(), $('#dash-rej').checked);
+      if (!list.length) { info.textContent = 'Rien à envoyer : toutes les vidéos sont déjà sur le serveur ✔'; return; }
+      const totalBytes = list.reduce((a, m) => a + (m.size || 0), 0);
+      for (let i = 0; i < list.length; i++) {
+        const m = list[i];
+        const ok = await uploadOne(m, (off, tot) => {
+          info.textContent = 'Envoi ' + (i + 1) + ' / ' + list.length + ' · ' + m.candidate + ' · ' + (m.questionId || '') +
+            ' · ' + Math.round(100 * off / tot) + ' % · total ' + fmtBytes(bytes + off) + ' / ' + fmtBytes(totalBytes);
+        });
+        if (ok) { sent++; bytes += m.size || 0; }
+      }
+      info.textContent = '✔ ' + sent + ' vidéo(s) envoyée(s) au serveur (' + fmtBytes(bytes) + '). Elles sont marquées « exportées ».';
+    } catch (e) {
+      info.textContent = (e && e.message === 'arrêté' ? 'Envoi arrêté. ' : 'Envoi interrompu : ' + dashErr(e) + '. ') +
+        sent + ' vidéo(s) envoyée(s). Rien n\'est perdu : touchez « Envoyer » pour reprendre.';
+    } finally {
+      DASH.uploading = false; state.noIdle = false;
+      $('#btn-dash-upload').classList.remove('hidden'); $('#btn-dash-stop').classList.add('hidden');
+      await refreshStats(); refreshDash();
+    }
+  }
+  async function refreshDash() {
+    const el = $('#dash-status'); if (!el) return;
+    if (!DASH.url) { el.textContent = 'Adresse du dashboard absente de config.js.'; return; }
+    if (!DASH.key) { el.innerHTML = '<span class="warn">Non connecté : collez la clé iPad ci-dessous (ou ouvrez le lien donné dans l\'onglet Shooting du dashboard).</span>'; return; }
+    let left = 0, leftBytes = 0;
+    try { if (DB.db) { const l = toUpload(await DB.all(), $('#dash-rej').checked); left = l.length; leftBytes = l.reduce((a, m) => a + (m.size || 0), 0); } } catch (e) {}
+    el.innerHTML = (DASH.err ? '<span class="warn">Dernière tentative échouée : ' + esc(DASH.err) + '.</span> ' : '') +
+      (DASH.last ? 'Liste du jour reçue le ' + esc(new Date(DASH.last).toLocaleString('fr-CH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) + '. ' : 'Liste du jour jamais reçue. ') +
+      (left ? '<b>' + left + ' vidéo(s) à envoyer au serveur (' + fmtBytes(leftBytes) + ').</b>' : 'Toutes les vidéos sont sur le serveur ✔');
+  }
+  function dashBoot() {
+    const m = /[#&]cle=([^&]+)/.exec(location.hash || '');
+    if (m) {
+      DASH.key = decodeURIComponent(m[1]).trim(); LS.set('dash.key', DASH.key);
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+      toast('Borne reliée au dashboard ✔');
+    }
+    setTimeout(pullRoster, 1000);
+    setTimeout(pushStatuses, 4000);
+    // Toutes les 3 minutes, seulement à l'accueil (jamais pendant qu'un candidat se filme)
+    setInterval(() => { if (state.screen === 'home' && !state.recording) { pullRoster(); pushStatuses(); } }, 180000);
+    window.addEventListener('online', () => { pushStatuses(); });
+  }
+  $('#btn-dash-upload').addEventListener('click', uploadAll);
+  $('#btn-dash-stop').addEventListener('click', () => { DASH.stop = true; $('#dash-info').textContent = 'Arrêt après le morceau en cours…'; });
+  $('#btn-dash-pull').addEventListener('click', async () => { $('#dash-info').textContent = 'Actualisation…'; await pullRoster(); await pushStatuses(); $('#dash-info').textContent = DASH.err ? 'Échec : ' + DASH.err : 'Liste du jour à jour ✔'; refreshDash(); });
+  $('#btn-dash-key').addEventListener('click', () => {
+    DASH.key = $('#dash-key').value.trim(); LS.set('dash.key', DASH.key); DASH.err = '';
+    refreshDash(); if (DASH.key) pullRoster();
+  });
+  $('#dash-rej').addEventListener('change', refreshDash);
 
   /* ------------------------------------------------------------------
      Caméra et micro
@@ -2171,6 +2335,7 @@
     // Métadonnées figées AU DÉBUT de la prise (plus de mélange Q1/Q2)
     const meta = {
       date: today(), dayId: state.dayId, candidate: state.candidate,
+      cid: ((LS.get('plan.info', {}) || {})[state.candidate] || {}).id || '',
       questionId: q.id, questionIndex: state.qIndex, questionText: q.texte,
       take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0
     };
@@ -2286,6 +2451,7 @@
     if (!m) return;
     m.status = status;
     try { await DB.put(m); } catch (e) {}
+    pushStatuses();
   }
   $('#btn-keep').addEventListener('click', async () => {
     $('#rev-video').pause();
@@ -2391,7 +2557,9 @@
     $('#app-info').textContent = 'Version ' + VERSION + ' · ' + (navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'lancée depuis l\'écran d\'accueil ✔' : 'lancée dans le navigateur (préférer l\'icône de l\'écran d\'accueil)') + ' · ' + (window.isSecureContext ? 'HTTPS ✔' : 'NON SÉCURISÉ ⚠');
     $('#cam-info').innerHTML = camInfo();
     micCtx(); setSeg('#seg-micext', micMode()); micNameUi(); fillMicSelect();
+    $('#dash-key').value = DASH.key;
     await refreshStats();
+    refreshDash();
   }
   async function fillMicSelect() {
     try { MIC.devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) {}
@@ -2559,7 +2727,7 @@
   function applyPlanning(list) {
     const info = {}; let ignored = 0; const extra = [];
     const full = p => (p.pre + ' ' + p.nom).replace(/\s+/g, ' ').trim();
-    list.forEach(p => { info[full(p)] = { h: p.h, arr: p.arr, nom: p.nom, pre: p.pre, d: p.d }; });
+    list.forEach(p => { info[full(p)] = { h: p.h, arr: p.arr, nom: p.nom, pre: p.pre, d: p.d, id: p.id || '' }; });
     const used = new Set(); const counts = [];
     DAYS.forEach(day => {
       if (!day.date) return;
@@ -2910,6 +3078,7 @@
     if ('serviceWorker' in navigator && window.isSecureContext) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+    dashBoot();
   }
   boot();
 })();
