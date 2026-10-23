@@ -479,6 +479,12 @@
       <button class="btn" id="btn-adm-close">Fermer</button>
     </div>
 
+    <div class="card" id="exp-check" style="border:2px solid #2e9e5b">
+      <h3>Contrôle des exports</h3>
+      <p id="exp-main" style="font-size:1.15rem;font-weight:600;margin:.2rem 0 .5rem">–</p>
+      <div id="exp-days" class="small"></div>
+    </div>
+
     <div class="card">
       <h3>Vidéos sur cet iPad</h3>
       <div class="stats">
@@ -647,7 +653,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.11 · 23.10.2026';
+  const VERSION = '3.12 · 23.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -2665,6 +2671,19 @@
     $('#btn-del-empty').textContent = 'Supprimer les ' + empties.length + ' vidéo(s) vide(s)';
     $('#st-kept').textContent = kept.length;
     $('#st-todo').textContent = todo.length;
+    try {
+      const box = $('#exp-check'), main = $('#exp-main');
+      const todoRej = all.filter(m => m.status === 'rejected' && !isEmpty(m) && !m.exported).length;
+      const per = {}; kept.forEach(m => { const d = per[m.dayId || '?'] = per[m.dayId || '?'] || { k: 0, t: 0 }; d.k++; if (!m.exported) d.t++; });
+      if (!kept.length) { main.textContent = 'Aucune vidéo sur cet iPad.'; box.style.borderColor = '#2e9e5b'; }
+      else if (!todo.length) { main.textContent = '✔ Tout est exporté (' + kept.length + ' vidéo(s) gardée(s)).'; box.style.borderColor = '#2e9e5b'; }
+      else { main.textContent = '⚠ ' + todo.length + ' vidéo(s) gardée(s) PAS ENCORE EXPORTÉE(S) sur ' + kept.length + '. Ne rien effacer avant l\'export.'; box.style.borderColor = '#e0a100'; }
+      $('#exp-days').innerHTML = Object.keys(per).sort().map(k => {
+        const d = per[k], dd = DAYS.find(x => x.id === k);
+        return '<div>' + esc(dd ? dd.id + ' · ' + dd.libelle : k) + ' : ' + (d.t ? '<b style="color:#e0a100">' + d.t + ' à exporter</b>' : '<span style="color:#2e9e5b">tout exporté</span>') + ' sur ' + d.k + '</div>';
+      }).join('') + (todoRej ? '<div class="muted">' + todoRej + ' vidéo(s) rejetée(s) non exportée(s) (normal : elles ne sont pas exportées par défaut).</div>' : '') +
+        '<div style="margin-top:.4rem">Pensez aussi au « Rapport de fin de journée » (qui a tourné quoi).</div>';
+    } catch (e) {}
     $('#st-rej').textContent = rej.length;
     $('#st-size').textContent = fmtBytes(all.reduce((a, m) => a + (m.size || 0), 0));
     try {
