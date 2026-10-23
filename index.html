@@ -638,7 +638,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.9 · 22.10.2026';
+  const VERSION = '3.10 · 23.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -727,7 +727,8 @@
     const local = LS.get('noms.' + id, null);
     const d = DAYS.find(x => x.id === id);
     const list = (local && local.length) ? local : (d ? d.candidats || [] : []);
-    return [...new Set(list.map(s => String(s).trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'fr'));
+    // L'ordre de la liste est conservé : c'est l'ordre de passage du planning
+    return [...new Set(list.map(s => String(s).trim()).filter(Boolean))];
   }
 
   /* ------------------------------------------------------------------
