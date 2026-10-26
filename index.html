@@ -85,6 +85,8 @@
   /* ---------- Accueil ---------- */
   #s-home h1 { margin-top: .4rem; }
   #s-home .lead { margin-top: 1rem; }
+  .dash-badge { margin-top: .7rem; font-size: .85rem; font-weight: 700; padding: .3rem .9rem; border-radius: 999px; background: rgba(255,255,255,.92); }
+  .dash-badge.ok { color: #0a7a3b; } .dash-badge.ko { color: #e6007d; }
   .day-chip { margin-top: 1.4rem; display: inline-block; background: var(--glass); border-radius: 999px; padding: .5rem 1.2rem; font-size: 1rem; font-weight: 600; }
   .home-q { margin-top: 2.8rem; font-size: 1.7rem; font-weight: 700; }
   .search {
@@ -330,6 +332,7 @@
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
+  <div class="dash-badge ko" id="dash-badge" role="status"></div>
   <p class="home-q">Touchez ou cherchez votre nom pour commencer</p>
   <input id="search" class="search" type="search" enterkeyhint="go" placeholder="Rechercher votre nom…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" maxlength="60">
   <div id="add-name" class="add-name hidden">
@@ -670,7 +673,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.16 · 26.10.2026';
+  const VERSION = '3.17 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -868,7 +871,7 @@
       return j;
     } finally { clearTimeout(t); }
   }
-  function dashErr(e) { return e && e.name === 'AbortError' ? 'délai dépassé (réseau lent ?)' : e && e.status === 401 ? 'clé refusée' : (e && e.message) || String(e); }
+  function dashErr(e) { return e && e.name === 'AbortError' ? 'délai dépassé (réseau lent ?)' : e && e.status === 401 ? 'clé refusée' : e && e.name === 'TypeError' ? 'site injoignable (réseau coupé ?)' : (e && e.message) || String(e); }
 
   /* Liste du jour : remplace les noms des journées (comme l'import du planning Excel) */
   async function pullRoster() {
@@ -899,7 +902,7 @@
       for (const m of todo) if (ok.has(takeUid(m))) { m.statusSent = m.status; await DB.put(m); }
       DASH.err = '';
     } catch (e) { DASH.err = dashErr(e); }
-    finally { DASH.statusBusy = false; }
+    finally { DASH.statusBusy = false; renderDashBadge(); }
   }
 
   const toUpload = (all, incl) => all.filter(m => !m.uploaded && m.status !== 'pending' && (m.size || 0) >= MIN_BYTES && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id);
@@ -961,7 +964,27 @@
       await refreshStats(); refreshDash();
     }
   }
+  /* État de synchronisation avec le site : ✔ (liste reçue récemment, statuts des prises envoyés) ou ⚠ avec la raison */
+  async function dashState() {
+    if (!DASH.url) return { ok: false, txt: '⚠ Non synchronisé avec le site (adresse absente)' };
+    if (!DASH.key) return { ok: false, txt: '⚠ Non synchronisé avec le site : borne pas encore reliée' };
+    let pend = 0, left = 0;
+    try { if (DB.db) { const all = await DB.all(); pend = all.filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status).length; left = toUpload(all, false).length; } } catch (e) {}
+    const hm = DASH.last ? new Date(DASH.last).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' }) : '';
+    const vid = left ? ' · ' + left + ' vidéo(s) à envoyer en fin de journée' : '';
+    if (DASH.err) return { ok: false, txt: '⚠ Non synchronisé : ' + DASH.err + (hm ? ' (dernière liste reçue à ' + hm + ')' : '') };
+    if (!DASH.last) return { ok: false, txt: '⚠ Non synchronisé : liste du site pas encore reçue' };
+    if (pend) return { ok: false, txt: '⚠ Non synchronisé : ' + pend + ' prise(s) pas encore signalée(s) au site' };
+    if (Date.now() - new Date(DASH.last).getTime() > 10 * 60000) return { ok: false, txt: '⚠ Non synchronisé depuis ' + hm };
+    return { ok: true, txt: '✔ Synchronisé avec le site · ' + hm + vid };
+  }
+  async function renderDashBadge() {
+    const el = $('#dash-badge'); if (!el) return;
+    const st = await dashState(); el.textContent = st.txt; el.className = 'dash-badge ' + (st.ok ? 'ok' : 'ko');
+    return st;
+  }
   async function refreshDash() {
+    renderDashBadge();
     const el = $('#dash-status'); if (!el) return;
     if (!DASH.url) { el.textContent = 'Adresse du dashboard absente de config.js.'; return; }
     if (!DASH.key) { el.innerHTML = '<span class="warn">Non connecté : collez la clé iPad ci-dessous (ou ouvrez le lien donné dans l\'onglet Shooting du dashboard).</span>'; return; }
@@ -979,6 +1002,8 @@
       toast('Borne reliée au dashboard ✔');
     }
     setTimeout(pullRoster, 1000);
+    setInterval(renderDashBadge, 20000);
+    renderDashBadge();
     setTimeout(pushStatuses, 4000);
     // Toutes les 3 minutes, seulement à l'accueil (jamais pendant qu'un candidat se filme)
     setInterval(() => { if (state.screen === 'home' && !state.recording) { pullRoster(); pushStatuses(); } }, 180000);
