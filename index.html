@@ -681,7 +681,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.18 · 26.10.2026';
+  const VERSION = '3.19 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -842,6 +842,12 @@
       if (!again || again.size !== blob.size) throw new Error('Stockage impossible');
     },
     remove(id) {
+      try {   // suppression à signaler au site (retirée aussi de la fiche, donc de Contrôle-infos)
+        if (LS.get('dash.key', '')) {
+          const a = JSON.parse(LS.get('dash.del', '[]') || '[]');
+          a.push(deviceId() + '-' + id); LS.set('dash.del', JSON.stringify(a.slice(-5000)));
+        }
+      } catch (e) {}
       return new Promise((res, rej) => {
         const t = this.db.transaction(['meta', 'blobs'], 'readwrite');
         t.objectStore('meta').delete(id); t.objectStore('blobs').delete(id);
@@ -902,12 +908,15 @@
     DASH.statusBusy = true;
     try {
       const todo = (await DB.all()).filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status);
-      if (!todo.length) return;
+      let dels = []; try { dels = JSON.parse(LS.get('dash.del', '[]') || '[]'); } catch (e) {}
+      if (!todo.length && !dels.length) return;
       const items = todo.map(m => ({ uid: takeUid(m), cid: m.cid || '', name: m.candidate, date: m.date, dayId: m.dayId,
-        questionId: m.questionId, take: m.take, status: m.status, size: m.size, duration: m.duration }));
+        questionId: m.questionId, take: m.take, status: m.status, size: m.size, duration: m.duration }))
+        .concat(dels.map(uid => ({ uid, status: 'deleted' })));
       const res = await dapi('/videos/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
       const ok = new Set(res.ok || []);
       for (const m of todo) if (ok.has(takeUid(m))) { m.statusSent = m.status; await DB.put(m); }
+      if (dels.length) LS.set('dash.del', JSON.stringify(dels.filter(u => !ok.has(u))));
       DASH.err = '';
     } catch (e) { DASH.err = dashErr(e); }
     finally { DASH.statusBusy = false; renderDashBadge(); }
