@@ -545,6 +545,8 @@
         <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà sauvegardées (site ou export)</button>
         <button class="btn btn-ghost hidden" id="btn-del-empty" style="color:#ff8a80">Supprimer les vidéos vides</button>
         <button class="btn btn-ghost" id="btn-del-all" style="color:#ff8a80">Tout effacer (remise à zéro)</button>
+        <button class="btn btn-ghost" id="btn-del-test" style="color:#ff8a80">Effacer les tests : iPad ET site</button>
+        <div class="hint" style="margin-top:4px">Les autres boutons de suppression n'effacent que sur l'iPad : les vidéos restent sur le site.</div>
       </div>
     </div>
 
@@ -681,7 +683,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.19 · 26.10.2026';
+  const VERSION = '3.20 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -841,9 +843,9 @@
       const again = await this.blob(id);
       if (!again || again.size !== blob.size) throw new Error('Stockage impossible');
     },
-    remove(id) {
-      try {   // suppression à signaler au site (retirée aussi de la fiche, donc de Contrôle-infos)
-        if (LS.get('dash.key', '')) {
+    remove(id, alsoSite) {
+      try {   // suppression à signaler au site SEULEMENT si demandé explicitement (bouton « iPad + site »)
+        if (alsoSite && LS.get('dash.key', '')) {
           const a = JSON.parse(LS.get('dash.del', '[]') || '[]');
           a.push(deviceId() + '-' + id); LS.set('dash.del', JSON.stringify(a.slice(-5000)));
         }
@@ -3082,6 +3084,22 @@
     allArmed = 0;
     for (const m of all) await DB.remove(m.id);
     toast('Toutes les vidéos ont été effacées de l\'iPad'); await refreshStats();
+  });
+
+  let testArmed = 0;
+  $('#btn-del-test').addEventListener('click', async () => {
+    const all = await DB.all();
+    if (!all.length) return toast('Aucune vidéo sur l\'iPad');
+    if (!LS.get('dash.key', '')) return toast('Clé du site absente : suppression sur le site impossible');
+    if (Date.now() - testArmed > 6000) {
+      testArmed = Date.now();
+      toast('Effacer les ' + all.length + ' vidéo(s) de l\'iPad ET du site (corbeille du serveur) ? Pour des vidéos de TEST uniquement. Touchez encore une fois pour confirmer.', 6000);
+      return;
+    }
+    testArmed = 0;
+    for (const m of all) await DB.remove(m.id, true);
+    toast(all.length + ' vidéo(s) effacée(s) de l\'iPad ; suppression sur le site à la prochaine synchro'); await refreshStats();
+    try { if (typeof pushStatuses === 'function') pushStatuses(); } catch (e) {}
   });
 
   $('#btn-test').addEventListener('click', async () => {
