@@ -683,7 +683,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.20 · 26.10.2026';
+  const VERSION = '3.21 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -1023,8 +1023,8 @@
     setInterval(renderDashBadge, 20000);
     renderDashBadge();
     setTimeout(pushStatuses, 4000);
-    // Toutes les 3 minutes, seulement à l'accueil (jamais pendant qu'un candidat se filme)
-    setInterval(() => { if (state.screen === 'home' && !state.recording) { pullRoster(); pushStatuses(); } }, 180000);
+    // Toutes les 45 secondes, seulement à l'accueil (jamais pendant qu'un candidat se filme) : un candidat ajouté dans Contrôle-infos apparaît vite ici
+    setInterval(() => { if (state.screen === 'home' && !state.recording) { pullRoster(); pushStatuses(); } }, 45000);
     window.addEventListener('online', () => { pushStatuses(); });
   }
   $('#btn-dash-upload').addEventListener('click', uploadAll);
