@@ -670,7 +670,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.15 · 23.10.2026';
+  const VERSION = '3.16 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -878,6 +878,7 @@
       const list = (data.candidates || []).map(c => ({ d: c.date || '', h: c.time || '', nom: c.nom || '', pre: c.prenom || '', arr: c.liste || '', id: c.id }));
       applyPlanning(list);
       DASH.last = new Date().toISOString(); LS.set('dash.last', DASH.last); DASH.err = '';
+      if (DASH.justLinked) { DASH.justLinked = false; toast('✔ Borne reliée au dashboard : liste du jour reçue', 7000); }
       if (state.screen === 'home' && !$('#search').value) renderNames();
       if (!$('#admin').classList.contains('hidden')) fillNamesBox();
     } catch (e) { DASH.err = dashErr(e); }
@@ -966,14 +967,14 @@
     if (!DASH.key) { el.innerHTML = '<span class="warn">Non connecté : collez la clé iPad ci-dessous (ou ouvrez le lien donné dans l\'onglet Shooting du dashboard).</span>'; return; }
     let left = 0, leftBytes = 0;
     try { if (DB.db) { const l = toUpload(await DB.all(), $('#dash-rej').checked); left = l.length; leftBytes = l.reduce((a, m) => a + (m.size || 0), 0); } } catch (e) {}
-    el.innerHTML = (DASH.err ? '<span class="warn">Dernière tentative échouée : ' + esc(DASH.err) + '.</span> ' : '') +
+    el.innerHTML = (!DASH.err && DASH.last ? '<b>✔ Borne reliée au dashboard.</b> ' : '') + (DASH.err ? '<span class="warn">Dernière tentative échouée : ' + esc(DASH.err) + '.</span> ' : '') +
       (DASH.last ? 'Liste du jour reçue le ' + esc(new Date(DASH.last).toLocaleString('fr-CH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) + '. ' : 'Liste du jour jamais reçue. ') +
       (left ? '<b>' + left + ' vidéo(s) à envoyer au serveur (' + fmtBytes(leftBytes) + ').</b>' : 'Toutes les vidéos sont sur le serveur ✔');
   }
   function dashBoot() {
     const m = /[#&]cle=([^&]+)/.exec(location.hash || '');
     if (m) {
-      DASH.key = decodeURIComponent(m[1]).trim(); LS.set('dash.key', DASH.key);
+      DASH.key = decodeURIComponent(m[1]).trim(); LS.set('dash.key', DASH.key); DASH.justLinked = true;
       try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
       toast('Borne reliée au dashboard ✔');
     }
@@ -988,7 +989,10 @@
   $('#btn-dash-pull').addEventListener('click', async () => { $('#dash-info').textContent = 'Actualisation…'; await pullRoster(); await pushStatuses(); $('#dash-info').textContent = DASH.err ? 'Échec : ' + DASH.err : 'Liste du jour à jour ✔'; refreshDash(); });
   $('#btn-dash-key').addEventListener('click', () => {
     DASH.key = $('#dash-key').value.trim(); LS.set('dash.key', DASH.key); DASH.err = '';
-    refreshDash(); if (DASH.key) pullRoster();
+    refreshDash();
+    if (!DASH.key) { $('#dash-info').textContent = 'Clé effacée : la borne n\'est plus reliée.'; return; }
+    $('#dash-info').textContent = 'Clé enregistrée : vérification de la connexion…';
+    pullRoster().then(() => { $('#dash-info').textContent = DASH.err ? '⚠ Connexion impossible : ' + DASH.err + (/refus/.test(DASH.err) ? ' (recopiez la clé depuis l\'onglet Shooting du dashboard)' : '') : '✔ Borne reliée au dashboard : liste du jour reçue.'; if (!DASH.err) toast('✔ Borne reliée au dashboard', 5000); });
   });
   $('#dash-rej').addEventListener('change', refreshDash);
 
