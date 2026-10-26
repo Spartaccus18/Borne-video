@@ -85,8 +85,8 @@
   /* ---------- Accueil ---------- */
   #s-home h1 { margin-top: .4rem; }
   #s-home .lead { margin-top: 1rem; }
-  .dash-badge { margin-top: .7rem; font-size: .85rem; font-weight: 700; padding: .3rem .9rem; border-radius: 999px; background: rgba(255,255,255,.92); }
-  .dash-badge.ok { color: #0a7a3b; } .dash-badge.ko { color: #e6007d; }
+  .dash-badge { margin: .2rem 0 .8rem; font-size: 1.15rem; font-weight: 700; padding: .8rem 1rem; border-radius: .6rem; border: 3px solid; background: rgba(0,0,0,.25); }
+  .dash-badge.ok { color: #5be08f; border-color: #2e9e5b; } .dash-badge.ko { color: #ff8fc4; border-color: #e6007d; }
   .day-chip { margin-top: 1.4rem; display: inline-block; background: var(--glass); border-radius: 999px; padding: .5rem 1.2rem; font-size: 1rem; font-weight: 600; }
   .home-q { margin-top: 2.8rem; font-size: 1.7rem; font-weight: 700; }
   .search {
@@ -332,7 +332,6 @@
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
   <span class="day-chip" id="home-day"></span>
-  <div class="dash-badge ko" id="dash-badge" role="status"></div>
   <p class="home-q">Touchez ou cherchez votre nom pour commencer</p>
   <input id="search" class="search" type="search" enterkeyhint="go" placeholder="Rechercher votre nom…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" maxlength="60">
   <div id="add-name" class="add-name hidden">
@@ -485,6 +484,8 @@
     <div class="card" id="exp-check" style="border:2px solid #2e9e5b">
       <h3>Contrôle des exports</h3>
       <p id="exp-main" style="font-size:1.15rem;font-weight:600;margin:.2rem 0 .5rem">–</p>
+      <div id="exp-site" style="padding:.55rem .8rem;border-radius:.5rem;border-left:6px solid #888;margin:.3rem 0;background:rgba(0,0,0,.2)">–</div>
+      <div id="exp-local" style="padding:.55rem .8rem;border-radius:.5rem;border-left:6px solid #888;margin:.3rem 0 .6rem;background:rgba(0,0,0,.2)">–</div>
       <div id="exp-days" class="small"></div>
     </div>
 
@@ -498,7 +499,8 @@
       </div>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="dash-rej"> <span>Envoyer aussi les prises rejetées</span></label>
       <p class="small" id="dash-info" style="margin-top:.5rem"></p>
-      <p class="small" style="margin-top:.7rem">À faire sur un bon Wi-Fi (fin de journée ou pause) : environ 200 Mo par candidat. Une vidéo n'est marquée « exportée » que lorsque le serveur l'a reçue en entier ; si le réseau coupe, l'envoi reprend là où il s'était arrêté.</p>
+      <p class="small" style="margin-top:.7rem">À faire sur un bon Wi-Fi (fin de journée ou pause) : environ 200 Mo par candidat. Une vidéo n'est marquée « envoyée au site » que lorsque le serveur l'a reçue en entier ; si le réseau coupe, l'envoi reprend là où il s'était arrêté.</p>
+      <div class="dash-badge ko" id="dash-badge" role="status">–</div>
       <div class="row" style="align-items:center;gap:.5rem">
         <input type="password" id="dash-key" placeholder="Clé iPad (onglet Shooting du dashboard)" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:14rem;padding:.6rem;border-radius:.5rem;border:0;font:inherit">
         <button class="btn btn-ghost" id="btn-dash-key">Enregistrer la clé</button>
@@ -517,8 +519,14 @@
     </div>
 
     <div class="card">
-      <h3>Exporter (AirDrop, Fichiers, Photos…)</h3>
-      <p>Étape 1 : préparer. Étape 2 : partager (AirDrop vers le Mac conseillé). Une vidéo exportée est marquée comme telle et n'est jamais renvoyée une seconde fois.</p>
+      <h3>Exporter (AirDrop ou disque dur externe)</h3>
+      <p>Étape 1 : préparer. Étape 2 : partager. Une vidéo exportée est marquée comme telle et n'est jamais renvoyée une seconde fois. Cet export est indépendant de l'envoi au site.</p>
+      <p class="small" style="margin-top:.7rem">Destination :</p>
+      <div class="seg" id="seg-dest" style="margin-top:.4rem">
+        <button data-v="airdrop">AirDrop (vers le Mac)</button>
+        <button data-v="disque">Disque dur externe</button>
+      </div>
+      <p class="small" id="dest-help" style="margin-top:.4rem"></p>
       <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi :</p>
       <div class="seg" id="seg-lot" style="margin-top:.4rem">
         <button data-v="all">Tout en une fois</button>
@@ -534,7 +542,7 @@
       <p class="small" id="exp-info" style="margin-top:.5rem"></p>
       <div class="row">
         <button class="btn btn-ghost" id="btn-exp-reset">Remettre toutes les vidéos « à exporter »</button>
-        <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà exportées</button>
+        <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà sauvegardées (site ou export)</button>
         <button class="btn btn-ghost hidden" id="btn-del-empty" style="color:#ff8a80">Supprimer les vidéos vides</button>
         <button class="btn btn-ghost" id="btn-del-all" style="color:#ff8a80">Tout effacer (remise à zéro)</button>
       </div>
@@ -673,7 +681,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.17 · 26.10.2026';
+  const VERSION = '3.18 · 26.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -930,7 +938,6 @@
     }
     if (st.size !== total) throw new Error('taille reçue différente (' + st.size + ' / ' + total + ')');
     m.uploaded = true; m.uploadedAt = Date.now();
-    if (!m.exported) { m.exported = true; m.exportedAt = Date.now(); }
     await DB.put(m);
     return true;
   }
@@ -954,7 +961,7 @@
         });
         if (ok) { sent++; bytes += m.size || 0; }
       }
-      info.textContent = '✔ ' + sent + ' vidéo(s) envoyée(s) au serveur (' + fmtBytes(bytes) + '). Elles sont marquées « exportées ».';
+      info.textContent = '✔ ' + sent + ' vidéo(s) envoyée(s) au serveur (' + fmtBytes(bytes) + '). Elles sont marquées « envoyées au site » (l\'export AirDrop / disque reste à part).';
     } catch (e) {
       info.textContent = (e && e.message === 'arrêté' ? 'Envoi arrêté. ' : 'Envoi interrompu : ' + dashErr(e) + '. ') +
         sent + ' vidéo(s) envoyée(s). Rien n\'est perdu : touchez « Envoyer » pour reprendre.';
@@ -2865,15 +2872,27 @@
     $('#st-todo').textContent = todo.length;
     try {
       const box = $('#exp-check'), main = $('#exp-main');
-      const todoRej = all.filter(m => m.status === 'rejected' && !isEmpty(m) && !m.exported).length;
-      const per = {}; kept.forEach(m => { const d = per[m.dayId || '?'] = per[m.dayId || '?'] || { k: 0, t: 0 }; d.k++; if (!m.exported) d.t++; });
-      if (!kept.length) { main.textContent = 'Aucune vidéo sur cet iPad.'; box.style.borderColor = '#2e9e5b'; }
-      else if (!todo.length) { main.textContent = '✔ Tout est exporté (' + kept.length + ' vidéo(s) gardée(s)).'; box.style.borderColor = '#2e9e5b'; }
-      else { main.textContent = '⚠ ' + todo.length + ' vidéo(s) gardée(s) PAS ENCORE EXPORTÉE(S) sur ' + kept.length + '. Ne rien effacer avant l\'export.'; box.style.borderColor = '#e0a100'; }
+      const todoRej = all.filter(m => m.status === 'rejected' && !isEmpty(m) && !m.exported && !m.uploaded).length;
+      const nSite = kept.filter(m => m.uploaded).length, nLoc = kept.filter(m => m.exported).length;
+      const nAir = kept.filter(m => m.exported && m.exportedTo !== 'disque').length, nDisk = kept.filter(m => m.exported && m.exportedTo === 'disque').length;
+      const paint = (el, ok, txt) => { el.innerHTML = txt; el.style.borderLeftColor = ok ? '#2e9e5b' : '#e0a100'; };
+      const per = {}; kept.forEach(m => { const d = per[m.dayId || '?'] = per[m.dayId || '?'] || { k: 0, s: 0, l: 0 }; d.k++; if (!m.uploaded) d.s++; if (!m.exported) d.l++; });
+      if (!kept.length) {
+        main.textContent = 'Aucune vidéo sur cet iPad.'; box.style.borderColor = '#2e9e5b';
+        paint($('#exp-site'), true, 'Site : rien à envoyer.'); paint($('#exp-local'), true, 'AirDrop / disque dur : rien à exporter.');
+      } else {
+        const okS = nSite === kept.length, okL = nLoc === kept.length;
+        const nNone = kept.filter(m => !m.uploaded && !m.exported).length;
+        main.textContent = okS && okL ? '✔ Tout est sauvegardé deux fois (' + kept.length + ' vidéo(s) gardée(s)).' : nNone ? '⚠ ' + nNone + ' vidéo(s) ne sont sauvegardées nulle part ailleurs que sur cet iPad. Ne rien effacer.' : '⚠ Chaque vidéo a au moins une copie, mais pas encore les deux (site et AirDrop / disque).';
+        box.style.borderColor = okS && okL ? '#2e9e5b' : '#e0a100';
+        paint($('#exp-site'), okS, '<b>Envoi au site :</b> ' + (okS ? '✔ toutes envoyées' : '⚠ ' + (kept.length - nSite) + ' pas encore envoyée(s)') + ' (' + nSite + ' / ' + kept.length + ')');
+        paint($('#exp-local'), okL, '<b>Export AirDrop / disque dur externe :</b> ' + (okL ? '✔ tout exporté' : '⚠ ' + (kept.length - nLoc) + ' pas encore exportée(s)') + ' (' + nLoc + ' / ' + kept.length + (nLoc ? ' · AirDrop : ' + nAir + ', disque : ' + nDisk : '') + ')');
+      }
       $('#exp-days').innerHTML = Object.keys(per).sort().map(k => {
         const d = per[k], dd = DAYS.find(x => x.id === k);
-        return '<div>' + esc(dd ? dd.id + ' · ' + dd.libelle : k) + ' : ' + (d.t ? '<b style="color:#e0a100">' + d.t + ' à exporter</b>' : '<span style="color:#2e9e5b">tout exporté</span>') + ' sur ' + d.k + '</div>';
-      }).join('') + (todoRej ? '<div class="muted">' + todoRej + ' vidéo(s) rejetée(s) non exportée(s) (normal : elles ne sont pas exportées par défaut).</div>' : '') +
+        return '<div>' + esc(dd ? dd.id + ' · ' + dd.libelle : k) + ' : site ' + (d.s ? '<b style="color:#e0a100">' + d.s + ' à envoyer</b>' : '<span style="color:#2e9e5b">✔</span>') +
+          ' · export ' + (d.l ? '<b style="color:#e0a100">' + d.l + ' à exporter</b>' : '<span style="color:#2e9e5b">✔</span>') + ' (sur ' + d.k + ')</div>';
+      }).join('') + (todoRej ? '<div class="muted">' + todoRej + ' vidéo(s) rejetée(s) non sauvegardée(s) (normal : elles ne sont pas exportées par défaut).</div>' : '') +
         '<div style="margin-top:.4rem">Pensez aussi au « Rapport de fin de journée » (qui a tourné quoi).</div>';
     } catch (e) {}
     $('#st-rej').textContent = rej.length;
@@ -2903,7 +2922,7 @@
         const chips = document.createElement('div'); chips.className = 'chips';
         ms.forEach(m => {
           const c = document.createElement('button');
-          c.className = 'chip' + (m.status === 'rejected' ? ' rej' : '') + (m.exported ? ' exp' : '');
+          c.className = 'chip' + (m.status === 'rejected' ? ' rej' : '') + (m.exported || m.uploaded ? ' exp' : '');
           c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt) + (m.qa && m.qa.redo ? ' ⚠' : '');
           if (m.qa && m.qa.codes && m.qa.codes.length) c.title = m.qa.codes.join(', ');
           c.addEventListener('click', () => playMeta(m));
@@ -2934,6 +2953,13 @@
   $('#btn-player-close').addEventListener('click', () => { const v = $('#adm-video'); v.pause(); $('#adm-player').classList.add('hidden'); });
 
   /* Export en deux temps : préparer (lecture des fichiers), puis partager (geste direct) */
+  const DEST_HELP = {
+    airdrop: 'Touchez « Partager », puis AirDrop et le Mac.',
+    disque: 'Branchez le disque à l\'iPad (USB-C) et vérifiez qu\'il apparaît dans l\'app Fichiers. Touchez « Partager », puis « Enregistrer dans Fichiers » et choisissez le disque.' + (window.showDirectoryPicker ? ' Ici, l\'iPad vous demandera directement le dossier du disque.' : '')
+  };
+  function setDest(v) { state.dest = v === 'disque' ? 'disque' : 'airdrop'; LS.set('exp.dest', state.dest); setSeg('#seg-dest', state.dest); $('#dest-help').textContent = DEST_HELP[state.dest]; }
+  document.querySelectorAll('#seg-dest button').forEach(b => b.addEventListener('click', () => setDest(b.dataset.v)));
+  setDest(LS.get('exp.dest', 'airdrop'));
   document.querySelectorAll('#seg-lot button').forEach(b => b.addEventListener('click', () => {
     state.lot = b.dataset.v; LS.set('lot', state.lot); setSeg('#seg-lot', state.lot);
     state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
@@ -2973,12 +2999,26 @@
   $('#btn-exp-share').addEventListener('click', async () => {
     const batch = state.exportBatch; if (!batch) return;
     const markDone = async () => {
-      for (const m of batch.metas) { m.exported = true; m.exportedAt = Date.now(); await DB.put(m); }
+      for (const m of batch.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = state.dest; await DB.put(m); }
       state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
       const left = exportable(await DB.all(), $('#exp-rej').checked).length;
       $('#exp-info').textContent = batch.files.length + ' vidéo(s) exportée(s).' + (left ? ' Il en reste ' + left + ' : touchez « 1. Préparer l\'export ».' : ' Tout est exporté ✔');
       await refreshStats();
     };
+    if (state.dest === 'disque' && window.showDirectoryPicker) {
+      try {
+        const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
+        for (let i = 0; i < batch.files.length; i++) {
+          $('#exp-info').textContent = 'Écriture sur le disque ' + (i + 1) + ' / ' + batch.files.length + '…';
+          const fh = await dir.getFileHandle(batch.files[i].name, { create: true });
+          const w = await fh.createWritable(); await w.write(batch.files[i]); await w.close();
+        }
+        await markDone(); return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') { $('#exp-info').textContent = 'Choix du dossier annulé : rien n\'a été marqué comme exporté.'; return; }
+        $('#exp-info').textContent = 'Écriture directe impossible (' + (e && e.name) + ') : passage par le partage.';
+      }
+    }
     if (navigator.canShare && navigator.canShare({ files: batch.files })) {
       try { await navigator.share({ files: batch.files }); await markDone(); }
       catch (e) {
@@ -3007,9 +3047,9 @@
     toast('Toutes les vidéos sont de nouveau « à exporter »'); await refreshStats();
   });
   $('#btn-del-exp').addEventListener('click', async () => {
-    const all = await DB.all(); const ex = all.filter(m => m.exported);
-    if (!ex.length) return toast('Aucune vidéo exportée à supprimer');
-    if (Date.now() - delArmed > 4000) { delArmed = Date.now(); toast('Supprimer ' + ex.length + ' vidéo(s) déjà exportée(s) ? Touchez encore une fois pour confirmer.', 4000); return; }
+    const all = await DB.all(); const ex = all.filter(m => m.exported || m.uploaded);
+    if (!ex.length) return toast('Aucune vidéo déjà sauvegardée (site ou export) à supprimer');
+    if (Date.now() - delArmed > 4000) { delArmed = Date.now(); toast('Supprimer ' + ex.length + ' vidéo(s) déjà sauvegardée(s) (site ou export) ? Touchez encore une fois pour confirmer.', 4000); return; }
     delArmed = 0;
     for (const m of ex) await DB.remove(m.id);
     toast(ex.length + ' vidéo(s) supprimée(s) de l\'iPad'); await refreshStats();
@@ -3024,10 +3064,10 @@
   $('#btn-del-all').addEventListener('click', async () => {
     const all = await DB.all();
     if (!all.length) return toast('Aucune vidéo sur l\'iPad');
-    const notExp = all.filter(m => !m.exported && (m.size || 0) >= MIN_BYTES && m.status !== 'rejected').length;
+    const notExp = all.filter(m => !m.exported && !m.uploaded && (m.size || 0) >= MIN_BYTES && m.status !== 'rejected').length;
     if (Date.now() - allArmed > 5000) {
       allArmed = Date.now();
-      toast('Effacer les ' + all.length + ' vidéo(s) de l\'iPad' + (notExp ? ', dont ' + notExp + ' JAMAIS EXPORTÉE(S)' : '') + ' ? Touchez encore une fois pour confirmer.', 5000);
+      toast('Effacer les ' + all.length + ' vidéo(s) de l\'iPad' + (notExp ? ', dont ' + notExp + ' SAUVEGARDÉE(S) NULLE PART' : '') + ' ? Touchez encore une fois pour confirmer.', 5000);
       return;
     }
     allArmed = 0;

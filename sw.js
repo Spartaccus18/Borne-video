@@ -3,7 +3,7 @@
    modifications de config.js), et si le réseau ne répond pas en 3 s ou
    n'est pas disponible, on sert la copie enregistrée sur l'iPad.        */
 
-const CACHE = 'borne-video-v3-17';
+const CACHE = 'borne-video-v3-18';
 const FILES = ['./', './index.html', './config.js', './manifest.webmanifest',
   './fonts/Jost-Medium.ttf', './fonts/Jost-Bold.ttf', './fonts/Jost-ExtraBold.ttf', './fdp-logo-blanc.svg',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo-content-camp.png',
