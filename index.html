@@ -275,6 +275,16 @@
   /* ---------- Repère caméra ---------- */
   .cam-cue { position: fixed; z-index: 20; display: flex; align-items: center; gap: .5rem; background: #fff; color: var(--dark); font-weight: 800; font-size: 1.1rem; padding: .5rem 1.2rem; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.25); pointer-events: none; }
   .cam-cue .arrow { font-size: 1.3rem; line-height: 1; }
+  .cam-cue .cue-ring { position: absolute; left: -7px; top: -7px; pointer-events: none; overflow: visible; display: none; }
+  html.rec-on .cam-cue .cue-ring { display: block; }
+  /* Tournage épuré : pendant la prise, seul « Regardez ici » (avec son trait de temps) reste à l'écran, pour que le candidat regarde l'objectif */
+  html.clean #s-record .stepper, html.clean #s-record .rec-q, html.clean #s-record .rec-pose, html.clean #s-record .rec-badge, html.clean #s-record .live-chip,
+  html.clean #s-record .bar, html.clean #s-record .rec-time, html.clean #s-record #btn-rec-cancel { display: none !important; }
+  html.clean #btn-stop { opacity: 0; pointer-events: none; transition: opacity .35s; }
+  html.clean.endbtn #btn-stop { opacity: 1; pointer-events: auto; }
+  html.clean #s-record .countdown { inset: auto; left: 0; right: 0; top: calc(var(--status) + 6.2rem); font-size: 5rem; background: transparent; }
+  html.clean[data-cam="gauche"] #s-record .countdown { top: 50%; left: 5.5rem; right: auto; transform: translateY(-50%); }
+  html.clean[data-cam="droite"] #s-record .countdown { top: 50%; right: 5.5rem; left: auto; transform: translateY(-50%); }
   .cue-haut { top: calc(var(--status) + .8rem); left: 50%; transform: translateX(-50%); flex-direction: column; gap: .1rem; padding: .3rem 1.3rem .5rem; }
   .cue-haut .arrow { font-size: 1.6rem; line-height: 1; }
   .cue-gauche { left: calc(env(safe-area-inset-left) + .3rem); top: 50%; transform: translateY(-50%); flex-direction: column; padding: .7rem .45rem; font-size: .8rem; }
@@ -451,6 +461,7 @@
     <div class="pose-cap"><span class="pose-cap-n" id="pose-cap-n"></span><span class="pose-cap-t" id="pose-cap-t"></span>
     </div>
   </div>
+  <p class="small" style="opacity:.8;margin:.2rem 1rem .8rem;text-align:center">Pendant la prise, l'écran est vide : regardez l'objectif. Pour terminer, touchez l'écran n'importe où.</p>
   <div class="row">
     <button class="btn btn-ghost" id="btn-pose-skip">Passer</button>
     <button class="btn" id="btn-pose-go">Je suis prêt, on tourne</button>
@@ -464,6 +475,7 @@
   <p class="q-text" id="q-text"></p>
   <p class="q-help" id="q-help"></p>
   <p class="q-dur" id="q-dur"></p>
+  <p class="small" style="opacity:.8;margin:.2rem 1rem .8rem;text-align:center">Pendant la prise, l'écran est vide : regardez l'objectif. Pour terminer, touchez l'écran n'importe où.</p>
   <div class="row">
     <button class="btn btn-ghost" id="btn-q-skip">Passer</button>
     <button class="btn" id="btn-q-go">Je suis prêt, on tourne</button>
@@ -768,7 +780,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.10 · 28.10.2026';
+  const VERSION = '4.11 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -1725,6 +1737,11 @@
 
   let chipKey = '', chipSince = 0;
   function micLiveChip() {
+    if (document.documentElement.classList.contains('clean')) {   // tournage épuré : aucun message pendant la prise ; si le micro lâche, la prise s'arrête et le dit à la relecture
+      const ph = MIC.phase;
+      if (ph && ph.name === 'rec' && (MIC.lost || ph.events.includes('ended') || ph.events.includes('gone') || MIC.deadMs > 2500) && state.endTake) state.endTake();
+      return;
+    }
     if (CFG.alertesEnDirect === false) return;
     const now = performance.now(), ph = MIC.phase, el = $('#live-chip');
     const elapsed = (now - ph.t0) / 1000;
@@ -2198,6 +2215,8 @@
     $('#camCue').classList.toggle('hidden', !CUE_SCREENS.includes(name));
     document.documentElement.classList.toggle('ring-on', !!state.ring && name === 'record');
     document.documentElement.classList.toggle('noself', !!state.ring && !state.selfview && name === 'record');
+    document.documentElement.classList.toggle('clean', name === 'record');
+    if (name !== 'record') document.documentElement.classList.remove('rec-on', 'endbtn');
     if (name !== 'pose' && demoMan) demoMan.stop();
     if (name !== 'intro') stopIntroTimer();
     if (name === 'prep') startAssist();
@@ -2596,6 +2615,17 @@
     return all.filter(m => m.date === meta.date && m.dayId === meta.dayId && m.candidate === meta.candidate && m.questionId === meta.questionId).length + 1;
   }
 
+  /* Trait de temps : il fait le tour de « Regardez ici » ; quand il est complet, la prise s'arrête */
+  function ringInit() {
+    const cue = $('#camCue'), NS = 'http://www.w3.org/2000/svg';
+    let svg = cue.querySelector('.cue-ring'); if (!svg) { svg = document.createElementNS(NS, 'svg'); svg.setAttribute('class', 'cue-ring'); cue.appendChild(svg); }
+    const W = cue.offsetWidth, H = cue.offsetHeight, rx = Math.min(W, H) / 2 + 3.5;
+    svg.style.width = (W + 14) + 'px'; svg.style.height = (H + 14) + 'px'; svg.setAttribute('viewBox', '0 0 ' + (W + 14) + ' ' + (H + 14));
+    const r = (id, col) => '<rect ' + (id ? 'id="' + id + '" ' : '') + 'x="3.5" y="3.5" width="' + (W + 7) + '" height="' + (H + 7) + '" rx="' + rx + '" fill="none" stroke="' + col + '" stroke-width="4.5" stroke-linecap="round" pathLength="100"' + (id ? ' stroke-dasharray="0 100"' : '') + '/>';
+    svg.innerHTML = r('', 'rgba(230,0,125,.22)') + r('cue-prog', '#e6007d');
+  }
+  function ringSet(f) { const el = document.getElementById('cue-prog'); if (el) el.setAttribute('stroke-dasharray', (100 * Math.max(0, Math.min(1, f))).toFixed(2) + ' 100'); }
+
   async function record() {
     const sess = state.session;
     if (!streamLive()) { show('prep'); if (!(await openCamera())) return; }
@@ -2621,12 +2651,7 @@
     $('#btn-stop').classList.remove('hidden');      // la pose aussi peut être arrêtée avant la fin
     const cues = POSE.etapes || [];
     const setCue = (k) => { $('#rec-pose-n').textContent = (k + 1) + ' / ' + cues.length; $('#rec-pose-txt').textContent = cues[k] || ''; };
-    if (isPose) {
-      setCue(0);
-      const M = await loadMannequin();
-      if (M && !miniMan) miniMan = M.createMannequin($('#mini-canvas'), { mode: 'live', maxFps: 20, pixelRatio: 1.5 });
-      if (miniMan) { miniMan.setTime(0, dur); miniMan.start(); }
-    }
+    if (isPose) setCue(0);   // rien de visible pendant la pose : le mannequin n'est montré qu'avant la prise
     $('#rec-badge').classList.add('hidden');
     $('#btn-stop').disabled = true;
     renderSteppers();
@@ -2667,22 +2692,32 @@
     micBegin('rec', pre && pre.frames.length >= 8 ? quant(pre.frames.map(f => f.rms), 0.3) : null);
     const micInfo = Object.assign({}, MIC.info);
     const sampler = startSampling($('#rec-video'), isPose, dur);
-    $('#rec-badge').classList.remove('hidden');
+    ringInit(); document.documentElement.classList.add('rec-on'); document.documentElement.classList.remove('endbtn');
     $('#btn-stop').disabled = false;
 
     const t0 = performance.now();
     let stopped = false, byTimer = false;
-    const stop = (auto) => { if (stopped) return; stopped = true; byTimer = !!auto; $('#btn-stop').disabled = true; clearInterval(tick); rec.stop(); };
-    stopFn = stop;
+    const tapStop = () => { if (performance.now() - t0 > 2000) stop(false); };   // un toucher n'importe où arrête la prise (sauf pendant les 2 premières secondes)
+    const stop = (auto) => { if (stopped) return; stopped = true; byTimer = !!auto; $('#btn-stop').disabled = true; clearInterval(tick); $('#s-record').removeEventListener('click', tapStop); state.endTake = null; rec.stop(); };
+    stopFn = stop; state.endTake = () => stop(false);
+    $('#s-record').addEventListener('click', tapStop);
     if (cancelled) stop(false);
     $('#btn-stop').onclick = () => stop(false);
     const tick = setInterval(() => {
       const el = (performance.now() - t0) / 1000;
       const left = dur - el;
       if (isPose) { setCue(poseCueAt(el, dur)); if (miniMan) miniMan.setTime(el, dur); }
-      $('#bar > div').style.width = Math.min(100, (el / dur) * 100) + '%';
-      $('#bar').classList.toggle('late', !isPose && left <= 5);
-      $('#rec-time').textContent = fmtTime(left);
+      ringSet(el / dur);
+      if (!isPose) {   // après un silence (la personne a déjà parlé), « Terminer » apparaît ; si elle reparle, il disparaît
+        const ph = MIC.phase;
+        if (ph && ph.name === 'rec') {
+          const now = performance.now(), F = ph.frames, thr = Math.max((ph.noise == null ? -58 : ph.noise) + 9, -62);
+          let last = null, voiced = 0;
+          for (let i = F.length - 1; i >= 0; i--) { if (F[i].rms > thr) { if (!last) last = F[i]; voiced++; } }
+          const cl = document.documentElement.classList, silent = last ? now - last.t : 0;
+          cl.toggle('endbtn', voiced >= 40 && (silent > 2500 || (cl.contains('endbtn') && silent >= 800)));
+        }
+      }
       if (left <= 0) stop(true);
     }, 100);
 
@@ -3755,7 +3790,7 @@
     }
     dashBoot();
   }
-  window.__borne = { pushStatuses, dashState, state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, fileName, lan, lanJoin, lanSend };   // pour les tests automatiques
+  window.__borne = { record, pushStatuses, dashState, state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, fileName, lan, lanJoin, lanSend };   // pour les tests automatiques
   boot();
 })();
 </script>

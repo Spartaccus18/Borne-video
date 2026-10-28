@@ -68,9 +68,10 @@ window.BORNE_CONFIG = {
   dureeBonjour: 3.5,
   dureeConsigne: 6,
   consignes: [
-    { icone: "objectif", titre: "Regardez l'objectif", texte: "Pas l'écran : l'objectif, {objectif}. C'est lui, votre public." },
+    { icone: "objectif", titre: "Regardez l'objectif", texte: "Pas l'écran : l'objectif, {objectif}. Pendant la prise, l'écran est vide et seul « Regardez ici » reste affiché." },
     { icone: "sourire",  titre: "Parlez comme à un ami", texte: "Souriez, faites des phrases courtes, gardez un ton naturel." },
-    { icone: "refaire",  titre: "Pas de stress", texte: "Vous pourrez revoir chaque réponse et la refaire si besoin." }
+    { icone: "refaire",  titre: "Pas de stress", texte: "Vous pourrez revoir chaque réponse et la refaire si besoin." },
+    { icone: "info",     titre: "Pour terminer", texte: "Le trait qui fait le tour de « Regardez ici » est votre temps : la prise s'arrête quand le tour est fini. Pour finir plus tôt, touchez l'écran n'importe où, ou « Terminer » quand il apparaît." }
   ],
 
   /* ---------- Étape « La pose » (ouverture de la séance) ----------

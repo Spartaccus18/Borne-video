@@ -111,6 +111,14 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 - **Micro** : la borne reconnecte toute seule le micro s'il se coupe, devient muet ou vieillit (contrôle toutes les 5 secondes entre deux prises, et avant chaque prise).
 - **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, phrase finale (« Le 28 février on vote ! », pause, « En attendant, bon film ! ») en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
 
+## Tournage épuré (v4.11)
+
+Pour que les candidats regardent l'objectif, **l'écran est vide pendant la prise** : plus de question, de barre de temps, de chrono, de badge REC ni de message en direct. Seul reste le repère « Regardez ici », au bord duquel un **trait rose fait le tour** : c'est le temps disponible, et la prise s'arrête quand le tour est complet.
+- **Terminer plus tôt** : toucher l'écran n'importe où (ignoré pendant les 2 premières secondes), ou le bouton « Terminer » qui apparaît en bas après environ 2,5 secondes de silence (il disparaît si la personne reparle). Pas de fin automatique sur un silence.
+- **Pose** : rien de visible pendant la prise ; le mannequin n'est montré qu'avant.
+- **Alertes (son, regard, cadrage)** : uniquement à la relecture, avec le conseil de refaire. Si le micro se coupe en pleine prise, elle s'arrête d'elle-même.
+- Les consignes d'accueil (`config.js`) expliquent le trait et le toucher pour terminer ; un rappel figure aussi sur les écrans « Je suis prêt, on tourne ».
+
 ## 7. Récupérer les vidéos et le rapport (fin de journée)
 
 Les vidéos ne sont **jamais envoyées au site** : le dashboard ne reçoit que des statuts (qui a tourné quoi, qui a refusé). Le menu organisateur propose deux exports **séparés**, car ils ne vont pas au même endroit.
