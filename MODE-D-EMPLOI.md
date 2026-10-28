@@ -130,7 +130,7 @@ Limite à connaître : Safari charge en mémoire tous les fichiers d'un même pa
 
 Dans l'Excel, les colonnes Q1 à Q5 affichent **Oui** (vidéo gardée), **Non** (le candidat est passé à l'accueil mais la vidéo manque : oubli) ou **Refus** (le candidat ne veut pas de vidéo), en rouge pour Non et Refus. Rien n'est écrit dans la colonne Remarques.
 
-**Autre option : tout télécharger en une seule fois (ZIP)** (sous le bouton de partage, passe par les téléchargements de Safari) : écrit au fil de l'eau, vidéo après vidéo, sans limite de mémoire, avec un dossier par candidat et **sans** rapport. Il exige autant de place libre sur l'iPad que le fichier ; l'iPad affiche la taille exacte attendue, à comparer dans Fichiers avant de confirmer. L'**Essai de transfert** (faux ZIP de 2, 10 ou 25 Go) permet de le tester à l'avance.
+**Option principale (en haut de la carte 1) : tout télécharger en une seule fois (ZIP)** (passe par les téléchargements de Safari ; l'envoi par lots décrit plus haut est l'autre option, repliée) : écrit au fil de l'eau, vidéo après vidéo, sans limite de mémoire, avec un dossier par candidat et **sans** rapport. Il exige autant de place libre sur l'iPad que le fichier ; l'iPad affiche la taille exacte attendue, à comparer dans Fichiers avant de confirmer. L'**Essai de transfert** (faux ZIP de 2, 10 ou 25 Go) permet de le tester à l'avance.
 
 Autres boutons : **Supprimer les vidéos déjà exportées** (double touche), **Supprimer les vidéos vides** (n'apparaît que s'il y a des enregistrements ratés) et **Tout effacer (remise à zéro)** (double touche ; un avertissement indique s'il reste des vidéos jamais exportées ; efface aussi les « passés » et « aucune vidéo » mémorisés).
 

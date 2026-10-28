@@ -584,27 +584,11 @@
     </div>
 
     <div class="card">
-      <h3>1. Exporter toutes les vidéos (feuille de partage)</h3>
-      <p>Les vidéos partent par la <b>feuille de partage de l'iPad</b> (AirDrop vers le Mac, ou « Enregistrer dans Fichiers » vers le disque dur), sans passer par les téléchargements de Safari. Elles sont <b>renommées et classées par candidat</b> : <span class="mono">Prenom-Nom_Q1_p1_validee.mp4</span>. Le rapport n'en fait pas partie (carte 2).</p>
-      <p class="small">Safari ne peut pas envoyer 20 Go en un seul partage (il charge les fichiers en mémoire) : l'app découpe l'envoi en <b>lots de candidats entiers</b> et prépare le lot suivant toute seule. Il suffit de toucher le gros bouton à chaque lot, jusqu'à « Tout est exporté ».</p>
+      <h3>1. Exporter toutes les vidéos en une seule fois (ZIP)</h3>
+      <p>Toutes les vidéos partent <b>d'un coup</b> dans un seul fichier ZIP, classées par dossier de candidat (<span class="mono">Prenom-Nom/Prenom-Nom_Q1_p1_validee.mp4</span>). Le rapport n'en fait pas partie (carte 2). Le ZIP est écrit au fur et à mesure : pas de limite de mémoire, même pour 20 Go ou plus.</p>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
-      <p class="small" style="margin-top:.5rem">Destination :</p>
-      <div class="seg" id="seg-dest" style="margin-top:.4rem">
-        <button data-v="airdrop">AirDrop (vers le Mac)</button>
-        <button data-v="disque">Disque dur externe</button>
-      </div>
-      <p class="small" id="dest-help" style="margin-top:.4rem"></p>
-      <p class="small" style="margin-top:.7rem">Taille maximale d'un lot :</p>
-      <div class="seg" id="seg-lot" style="margin-top:.4rem">
-        <button data-v="500">500 Mo</button>
-        <button data-v="1000">1 Go</button>
-        <button data-v="2000">2 Go</button>
-      </div>
-      <div class="row"><button class="btn btn-ok" id="btn-exp-main" style="font-size:1.15rem;padding:1rem 1.4rem">Préparer l'export</button></div>
-      <div class="bar" id="exp-bar" style="margin-top:.7rem;height:.6rem"><div></div></div>
-      <p class="small" id="exp-info" style="margin-top:.5rem"></p>
-      <details open style="margin-top:1rem"><summary class="small" style="cursor:pointer"><b>Autre option : tout télécharger en une seule fois (un seul fichier ZIP)</b></summary>
-      <p class="small" style="margin-top:.5rem">Un seul fichier pour toutes les vidéos, sans lots. Il passe par les téléchargements de Safari. Un seul ZIP, écrit au fur et à mesure (pas de limite de mémoire), avec un dossier par candidat. Il arrive dans le dossier de téléchargement de Safari et exige autant de place libre sur l'iPad que le fichier.</p>
+
+      <p class="small" style="margin-top:.5rem">Un seul ZIP, écrit au fur et à mesure (pas de limite de mémoire), avec un dossier par candidat. Il arrive dans le dossier de téléchargement de Safari et exige autant de place libre sur l'iPad que le fichier.</p>
       <div class="row">
         <button class="btn" id="btn-zip-prep">1. Préparer et vérifier</button>
         <button class="btn btn-ok" id="btn-zip-go" disabled>2. Télécharger le ZIP</button>
@@ -623,6 +607,23 @@
       <p class="small" style="margin-top:.5rem">Télécharge un faux ZIP rempli de zéros, pour vérifier que l'iPad, Safari et le disque supportent un gros fichier. Supprimez-le ensuite dans l'app Fichiers. Il faut autant de place libre que la taille choisie.</p>
       <div class="row"><button class="btn btn-ghost" data-ztest="2">Essai 2 Go</button><button class="btn btn-ghost" data-ztest="10">Essai 10 Go</button><button class="btn btn-ghost" data-ztest="25">Essai 25 Go</button></div>
       </details>
+            <details style="margin-top:1rem"><summary class="small" style="cursor:pointer">Autre option : par lots, avec la feuille de partage (AirDrop, Fichiers)</summary>
+      <p class="small" style="margin-top:.5rem">Safari charge en mémoire tous les fichiers d'un même partage : l'app découpe donc l'envoi en lots de candidats entiers (500 Mo à 2 Go) et prépare le lot suivant toute seule. Un seul gros bouton à toucher à chaque lot.</p>
+      <p class="small" style="margin-top:.5rem">Destination :</p>
+      <div class="seg" id="seg-dest" style="margin-top:.4rem">
+        <button data-v="airdrop">AirDrop (vers le Mac)</button>
+        <button data-v="disque">Disque dur externe</button>
+      </div>
+      <p class="small" id="dest-help" style="margin-top:.4rem"></p>
+      <p class="small" style="margin-top:.7rem">Taille maximale d'un lot :</p>
+      <div class="seg" id="seg-lot" style="margin-top:.4rem">
+        <button data-v="500">500 Mo</button>
+        <button data-v="1000">1 Go</button>
+        <button data-v="2000">2 Go</button>
+      </div>
+      <div class="row"><button class="btn btn-ok" id="btn-exp-main" style="font-size:1.15rem;padding:1rem 1.4rem">Préparer l'export</button></div>
+      <div class="bar" id="exp-bar" style="margin-top:.7rem;height:.6rem"><div></div></div>
+      <p class="small" id="exp-info" style="margin-top:.5rem"></p>
       </details>
       <div class="row">
         <button class="btn btn-ghost" id="btn-exp-reset">Remettre toutes les vidéos « à exporter »</button>
@@ -798,7 +799,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.2 · 28.10.2026';
+  const VERSION = '4.3 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
