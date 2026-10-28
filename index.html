@@ -780,7 +780,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.11 · 28.10.2026';
+  const VERSION = '4.12 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -1171,9 +1171,13 @@
       { video: vid, audio },
       { video: { facingMode: 'user' }, audio: true }
     ]);
+    setAudioSession('play-and-record');   // la relecture met la session en « lecture » : Safari refuse alors la capture du micro
     for (const c of tries) {
       try { s = await navigator.mediaDevices.getUserMedia(c); break; }
-      catch (e) { lastErr = e; if (e.name === 'NotAllowedError' || e.name === 'SecurityError') break; }
+      catch (e) {
+        lastErr = e; if (e.name === 'NotAllowedError' || e.name === 'SecurityError') break;
+        if (e.name === 'InvalidStateError') { setAudioSession('auto'); await sleep(150); setAudioSession('play-and-record'); try { s = await navigator.mediaDevices.getUserMedia(c); break; } catch (e2) { lastErr = e2; } }
+      }
     }
     if (!s) throw lastErr;
     stream = s;
@@ -1567,6 +1571,7 @@
     const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: true, channelCount: { ideal: 1 } };
     const want = LS.get('micId', '');
     const tries = (want ? [Object.assign({}, audio, { deviceId: { exact: want } })] : []).concat([audio]);
+    setAudioSession('play-and-record');
     for (const a of tries) {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ audio: a });
@@ -1739,7 +1744,7 @@
   function micLiveChip() {
     if (document.documentElement.classList.contains('clean')) {   // tournage épuré : aucun message pendant la prise ; si le micro lâche, la prise s'arrête et le dit à la relecture
       const ph = MIC.phase;
-      if (ph && ph.name === 'rec' && (MIC.lost || ph.events.includes('ended') || ph.events.includes('gone') || MIC.deadMs > 2500) && state.endTake) state.endTake();
+      if (ph && ph.name === 'rec' && (MIC.lost || ph.events.includes('ended') || ph.events.includes('gone') || MIC.deadMs > 6000) && state.endTake) state.endTake();
       return;
     }
     if (CFG.alertesEnDirect === false) return;
@@ -2216,6 +2221,7 @@
     document.documentElement.classList.toggle('ring-on', !!state.ring && name === 'record');
     document.documentElement.classList.toggle('noself', !!state.ring && !state.selfview && name === 'record');
     document.documentElement.classList.toggle('clean', name === 'record');
+    if (name !== 'review') setAudioSession('play-and-record');   // hors relecture, la session reste prête à capter le micro
     if (name !== 'record') document.documentElement.classList.remove('rec-on', 'endbtn');
     if (name !== 'pose' && demoMan) demoMan.stop();
     if (name !== 'intro') stopIntroTimer();
@@ -2685,8 +2691,17 @@
     cd.classList.add('hidden');
 
     let rec;
-    try { rec = startRecorder(); }
-    catch (e) { state.noIdle = false; showCamError(e); return; }
+    {   // Safari refuse parfois de démarrer le micro (« AudioSession category is not compatible with audio capture ») : on remet la session audio en état, puis on réessaie, au besoin avec un micro reconnecté
+      const tryStart = () => { setAudioSession('play-and-record'); return startRecorder(); };
+      let err = null;
+      try { rec = tryStart(); } catch (e) { err = e; }
+      if (!rec && err && err.name === 'InvalidStateError') {
+        setAudioSession('auto'); await sleep(250);
+        try { rec = tryStart(); err = null; } catch (e) { err = e; }
+        if (!rec) { try { await micReconnectAudio(); } catch (e) {} try { rec = tryStart(); err = null; } catch (e) { err = e; } }
+      }
+      if (!rec) { state.noIdle = false; showCamError(err); return; }
+    }
     state.recording = rec;
     const pre = micEnd();
     micBegin('rec', pre && pre.frames.length >= 8 ? quant(pre.frames.map(f => f.rms), 0.3) : null);
