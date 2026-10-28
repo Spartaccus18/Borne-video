@@ -46,6 +46,7 @@
   }
   body { position: fixed; inset: 0; }
   input, textarea, select { -webkit-user-select: text; user-select: text; font: inherit; }
+  .sel { -webkit-user-select: all; user-select: all; -webkit-touch-callout: default; background: rgba(255,255,255,.1); padding: .15rem .45rem; border-radius: 6px; word-break: break-all; }
   button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; }
   .hidden { display: none !important; }
 
@@ -584,21 +585,26 @@
     </div>
 
     <div class="card">
-      <h3>Envoyer toutes les vidéos au Mac (Wi-Fi, direct, sans internet)</h3>
-      <p>Les vidéos passent de l'iPad au Mac <b>directement par le réseau local</b> (iPad et Mac sur le même Wi-Fi, ou sur le partage de connexion de l'iPhone). Elles sont écrites sur le Mac dans le dossier de votre choix (par exemple le SSD), un dossier par candidat, <b>vérifiées une à une</b>, sans limite de taille. Rien ne passe par internet.</p>
-      <p class="small">Sur le Mac, ouvrez dans <b>Chrome</b> : <span class="mono" id="lan-url"></span>, puis suivez les étapes.</p>
-      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="lan-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
-      <div class="row"><button class="btn" id="btn-lan-offer">1. Préparer la connexion</button><button class="btn btn-ghost hidden" id="btn-lan-copy">Copier le code</button></div>
-      <textarea id="lan-offer" class="hidden" readonly style="width:100%;min-height:4.5rem;margin-top:.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
-      <p class="small" style="margin-top:.6rem">2. Collez ce code sur le Mac (page ouverte dans Chrome), puis collez ici le « code de réponse » qu'il affiche :</p>
-      <textarea id="lan-answer" placeholder="Code de réponse du Mac (commence par BV1)" style="width:100%;min-height:4.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
-      <div class="row"><button class="btn" id="btn-lan-connect">3. Connecter</button><button class="btn btn-ghost" id="btn-lan-paste">Coller</button></div>
+      <h3>Envoyer toutes les vidéos au Mac (Wi-Fi, direct)</h3>
+      <p>Les vidéos passent de l'iPad au Mac <b>directement par le réseau local</b> (iPad et Mac sur le même Wi-Fi, ou sur le partage de connexion de l'iPhone) et sont écrites sur le Mac dans le dossier de votre choix (par exemple le SSD), <b>vérifiées une à une</b>. Elles ne passent <b>jamais par internet</b> : seule la mise en relation (un court échange technique, sans vidéo) passe par un service public gratuit.</p>
+      <p class="small">1. Sur le Mac (Chrome, Edge ou Brave), ouvrez cette adresse (touchez-la longuement pour la copier, ou utilisez le bouton) : <span class="mono sel" id="lan-url"></span></p>
+      <div class="row"><button class="btn btn-ghost" id="btn-lan-copyurl">Copier l'adresse</button></div>
+      <p class="small" style="margin-top:.6rem">2. Choisissez le dossier sur le Mac : la page affiche un code de 6 caractères. 3. Tapez-le ici :</p>
+      <div class="row"><input id="lan-code" class="mono" maxlength="8" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="CODE" style="font-size:1.6rem;letter-spacing:.3em;text-transform:uppercase;width:11rem;padding:.5rem .7rem;border-radius:10px;border:1px solid #2c5086;background:#0b1f3a;color:#fff"><button class="btn" id="btn-lan-join">Connecter</button></div>
       <p id="lan-state" style="margin-top:.5rem;font-weight:700"></p>
+      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="lan-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
       <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost" id="btn-lan-test" disabled>Essai de vitesse (200 Mo factices)</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
       <div class="bar" id="lan-bar" style="margin-top:.7rem;height:.9rem"><div></div></div>
       <p id="lan-pct" style="margin-top:.4rem;font-weight:700"></p>
       <p class="small" id="lan-info" style="margin-top:.3rem"></p>
-      <p class="small" style="margin-top:.6rem">Gardez l'iPad allumé, l'app ouverte au premier plan, et le Mac réveillé pendant l'envoi. Si la connexion se coupe, les fichiers déjà arrivés en entier sont conservés : refaites les étapes 1 à 3 et seuls les fichiers manquants sont renvoyés. Une vidéo n'est marquée « exportée » qu'une fois confirmée et vérifiée par le Mac.</p>
+      <p class="small" style="margin-top:.6rem">Gardez l'iPad allumé, l'app ouverte au premier plan, et le Mac réveillé pendant l'envoi. Si la connexion se coupe, touchez de nouveau « Connecter » avec le même code : les fichiers déjà arrivés en entier sont conservés et seuls les manquants sont renvoyés. Une vidéo n'est marquée « exportée » qu'une fois confirmée et vérifiée par le Mac.</p>
+      <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Connexion manuelle (secours, sans internet)</summary>
+        <div class="row"><button class="btn" id="btn-lan-offer">1. Préparer la connexion</button><button class="btn btn-ghost hidden" id="btn-lan-copy">Copier le code</button></div>
+        <textarea id="lan-offer" class="hidden" readonly style="width:100%;min-height:4.5rem;margin-top:.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
+        <p class="small" style="margin-top:.6rem">2. Collez ce code sur le Mac (volet « Connexion manuelle » de la page de réception), puis collez ici le « code de réponse » qu'il affiche :</p>
+        <textarea id="lan-answer" placeholder="Code de réponse du Mac (commence par BV1)" style="width:100%;min-height:4.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
+        <div class="row"><button class="btn" id="btn-lan-connect">3. Connecter</button><button class="btn btn-ghost" id="btn-lan-paste">Coller</button></div>
+      </details>
       <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Journal technique</summary><pre class="small" id="lan-log" style="white-space:pre-wrap;max-height:14rem;overflow:auto;margin-top:.4rem"></pre></details>
     </div>
 
@@ -834,7 +840,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.6 · 28.10.2026';
+  const VERSION = '4.7 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -3564,8 +3570,43 @@
     return JSON.parse(new TextDecoder().decode(bytes));
   }
   const lanKick = () => { if (lan.wake) { const f = lan.wake; lan.wake = null; f(); } if (lan.low) { const f = lan.low; lan.low = null; f(); } };
-  function lanClose() { try { if (lan.dc) lan.dc.close(); } catch (e) {} try { if (lan.pc) lan.pc.close(); } catch (e) {} lan.pc = lan.dc = null; lan.open = false; lanKick(); }
+  function lanClose() { try { if (lan.dc) lan.dc.close(); } catch (e) {} try { if (lan.pc) lan.pc.close(); } catch (e) {} try { if (lan.peer) lan.peer.destroy(); } catch (e) {} lan.pc = lan.dc = lan.peer = lan.conn = null; lan.open = false; lanKick(); }
   const lanSendJ = (o) => lan.dc.send(JSON.stringify(o));
+  function lanOpened() { lan.open = true; llog('canal ouvert'); lanState('✔ Connecté au Mac. Touchez « 4. Tout envoyer ».'); $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; }
+  function lanBind(dc) {
+    lan.dc = dc; dc.binaryType = 'arraybuffer'; try { dc.bufferedAmountLowThreshold = 1 << 20; } catch (e) {}
+    dc.addEventListener('close', () => { lan.open = false; llog('canal fermé'); lanKick(); if (!lan.busy) lanState('Connexion fermée.'); });
+    dc.addEventListener('bufferedamountlow', () => lanKick());
+    dc.addEventListener('message', (ev) => lanOnMsg(ev));
+    if (dc.readyState === 'open') lanOpened(); else dc.addEventListener('open', lanOpened);
+  }
+  function lanLoadPeer() { return new Promise((res, rej) => { if (window.Peer) return res(); const sc = document.createElement('script'); sc.src = 'vendor/peerjs.min.js'; sc.onload = res; sc.onerror = () => rej(new Error('module de connexion introuvable : utilisez la connexion manuelle')); document.head.appendChild(sc); }); }
+  /* Connexion par code court : PeerJS ne sert que de « rendez-vous » ; les vidéos passent en direct, sans relais (aucun serveur STUN/TURN) */
+  async function lanJoin() {
+    if (lan.busy) return;
+    const code = $('#lan-code').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 6) { lanState('⚠ Tapez les 6 caractères affichés sur le Mac.'); return; }
+    lanClose(); Object.assign(lan, { ack: 0, sent: 0, have: null, fin: null, err: null, ok: 0, bad: [] });
+    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; lanBar(0); $('#lan-pct').textContent = ''; $('#lan-info').textContent = '';
+    let settled = false; const fail = (m) => { if (settled) return; settled = true; lanState('⚠ ' + m); llog(m); try { if (lan.peer) lan.peer.destroy(); } catch (e) {} };
+    try {
+      lanState('Recherche du Mac…'); await lanLoadPeer();
+      const peer = new window.Peer(Object.assign({ debug: 0, config: { iceServers: [] } }, window.__PEER_OPTS || {})); lan.peer = peer;   // __PEER_OPTS : réservé aux tests
+      peer.on('error', (e) => {
+        const t = e && e.type; llog('peerjs : ' + t + ' ' + (e && e.message));
+        fail(t === 'peer-unavailable' ? 'Code inconnu : vérifiez les 6 caractères et que la page du Mac est ouverte.'
+          : ['network', 'server-error', 'socket-error', 'socket-closed'].includes(t) ? 'Pas de liaison avec le service de rendez-vous (internet nécessaire un instant). Vérifiez la connexion de l\'iPad, ou utilisez la connexion manuelle.'
+          : 'Connexion impossible (' + t + ').');
+      });
+      peer.on('open', () => {
+        llog('rendez-vous ok'); lanState('Connexion au Mac…');
+        const conn = peer.connect('plrvd-borne-' + code, { serialization: 'raw', reliable: true }); lan.conn = conn;
+        conn.on('open', () => { settled = true; lanBind(conn.dataChannel); });
+        conn.on('error', (e) => { llog('connexion : ' + (e && e.type)); fail('Connexion impossible (' + (e && e.type) + ').'); });
+        setTimeout(() => { if (!settled && !lan.open) fail('Le Mac est trouvé mais la liaison directe ne s\'établit pas : l\'iPad et le Mac ne se voient pas sur ce réseau. Essayez le partage de connexion de l\'iPhone, ou cochez « Mode compatibilité » sur la page du Mac.'); }, 25000);
+      });
+    } catch (e) { fail(e && e.message || String(e)); }
+  }
 
   async function lanOffer() {
     if (lan.busy) return;
@@ -3575,11 +3616,7 @@
       if (typeof RTCPeerConnection === 'undefined') throw new Error('cet appareil ne gère pas la connexion directe');
       lanState('Préparation du code…');
       const pc = new RTCPeerConnection({ iceServers: [] }); lan.pc = pc;
-      const dc = pc.createDataChannel('videos', { ordered: true }); lan.dc = dc; dc.binaryType = 'arraybuffer'; dc.bufferedAmountLowThreshold = 1 << 20;
-      dc.onopen = () => { lan.open = true; llog('canal ouvert'); lanState('✔ Connecté au Mac. Touchez « 4. Tout envoyer ».'); $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; };
-      dc.onclose = () => { lan.open = false; llog('canal fermé'); lanKick(); if (!lan.busy) lanState('Connexion fermée.'); };
-      dc.onbufferedamountlow = () => lanKick();
-      dc.onmessage = (ev) => lanOnMsg(ev);
+      const dc = pc.createDataChannel('videos', { ordered: true }); lanBind(dc);
       pc.onconnectionstatechange = () => { llog('connexion : ' + pc.connectionState); if (pc.connectionState === 'failed') { lanState('⚠ Connexion impossible : le Mac et l\'iPad ne se voient pas sur ce réseau (voir l\'aide ci-dessous).'); lanKick(); } };
       await pc.setLocalDescription(await pc.createOffer());
       await new Promise((res) => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); });
@@ -3681,6 +3718,9 @@
       lanState('⚠ ' + (e && e.message || e) + '. ' + lan.ok + ' fichier(s) déjà confirmés par le Mac (conservés). Refaites les étapes 1 à 3 pour reprendre : seuls les fichiers manquants seront envoyés.'); llog('ERREUR : ' + (e && e.message || e));
     } finally { lan.busy = false; $('#btn-lan-stop').classList.add('hidden'); if (lan.open) { $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; } }
   }
+  $('#btn-lan-join').addEventListener('click', lanJoin);
+  $('#lan-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') lanJoin(); });
+  $('#btn-lan-copyurl').addEventListener('click', async () => { try { await navigator.clipboard.writeText(LAN_URL); toast('Adresse copiée : collez-la dans le navigateur du Mac (presse-papiers partagé Apple, ou envoyez-la par AirDrop / Messages)', 5000); } catch (e) { const r = document.createRange(); r.selectNodeContents($('#lan-url')); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); toast('Adresse sélectionnée : touchez « Copier »'); } });
   $('#btn-lan-offer').addEventListener('click', lanOffer);
   $('#btn-lan-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lan-offer').value); toast('Code copié'); } catch (e) { $('#lan-offer').select(); toast('Sélectionné : touchez « Copier »'); } });
   $('#btn-lan-paste').addEventListener('click', async () => { try { $('#lan-answer').value = await navigator.clipboard.readText(); } catch (e) { toast('Collage refusé : touchez longuement le champ, puis « Coller »'); } });
@@ -4061,7 +4101,7 @@
     }
     dashBoot();
   }
-  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, zipTest, zip, fileName, lan, lanOffer, lanConnect, lanSend };   // pour les tests automatiques
+  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, zipTest, zip, fileName, lan, lanOffer, lanConnect, lanJoin, lanSend };   // pour les tests automatiques
   boot();
 })();
 </script>

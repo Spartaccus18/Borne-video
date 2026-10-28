@@ -3,11 +3,11 @@
    modifications de config.js), et si le réseau ne répond pas en 3 s ou
    n'est pas disponible, on sert la copie enregistrée sur l'iPad.        */
 
-const CACHE = 'borne-video-v4-6';
+const CACHE = 'borne-video-v4-7';
 const FILES = ['./', './index.html', './config.js', './manifest.webmanifest',
   './fonts/Jost-Medium.ttf', './fonts/Jost-Bold.ttf', './fonts/Jost-ExtraBold.ttf', './fdp-logo-blanc.svg',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo-content-camp.png',
-  './vendor/pose3d.js', './opfs-zip.js', './models/mannequin.glb', './vendor/face-api.esm.js',
+  './vendor/pose3d.js', './opfs-zip.js', './vendor/peerjs.min.js', './models/mannequin.glb', './vendor/face-api.esm.js',
   './models/tiny_face_detector_model-weights_manifest.json', './models/tiny_face_detector_model.bin',
   './models/face_expression_model-weights_manifest.json', './models/face_expression_model.bin',
   './models/face_landmark_68_tiny_model-weights_manifest.json', './models/face_landmark_68_tiny_model.bin'];
