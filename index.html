@@ -582,6 +582,7 @@
         <div class="stat"><b id="st-size">–</b><span>espace utilisé</span></div>
       </div>
       <p class="small" id="st-quota" style="margin-top:.6rem"></p>
+      <div class="row"><button class="btn btn-ghost hidden" id="btn-clean-tmp">Supprimer les fichiers temporaires d'export (aucune vidéo n'est touchée)</button></div>
     </div>
 
     <div class="card">
@@ -593,7 +594,8 @@
       <div class="row"><input id="lan-code" class="mono" maxlength="8" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="CODE" style="font-size:1.6rem;letter-spacing:.3em;text-transform:uppercase;width:11rem;padding:.5rem .7rem;border-radius:10px;border:1px solid #2c5086;background:#0b1f3a;color:#fff"><button class="btn" id="btn-lan-join">Connecter</button></div>
       <p id="lan-state" style="margin-top:.5rem;font-weight:700"></p>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="lan-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
-      <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost" id="btn-lan-test" disabled>Essai de vitesse (200 Mo factices)</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
+      <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost" id="btn-lan-test" disabled>Lancer l'essai</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
+      <div class="row" style="align-items:center;gap:.5rem;margin-top:.5rem"><label for="lan-testsize" class="small" style="margin:0">Taille de l'essai (données factices, rien n'est enregistré sur l'iPad) :</label><select id="lan-testsize" style="padding:.45rem .6rem;border-radius:10px;border:1px solid #2c5086;background:#0b1f3a;color:#fff;font-size:1rem"><option value="200">200 Mo (2 fichiers)</option><option value="2000">2 Go (1 fichier)</option><option value="20000">20 Go (1 seul fichier)</option></select></div><p class="small" id="lan-testhelp" style="margin-top:.2rem"></p>
       <div class="bar" id="lan-bar" style="margin-top:.7rem;height:.9rem"><div></div></div>
       <p id="lan-pct" style="margin-top:.4rem;font-weight:700"></p>
       <p class="small" id="lan-info" style="margin-top:.3rem"></p>
@@ -840,7 +842,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.7 · 28.10.2026';
+  const VERSION = '4.8 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -3321,7 +3323,9 @@
       if (navigator.storage && navigator.storage.estimate) {
         const est = await navigator.storage.estimate();
         const persisted = navigator.storage.persisted ? await navigator.storage.persisted() : false;
-        $('#st-quota').textContent = 'Espace disponible pour la borne : ' + fmtBytes((est.quota || 0) - (est.usage || 0)) + (persisted ? ' · stockage protégé ✔' : '');
+        const tmp = zip.flow ? { bytes: 0, n: 0 } : await opfsSize();
+        $('#st-quota').textContent = 'Espace disponible pour la borne : ' + fmtBytes((est.quota || 0) - (est.usage || 0)) + (persisted ? ' · stockage protégé ✔' : '') + ' · occupé par les vidéos : ' + fmtBytes(all.reduce((a, m) => a + (m.size || 0), 0)) + ' · fichiers temporaires d\'export : ' + fmtBytes(tmp.bytes) + (tmp.n ? ' (' + tmp.n + ' fichier(s))' : '');
+        const bc = $('#btn-clean-tmp'); if (bc) bc.classList.toggle('hidden', !tmp.n);
       }
     } catch (e) {}
 
@@ -3662,13 +3666,17 @@
     if (lan.err) throw new Error('le Mac signale : ' + lan.err);
     lan.dc.send(u8buf); lan.sent += u8buf.byteLength;
   }
-  async function lanSend(test) {
+  async function lanSend(test, mb) {
     if (lan.busy || !lan.open) return; lan.busy = true; lan.test = !!test; lan.stop = false; lan.err = null; lan.have = null; lan.fin = null; lan.ok = 0; lan.bad = []; lan.sent = 0; lan.ack = 0; lan.byPath = {};
     $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; $('#btn-lan-stop').classList.remove('hidden'); keepAwake();
     const info = $('#lan-info');
     try {
       let files = [];
-      if (test) { for (let i = 1; i <= 2; i++) files.push({ path: 'ESSAI/essai-' + i + '.bin', size: 100000000, crc: null, at: Date.now(), fake: true }); }
+      if (test) {
+        mb = mb || 200;
+        if (mb <= 200) { for (let i = 1; i <= 2; i++) files.push({ path: 'ESSAI/essai-' + i + '.bin', size: mb * 500000, crc: null, at: Date.now(), fake: true }); }
+        else files.push({ path: 'ESSAI/essai-' + (mb >= 1000 ? Math.round(mb / 1000) + 'Go' : mb + 'Mo') + '.bin', size: mb * 1000000, crc: null, at: Date.now(), fake: true });
+      }
       else {
         const all = await DB.all(), pool = exportable(all, $('#lan-rej').checked);
         if (!pool.length) { lanState('Rien à exporter : tout est déjà parti ✔'); return; }
@@ -3692,11 +3700,21 @@
       for (const f of files) { if (lan.have.has(f.path)) { lan.base += f.size; if (!test && lan.byPath[f.path]) lanConfirm(f.path); } else todo.push(f); }
       llog(lan.have.size + ' fichier(s) déjà présents sur le Mac, ' + todo.length + ' à envoyer');
       lan.t0 = Date.now(); lanShow();
-      const CH = 65536, zero = new ArrayBuffer(CH);
+      const CH = 65536;
       for (const f of todo) {
         if (lan.stop) throw new Error('envoi interrompu');
         lanSendJ({ t: 'file', path: f.path, size: f.size, crc: f.crc });
-        if (f.fake) { for (let o = 0; o < f.size; o += CH) await lanPump(f.size - o >= CH ? zero : new ArrayBuffer(f.size - o)); }
+        let fakeCrc = null;
+        if (f.fake) {   // données factices variées (compteur dans chaque bloc) : une perte ou un mélange de blocs change la somme de contrôle
+          const tpl = new Uint8Array(CH); for (let i = 0; i < CH; i++) tpl[i] = (i * 31 + 7) & 255;
+          let c = -1, idx = 0;
+          for (let o = 0; o < f.size; o += CH, idx++) {
+            const n = Math.min(CH, f.size - o), u = new Uint8Array(n); u.set(n === CH ? tpl : tpl.subarray(0, n)); if (n >= 4) new DataView(u.buffer).setUint32(0, idx);
+            c = crcUpdate(c, u); await lanPump(u.buffer);
+            if ((idx & 1023) === 0 && lan.stop) throw new Error('envoi interrompu');
+          }
+          fakeCrc = (~c) >>> 0;
+        }
         else {
           const blob = await DB.blob(f.id); if (!blob || blob.size !== f.size) throw new Error('vidéo modifiée ou introuvable : ' + f.path);
           for (let o = 0; o < f.size; o += 1 << 20) {
@@ -3705,7 +3723,7 @@
             if (lan.stop) throw new Error('envoi interrompu');
           }
         }
-        lanSendJ({ t: 'end', path: f.path }); lanShow();
+        lanSendJ({ t: 'end', path: f.path, crc: fakeCrc }); lanShow();
       }
       lanSendJ({ t: 'done' }); llog('tout est envoyé, attente de la confirmation finale du Mac…'); lanState('Dernières vérifications sur le Mac…');
       await new Promise((res, rej) => { lan.finWait = res; const t = setInterval(() => { if (lan.fin) { clearInterval(t); } else if (!lan.open) { clearInterval(t); rej(new Error('connexion perdue avant la confirmation finale')); } else lanShow(); }, 700); setTimeout(() => { clearInterval(t); if (!lan.fin) rej(new Error('pas de confirmation finale du Mac')); }, 600000); });
@@ -3726,7 +3744,10 @@
   $('#btn-lan-paste').addEventListener('click', async () => { try { $('#lan-answer').value = await navigator.clipboard.readText(); } catch (e) { toast('Collage refusé : touchez longuement le champ, puis « Coller »'); } });
   $('#btn-lan-connect').addEventListener('click', lanConnect);
   $('#btn-lan-send').addEventListener('click', () => lanSend(false));
-  $('#btn-lan-test').addEventListener('click', () => lanSend(true));
+  const lanTestHelp = () => { const mb = +$('#lan-testsize').value, s = mb / 1000; $('#lan-testhelp').textContent = 'Le Mac vérifie chaque octet (somme de contrôle) puis efface aussitôt le fichier d\'essai. ' + (mb >= 2000 ? 'Il écrit temporairement ' + s + ' Go sur le disque du Mac (prévoir au moins ' + (s + 2) + ' Go libres) et dure de ' + Math.round(s * 1000 / 40 / 60) + ' à ' + Math.round(s * 1000 / 10 / 60) + ' minutes selon le débit. Aucun octet ne passe par internet, donc rien n\'est décompté de votre forfait 5G.' : 'Durée : quelques secondes.'); };
+  $('#lan-testsize').addEventListener('change', lanTestHelp); lanTestHelp();
+  $('#btn-lan-test').addEventListener('click', () => lanSend(true, +$('#lan-testsize').value));
+  $('#btn-clean-tmp').addEventListener('click', async () => { if (zip.flow || lan.busy) return; await opfsCleanAll(); toast('Fichiers temporaires supprimés'); refreshStats(); });
   $('#btn-lan-stop').addEventListener('click', () => { lan.stop = true; llog('interruption demandée'); lanKick(); });
 
   /* ---------- Méthode « Partage » : ZIP écrit dans le stockage privé de l'app (OPFS), puis feuille de partage ---------- */
@@ -3739,6 +3760,9 @@
     if (!zip.flow) $('#btn-zip-go').textContent = state.zipmode === 'partage' ? '2. Préparer et partager' : '2. Tout télécharger';
   }
   async function opfsClean() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) if (/\.zip$/.test(n)) names.push(n); for (const n of names) await r.removeEntry(n); } catch (e) {} }
+  /* Fichiers temporaires d'export (ZIP restés dans le stockage privé de l'app après un plantage ou une interruption) */
+  async function opfsSize() { let tot = 0, n = 0; try { const r = await navigator.storage.getDirectory(); for await (const [name, h] of r.entries()) { if (h.kind === 'file') { try { tot += (await h.getFile()).size; n++; } catch (e) {} } } } catch (e) {} return { bytes: tot, n }; }
+  async function opfsCleanAll() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) names.push(n); for (const n of names) await r.removeEntry(n, { recursive: true }); } catch (e) {} await zipClearManifests(); }
   const zipGo = () => state.zipmode === 'partage' ? (zip.shareState === 'ready' ? shareNow() : shareStart()) : zipStartDownload();
 
   function shareStart() {

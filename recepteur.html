@@ -167,7 +167,7 @@ async function onHello(m) {
   S.files = m.files; S.total = m.files.reduce((a, f) => a + f.size, 0); S.test = !!m.test; S.t0 = Date.now();
   log('liste reçue : ' + m.files.length + ' fichier(s), ' + fmtBytes(S.total));
   const have = []; S.doneBytes = 0;
-  for (const f of m.files) if (await haveFile(f.path, f.size)) { have.push(f.path); S.doneBytes += f.size; S.done++; S.skipped++; }
+  for (const f of m.files) if (!S.test && await haveFile(f.path, f.size)) { have.push(f.path); S.doneBytes += f.size; S.done++; S.skipped++; }
   S.baseBytes = S.doneBytes; S.t0 = Date.now();
   log(have.length + ' fichier(s) déjà présents en entier : ignorés');
   sendJ({ t: 'have', paths: have }); show();
@@ -179,7 +179,7 @@ async function onFile(m) {
   S.cur = { path: m.path, size: m.size, crc: m.crc, got: 0, c: -1, w: await fh.createWritable(), buf: [], bufLen: 0, dir, name };
   show();
 }
-async function flush(c) { if (c.bufLen) { const b = new Blob(c.buf); c.buf = []; c.bufLen = 0; if (c.parts) c.parts.push(b); else await c.w.write(b); } }
+async function flush(c) { if (c.bufLen) { const b = new Blob(c.buf); c.buf = []; c.bufLen = 0; if (c.parts) { if (!S.test) c.parts.push(b); } else await c.w.write(b); } }
 async function onChunk(buf) {
   const c = S.cur; if (!c) return;
   const u = new Uint8Array(buf); c.c = crcUpdate(c.c, u); c.got += u.length; c.buf.push(u); c.bufLen += u.length; S.written += u.length;
@@ -191,12 +191,15 @@ async function onEnd(m) {
   const c = S.cur; if (!c) return;
   await flush(c); if (c.w) await c.w.close(); S.cur = null;
   const crc = (~c.c) >>> 0;
-  if (c.got !== c.size || (c.crc != null && crc !== (c.crc >>> 0))) {
-    S.errors++; log('ERREUR ' + c.path + ' : reçu ' + c.got + ' octets sur ' + c.size + ', somme ' + crc + ' au lieu de ' + c.crc);
+  const exp = m.crc != null ? m.crc : c.crc;
+  if (c.got !== c.size || (exp != null && crc !== (exp >>> 0))) {
+    S.errors++; log('ERREUR ' + c.path + ' : reçu ' + c.got + ' octets sur ' + c.size + ', somme ' + crc + ' au lieu de ' + exp);
     try { if (c.dir) await c.dir.removeEntry(c.name); } catch (e) {}
     sendJ({ t: 'bad', path: c.path }); show(); return;
   }
-  if (c.parts) {   // mode sans dossier : le navigateur télécharge le fichier
+  if (S.test && c.dir) {   // essai : fichier vérifié puis effacé aussitôt
+    try { await c.dir.removeEntry(c.name); log('essai vérifié (' + fmtBytes(c.size) + ', somme de contrôle identique) : fichier d\'essai effacé'); try { await rootDir.removeEntry('ESSAI'); } catch (e) {} } catch (e) { log('fichier d\'essai à supprimer à la main : ' + c.path); }
+  } else if (c.parts && !S.test) {   // mode sans dossier : le navigateur télécharge le fichier
     const url = URL.createObjectURL(new Blob(c.parts)), a = document.createElement('a'); a.href = url; a.download = c.path.split('/').pop(); document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 180000);
   }
@@ -205,7 +208,7 @@ async function onEnd(m) {
 async function onDone() {
   S.fin = true; bar(S.errors ? S.doneBytes / Math.max(1, S.total) : 1);
   $('#st').innerHTML = S.errors ? '<span class="ko">Terminé avec ' + S.errors + ' erreur(s)</span>' : '<span class="ok">✔ Terminé : tout est arrivé et vérifié</span>';
-  $('#detail').textContent = S.done + ' / ' + S.files.length + ' fichier(s) (' + fmtBytes(S.doneBytes) + ')' + (S.skipped ? ', dont ' + S.skipped + ' déjà présent(s)' : '') + ' ' + (rootDir ? 'dans le dossier « ' + rootDir.name + ' ».' : 'dans le dossier Téléchargements du navigateur.') + (S.test ? ' C\'était un essai : supprimez le dossier ESSAI (ou les fichiers essai-*.bin).' : '');
+  $('#detail').textContent = S.done + ' / ' + S.files.length + ' fichier(s) (' + fmtBytes(S.doneBytes) + ')' + (S.skipped ? ', dont ' + S.skipped + ' déjà présent(s)' : '') + ' ' + (rootDir ? 'dans le dossier « ' + rootDir.name + ' ».' : 'dans le dossier Téléchargements du navigateur.') + (S.test ? ' C\'était un essai : les fichiers d\'essai ont été effacés (sinon, supprimez le dossier ESSAI).' : '');
   sendJ({ t: 'alldone', n: S.done, errors: S.errors }); log('terminé : ' + S.done + ' fichier(s), ' + S.errors + ' erreur(s)');
   try { if (wake) wake.release(); } catch (e) {}
 }
