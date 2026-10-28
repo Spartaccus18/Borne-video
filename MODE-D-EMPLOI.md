@@ -115,22 +115,27 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 
 Les vidéos ne sont **jamais envoyées au site** : le dashboard ne reçoit que des statuts (qui a tourné quoi, qui a refusé). Le menu organisateur propose deux exports **séparés**, car ils ne vont pas au même endroit.
 
-**Carte 1 : exporter toutes les vidéos (feuille de partage).** Les vidéos partent par la feuille de partage de l'iPad, sans passer par les téléchargements de Safari. Elles sont renommées et classées par candidat (`Marie-Dupont_Q1_p2_validee.mp4`).
+**Carte 1 : exporter toutes les vidéos d'un coup (fichiers ZIP).** Un seul bouton enchaîne plusieurs fichiers ZIP (par défaut 4 Go chacun ; 2 Go, 8 Go ou « Un seul fichier » au choix), avec un dossier par candidat (`Marie-Dupont/Marie-Dupont_Q1_p2_validee.mp4`). Un candidat n'est jamais coupé en deux, et le rapport n'en fait pas partie.
 
-Limite à connaître : Safari charge en mémoire tous les fichiers d'un même partage ; au-delà de 1 à 2 Go, l'app peut planter. L'envoi de 20 Go ou plus ne peut donc pas tenir dans un seul partage. L'app le découpe en **lots de candidats entiers** (500 Mo, 1 Go ou 2 Go au choix, 1 Go par défaut) et prépare le lot suivant toute seule : un **seul gros bouton** à toucher, qui affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
+Pourquoi plusieurs fichiers plutôt qu'un seul : un ZIP de 20 Go d'un seul tenant exige 20 Go de plus sur l'iPad, en plus des vidéos déjà stockées, et Safari supporte mal les très longs téléchargements ([StreamSaver, ticket 373](https://github.com/jimmywarting/StreamSaver.js/issues/373)). Avec des fichiers de 4 Go, il suffit d'avoir 4 Go libres à chaque instant : envoyer chaque ZIP au Mac (AirDrop depuis Fichiers) puis le supprimer.
 
-1. Choisir la destination : **AirDrop** (vers le Mac) ou **Disque dur externe** (dans la feuille de partage : « Enregistrer dans Fichiers », puis le disque). Case « Inclure aussi les prises rejetées » cochée par défaut.
-2. Toucher le bouton : l'iPad prépare le lot 1, puis le bouton propose « Partager le lot 1 / N ».
-3. Dans la feuille de partage : AirDrop puis le Mac (ou Fichiers puis le disque). Un lot n'est marqué « exporté » que si le partage a abouti ; annulé ou échoué, il se refait tel quel.
-4. Recommencer jusqu'à « Tout est exporté ✔ ». Garder l'iPad et le Mac déverrouillés, côte à côte, pendant AirDrop.
+1. « 1. Préparer et vérifier » : l'app contrôle chaque vidéo et prépare la liste des fichiers.
+2. « 2. Tout télécharger » : les fichiers partent l'un après l'autre. Une barre de progression indique le pourcentage total, la vitesse et le temps restant. Si Safari ne démarre pas ou se bloque, un message l'indique et un bouton « Relancer » apparaît.
+3. À la fin, l'app liste la taille exacte de chaque fichier : la comparer dans l'app Fichiers, puis « Les fichiers sont bien arrivés ». Seuls les fichiers réellement envoyés sont marqués « exportés » ; les autres se refont.
+
+Le « Journal technique » (repliable) garde les dernières étapes : à montrer en cas de souci. Les **Essais de transfert** (faux ZIP de 1, 10 ou 25 Go) testent l'iPad sans toucher aux vraies vidéos.
+
+**Autre option (repliée) : par lots, avec la feuille de partage (AirDrop, Fichiers).** Safari charge en mémoire toutes les vidéos d'un même partage : on choisit donc un **nombre de vidéos par envoi** (Tout en une fois, 50, 25 ou 10). Un seul gros bouton affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
+
+1. Choisir la destination : **AirDrop** (vers le Mac) ou **Disque dur externe** (dans la feuille de partage : « Enregistrer dans Fichiers », puis le disque).
+2. Toucher le bouton : l'iPad prépare le lot 1, puis propose « Partager le lot 1 / N ».
+3. Dans la feuille de partage : AirDrop puis le Mac (ou Fichiers puis le disque). Un lot n'est marqué « exporté » que si le partage a abouti.
 
 **Carte 2 : rapport « qui a tourné quoi » (.json).** Un seul rapport remplace l'ancienne liste de contrôle et l'ancien rapport CSV : pour chaque candidat, ses vidéos (Pose, Q1 à Q4 : oui / rejetée), son éventuel refus, et la liste de ses fichiers (nom, taille, durée, somme de contrôle, exporté ou non). Il sert aussi à vérifier le contenu du disque.
 - **Synchronisation automatique** : la borne envoie ces informations à Contrôle-infos par le site, après chaque prise. L'état s'affiche dans la carte (bouton « Renvoyer maintenant » pour tout renvoyer).
 - **Secours** : « Exporter le rapport (.json) », à envoyer par AirDrop sur l'iPad d'accueil, puis Contrôle-infos › Administration › « Importer le rapport de la borne ».
 
 Dans l'Excel, les colonnes Q1 à Q5 affichent **Oui** (vidéo gardée), **Non** (le candidat est passé à l'accueil mais la vidéo manque : oubli) ou **Refus** (le candidat ne veut pas de vidéo), en rouge pour Non et Refus. Rien n'est écrit dans la colonne Remarques.
-
-**Option principale (en haut de la carte 1) : tout télécharger en une seule fois (ZIP)** (passe par les téléchargements de Safari ; l'envoi par lots décrit plus haut est l'autre option, repliée) : écrit au fil de l'eau, vidéo après vidéo, sans limite de mémoire, avec un dossier par candidat et **sans** rapport. Il exige autant de place libre sur l'iPad que le fichier ; l'iPad affiche la taille exacte attendue, à comparer dans Fichiers avant de confirmer. L'**Essai de transfert** (faux ZIP de 2, 10 ou 25 Go) permet de le tester à l'avance.
 
 Autres boutons : **Supprimer les vidéos déjà exportées** (double touche), **Supprimer les vidéos vides** (n'apparaît que s'il y a des enregistrements ratés) et **Tout effacer (remise à zéro)** (double touche ; un avertissement indique s'il reste des vidéos jamais exportées ; efface aussi les « passés » et « aucune vidéo » mémorisés).
 

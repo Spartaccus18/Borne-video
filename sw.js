@@ -3,7 +3,7 @@
    modifications de config.js), et si le réseau ne répond pas en 3 s ou
    n'est pas disponible, on sert la copie enregistrée sur l'iPad.        */
 
-const CACHE = 'borne-video-v4-3';
+const CACHE = 'borne-video-v4-4';
 const FILES = ['./', './index.html', './config.js', './manifest.webmanifest',
   './fonts/Jost-Medium.ttf', './fonts/Jost-Bold.ttf', './fonts/Jost-ExtraBold.ttf', './fdp-logo-blanc.svg',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png', './logo-content-camp.png',
@@ -139,8 +139,9 @@ function centralDir(entries, cdOffset) {
 async function exportZip(e) {
   try {
     const c = await caches.open(EXP_CACHE);
-    const hit = await c.match('manifest.json');
-    if (!hit) return new Response('Aucune liste d\'export préparée : retournez dans la borne et touchez « 1. Préparer ».', { status: 409 });
+    const fname = decodeURIComponent(new URL(e.request.url).pathname.split('/').pop());
+    const hit = await c.match('m-' + encodeURIComponent(fname) + '.json');
+    if (!hit) return new Response('Aucune liste d\'export préparée pour ' + fname + ' : retournez dans la borne et touchez « 1. Préparer ».', { status: 409 });
     const man = await hit.json();
     const entries = []; let off = 0;
     for (const f of man.files) {
@@ -150,20 +151,22 @@ async function exportZip(e) {
       en.offset = off; off += 30 + en.name.length + en.size; entries.push(en);
     }
     const cd = centralDir(entries, off), total = off + cd.length;
-    let sent = 0, last = 0, i = 0, phase = 0, reader = null, got = 0, cdDone = false;
-    const note = async (type, extra) => { for (const cl of await self.clients.matchAll({ includeUncontrolled: true })) cl.postMessage(Object.assign({ type, sent, total, token: man.token }, extra || {})); };
-    const push = (ctrl, b) => { ctrl.enqueue(b); sent += b.length; if (sent - last > total / 200 || sent - last > 64e6) { last = sent; note('export-progress'); } };
+    let sent = 0, lastT = 0, i = 0, phase = 0, reader = null, got = 0, cdDone = false, opened = false;
+    const note = async (type, extra) => { for (const cl of await self.clients.matchAll({ includeUncontrolled: true })) cl.postMessage(Object.assign({ type, sent, total, name: fname, token: man.token }, extra || {})); };
+    const push = (ctrl, b) => { ctrl.enqueue(b); sent += b.length; const t = Date.now(); if (t - lastT > 400) { lastT = t; note('export-progress'); } };
+    note('export-start');   // le service worker a bien reçu la demande de téléchargement
     let resolveDone; const done = new Promise(r => { resolveDone = r; }); e.waitUntil(done);
     const stream = new ReadableStream({
       async pull(ctrl) {
         try {
+          if (!opened) { opened = true; note('export-open'); }   // Safari commence à lire le flux
           for (;;) {
             if (i < entries.length) {
               const en = entries[i];
               if (phase === 0) { push(ctrl, localHeader(en)); phase = 1; got = 0; return; }
               if (phase === 1) {
                 if (en.bytes) { push(ctrl, en.bytes); phase = 2; continue; }
-                if (en.fake) { const n = Math.min(4 << 20, en.size - got); if (n <= 0) { phase = 2; continue; } got += n; push(ctrl, new Uint8Array(n)); return; }
+                if (en.fake) { const n = Math.min(1 << 20, en.size - got); if (n <= 0) { phase = 2; continue; } got += n; push(ctrl, new Uint8Array(n)); return; }
                 if (!reader) { const b = await getBlob(en.id); if (b.size !== en.size) throw new Error('taille différente pour ' + new TextDecoder().decode(en.name) + ' (' + b.size + ' au lieu de ' + en.size + ')'); reader = b.stream().getReader(); }
                 const r = await reader.read();
                 if (r.done) { if (got !== en.size) throw new Error('lecture incomplète : ' + new TextDecoder().decode(en.name)); reader = null; phase = 2; continue; }
@@ -172,12 +175,12 @@ async function exportZip(e) {
               i++; phase = 0; continue;
             }
             if (!cdDone) { cdDone = true; push(ctrl, cd); return; }
-            ctrl.close(); await note('export-done'); resolveDone(); return;
+            ctrl.close(); await note('export-progress'); await note('export-done'); resolveDone(); return;
           }
         } catch (err) { await note('export-error', { msg: String(err && err.message || err) }); resolveDone(); ctrl.error(err); }
       },
       cancel() { try { if (reader) reader.cancel(); } catch (x) {} note('export-cancel'); resolveDone(); }
-    }, new ByteLengthQueuingStrategy({ highWaterMark: 8 << 20 }));
+    }, new ByteLengthQueuingStrategy({ highWaterMark: 4 << 20 }));
     return new Response(stream, { status: 200, headers: {
       'Content-Type': 'application/zip', 'Content-Length': String(total),
       'Content-Disposition': 'attachment; filename="' + (man.zipName || 'Videos-borne.zip') + '"', 'Cache-Control': 'no-store' } });
