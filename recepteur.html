@@ -55,16 +55,6 @@
     <p class="small" id="code-msg">Connexion au service de rendez-vous…</p>
     <div class="row"><button class="ghost" id="b-newcode">Nouveau code</button></div>
     <label class="small" style="display:block;margin-top:.5rem"><input type="checkbox" id="k-compat"> Mode compatibilité : si l'iPad ne se connecte pas, cochez cette case (le navigateur demandera le micro, uniquement pour révéler l'adresse réseau du Mac ; rien n'est enregistré).</label>
-    <details style="margin-top:.7rem"><summary class="small" style="cursor:pointer">Connexion manuelle (secours, sans internet)</summary>
-      <p class="small">Sur l'iPad : « Connexion manuelle », « 1. Préparer la connexion », copiez le code et collez-le ici.</p>
-      <textarea id="t-offer" placeholder="Collez ici le code de l'iPad (commence par BV1)"></textarea>
-      <div class="row"><button id="b-connect" disabled>Générer le code de réponse</button></div>
-      <div class="hidden" id="c-answer" style="margin-top:.6rem">
-        <textarea id="t-answer" readonly></textarea>
-        <div class="row"><button id="b-copy">Copier le code de réponse</button><span class="small" id="copy-msg"></span></div>
-        <p class="small">Collez-le sur l'iPad, puis « 3. Connecter ».</p>
-      </div>
-    </details>
   </div>
 
   <div class="card">
@@ -102,30 +92,9 @@ function crcUpdate(c, b) {
   return c;
 }
 
-/* ---------- Codes de connexion (SDP compressé, sans serveur) ---------- */
-async function pack(obj) {
-  const raw = new TextEncoder().encode(JSON.stringify(obj));
-  let bytes = raw, tag = 'BV1:';
-  if (typeof CompressionStream !== 'undefined') {
-    const cs = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'));
-    bytes = new Uint8Array(await new Response(cs).arrayBuffer()); tag = 'BV1z:';
-  }
-  let s = ''; for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
-  return tag + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-async function unpack(code) {
-  code = code.trim().replace(/\s+/g, '');
-  const m = /^(BV1z?):(.*)$/.exec(code); if (!m) throw new Error('code non reconnu (il doit commencer par BV1)');
-  const b64 = m[2].replace(/-/g, '+').replace(/_/g, '/'), bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
-  let bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-  if (m[1] === 'BV1z') { const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); bytes = new Uint8Array(await new Response(ds).arrayBuffer()); }
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
 /* ---------- Dossier de destination ---------- */
 let rootDir = null, dlMode = false;
-function setDir(handle, label) { rootDir = handle; dlMode = false; $('#dir-name').textContent = label || handle.name; log('dossier : ' + (label || handle.name)); updateManual(); }
-const updateManual = () => { $('#b-connect').disabled = !((rootDir || dlMode) && $('#t-offer').value.trim()); };
+function setDir(handle, label) { rootDir = handle; dlMode = false; $('#dir-name').textContent = label || handle.name; log('dossier : ' + (label || handle.name));  }
 (async () => {
   if (window.showDirectoryPicker) return;
   const brave = !!(navigator.brave && await navigator.brave.isBrave().catch(() => false));
@@ -133,12 +102,11 @@ const updateManual = () => { $('#b-connect').disabled = !((rootDir || dlMode) &&
   if (!brave) $('#brave-txt').textContent = 'Ce navigateur ne permet pas d\'écrire directement dans un dossier. Pour choisir le SSD, ouvrez cette page dans Google Chrome ou Microsoft Edge ; sinon, continuez avec les téléchargements ci-dessous.';
 })();
 $('#b-copy-flag').addEventListener('click', async () => { try { await navigator.clipboard.writeText('brave://flags/#file-system-access-api'); $('#b-copy-flag').textContent = 'Copié ✔'; } catch (e) { $('#b-copy-flag').textContent = 'Sélectionnez le lien et faites Cmd+C'; } });
-$('#b-nodir').addEventListener('click', () => { dlMode = true; rootDir = null; $('#b-nodir').textContent = 'Mode téléchargements activé ✔'; log('mode sans dossier : téléchargements du navigateur'); updateManual(); });
+$('#b-nodir').addEventListener('click', () => { dlMode = true; rootDir = null; $('#b-nodir').textContent = 'Mode téléchargements activé ✔'; log('mode sans dossier : téléchargements du navigateur'); });
 $('#b-dir').addEventListener('click', async () => {
   try { const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'borne-videos', startIn: 'desktop' }); setDir(h); }
   catch (e) { if (e.name !== 'AbortError') $('#st').textContent = 'Dossier impossible : ' + e.message; }
 });
-$('#t-offer').addEventListener('input', updateManual);
 
 /* ---------- Réception ---------- */
 let pc = null, dc = null, wake = null;
@@ -242,7 +210,7 @@ let peer = null, myCode = '', tries = 0;
 const newCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), (x) => ALPHA[x % ALPHA.length]).join('');
 function startRendezvous() {
   try { if (peer) peer.destroy(); } catch (e) {}
-  if (typeof Peer === 'undefined') { $('#code-msg').textContent = 'Module de connexion introuvable : utilisez la connexion manuelle ci-dessous.'; return; }
+  if (typeof Peer === 'undefined') { $('#code-msg').textContent = 'Module de connexion introuvable : rechargez la page.'; return; }
   myCode = newCode(); $('#code').textContent = '······'; $('#code-msg').textContent = 'Connexion au service de rendez-vous…';
   peer = new Peer('plrvd-borne-' + myCode, Object.assign({ debug: 0, config: { iceServers: [] } }, window.__PEER_OPTS || {}));   // aucun serveur STUN/TURN : liaison locale uniquement, aucun relais par internet
   peer.on('open', () => { $('#code').textContent = myCode; $('#code-msg').textContent = 'Prêt. Tapez ce code sur l\'iPad.'; log('code ' + myCode + ' prêt'); tries = 0; });
@@ -256,7 +224,7 @@ function startRendezvous() {
   peer.on('error', (e) => {
     log('peerjs : ' + (e && e.type) + ' ' + (e && e.message));
     if (e && e.type === 'unavailable-id' && ++tries < 6) return startRendezvous();
-    if (e && ['network', 'server-error', 'socket-error', 'socket-closed'].includes(e.type)) { $('#code').textContent = '······'; $('#code-msg').textContent = 'Service de rendez-vous injoignable (internet nécessaire un instant). Vérifiez la connexion du Mac, ou utilisez la connexion manuelle ci-dessous.'; }
+    if (e && ['network', 'server-error', 'socket-error', 'socket-closed'].includes(e.type)) { $('#code').textContent = '······'; $('#code-msg').textContent = 'Service de rendez-vous injoignable (internet nécessaire un instant). Vérifiez la connexion du Mac, puis touchez « Nouveau code ».'; }
   });
 }
 $('#b-newcode').addEventListener('click', () => { if (!S.linked) startRendezvous(); });
@@ -265,24 +233,6 @@ $('#k-compat').addEventListener('change', async () => {
   try { const ms = await navigator.mediaDevices.getUserMedia({ audio: true }); ms.getTracks().forEach((t) => t.stop()); log('mode compatibilité : micro autorisé puis coupé'); } catch (e) { log('mode compatibilité : micro refusé (' + e.name + ')'); }
 });
 
-/* ---------- Connexion manuelle (secours) ---------- */
-$('#b-connect').addEventListener('click', async () => {
-  try {
-    $('#b-connect').disabled = true; $('#st').textContent = 'Préparation de la réponse…';
-    const offer = await unpack($('#t-offer').value);
-    $('#t-answer').value = ''; try { if (pc) pc.close(); } catch (e) {}
-    pc = new RTCPeerConnection({ iceServers: [] });
-    pc.ondatachannel = (ev) => attach(ev.channel);
-    pc.onconnectionstatechange = () => { log('connexion : ' + pc.connectionState); if (pc.connectionState === 'connected') $('#c-answer').classList.add('hidden'); };
-    await pc.setRemoteDescription(offer);
-    const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
-    await new Promise((res) => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); });
-    const code = await pack({ type: pc.localDescription.type, sdp: pc.localDescription.sdp });
-    $('#t-answer').value = code; $('#c-answer').classList.remove('hidden'); $('#st').textContent = 'Collez le code de réponse sur l\'iPad.'; log('code de réponse prêt (' + code.length + ' caractères)');
-  } catch (e) { $('#st').innerHTML = '<span class="ko">Impossible : ' + (e && e.message || e) + '</span>'; log('ERREUR : ' + e); }
-  updateManual();
-});
-$('#b-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#t-answer').value); $('#copy-msg').textContent = 'Copié ✔'; } catch (e) { $('#t-answer').select(); $('#copy-msg').textContent = 'Sélectionné : faites Cmd+C'; } });
 window.addEventListener('load', startRendezvous);
 window.__recv = { setDir, S, getCode: () => myCode };   // pour les tests automatiques
 </script>

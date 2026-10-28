@@ -86,6 +86,8 @@
   /* ---------- Accueil ---------- */
   #s-home h1 { margin-top: .4rem; }
   #s-home .lead { margin-top: 1rem; }
+  .srow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem .9rem; margin-top: .7rem; }
+  .srow > span { flex: 1 1 14rem; font-size: .95rem; }
   .dash-badge { margin: .2rem 0 .8rem; font-size: 1.15rem; font-weight: 700; padding: .8rem 1rem; border-radius: .6rem; border: 3px solid; background: rgba(0,0,0,.25); }
   .dash-badge.ok { color: #5be08f; border-color: #2e9e5b; } .dash-badge.ko { color: #ff8fc4; border-color: #e6007d; }
   .day-chip { margin-top: 1.4rem; display: inline-block; background: var(--glass); border-radius: 999px; padding: .5rem 1.2rem; font-size: 1rem; font-weight: 600; }
@@ -552,13 +554,6 @@
       <button class="btn" id="btn-adm-close">Fermer</button>
     </div>
 
-    <div class="card" id="test-card" style="border:2px solid #e6007d">
-      <h3>Mode essai</h3>
-      <p class="small" id="test-help"></p>
-      <div class="row"><button class="btn" id="btn-testmode">Activer le mode essai</button><button class="btn btn-ghost hidden" id="btn-test-wipe" style="color:#ff8a80">Effacer les données d'essai</button></div>
-      <p class="small" id="test-info" style="margin-top:.4rem"></p>
-    </div>
-
     <div class="card" id="exp-check" style="border:2px solid #2e9e5b">
       <h3>Contrôle des exports</h3>
       <p id="exp-main" style="font-size:1.15rem;font-weight:600;margin:.2rem 0 .5rem">–</p>
@@ -602,19 +597,11 @@
       <div class="row"><input id="lan-code" class="mono" maxlength="8" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="CODE" style="font-size:1.6rem;letter-spacing:.3em;text-transform:uppercase;width:11rem;padding:.5rem .7rem;border-radius:10px;border:1px solid #2c5086;background:#0b1f3a;color:#fff"><button class="btn" id="btn-lan-join">Connecter</button></div>
       <p id="lan-state" style="margin-top:.5rem;font-weight:700"></p>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="lan-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
-      <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost" id="btn-lan-test" disabled>Lancer l'essai</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
-      <div class="row" style="align-items:center;gap:.5rem;margin-top:.5rem"><label for="lan-testsize" class="small" style="margin:0">Taille de l'essai (données factices, rien n'est enregistré sur l'iPad) :</label><select id="lan-testsize" style="padding:.45rem .6rem;border-radius:10px;border:1px solid #2c5086;background:#0b1f3a;color:#fff;font-size:1rem"><option value="200">200 Mo (2 fichiers)</option><option value="2000">2 Go (1 fichier)</option><option value="20000">20 Go (1 seul fichier)</option></select></div><p class="small" id="lan-testhelp" style="margin-top:.2rem"></p>
+      <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
       <div class="bar" id="lan-bar" style="margin-top:.7rem;height:.9rem"><div></div></div>
       <p id="lan-pct" style="margin-top:.4rem;font-weight:700"></p>
       <p class="small" id="lan-info" style="margin-top:.3rem"></p>
       <p class="small" style="margin-top:.6rem">Gardez l'iPad allumé, l'app ouverte au premier plan, et le Mac réveillé pendant l'envoi. Si la connexion se coupe, touchez de nouveau « Connecter » avec le même code : les fichiers déjà arrivés en entier sont conservés et seuls les manquants sont renvoyés. Une vidéo n'est marquée « exportée » qu'une fois confirmée et vérifiée par le Mac.</p>
-      <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Connexion manuelle (secours, sans internet)</summary>
-        <div class="row"><button class="btn" id="btn-lan-offer">1. Préparer la connexion</button><button class="btn btn-ghost hidden" id="btn-lan-copy">Copier le code</button></div>
-        <textarea id="lan-offer" class="hidden" readonly style="width:100%;min-height:4.5rem;margin-top:.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
-        <p class="small" style="margin-top:.6rem">2. Collez ce code sur le Mac (volet « Connexion manuelle » de la page de réception), puis collez ici le « code de réponse » qu'il affiche :</p>
-        <textarea id="lan-answer" placeholder="Code de réponse du Mac (commence par BV1)" style="width:100%;min-height:4.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
-        <div class="row"><button class="btn" id="btn-lan-connect">3. Connecter</button><button class="btn btn-ghost" id="btn-lan-paste">Coller</button></div>
-      </details>
       <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Journal technique</summary><pre class="small" id="lan-log" style="white-space:pre-wrap;max-height:14rem;overflow:auto;margin-top:.4rem"></pre></details>
     </div>
 
@@ -628,8 +615,9 @@
         <button data-v="disque">Disque dur externe</button>
       </div>
       <p class="small" id="dest-help" style="margin-top:.4rem"></p>
-      <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi :</p>
+      <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi (« Tout en une fois » convient jusqu'à environ 50 à 55 vidéos ; au-delà, l'app risque de planter : choisissez 50) :</p>
       <div class="seg" id="seg-lot" style="margin-top:.4rem">
+        <button data-v="all">Tout en une fois</button>
         <button data-v="50">50</button>
         <button data-v="25">25</button>
         <button data-v="10">10</button>
@@ -660,13 +648,6 @@
     </div>
 
     <div class="card">
-      <h3>Importer le planning (Excel)</h3>
-      <p class="small">Choisissez le fichier « planning et infos shooting photo.xlsx » (ou un export CSV). Les colonnes Date, Heure, Nom, Prénom et Arrondissement sont lues automatiquement : chaque journée reçoit ses candidats dans l'ordre de passage. Rien n'est envoyé en ligne : le fichier est lu sur l'iPad.</p>
-      <div class="row"><input type="file" id="plan-file" accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
-      <p class="small" id="plan-info" style="margin-top:.5rem"></p>
-    </div>
-
-    <div class="card">
       <h3>Journée active</h3>
       <select id="adm-day"></select>
       <h3 style="margin-top:1rem">Noms du jour (un par ligne)</h3>
@@ -675,7 +656,10 @@
       <div class="row">
         <button class="btn" id="btn-names-save">Enregistrer les noms</button>
         <button class="btn btn-ghost" id="btn-names-reset">Revenir aux noms du fichier</button>
+        <button class="btn btn-ghost" id="btn-plan-pick">Importer le planning (xlsx)</button>
+        <input type="file" id="plan-file" class="hidden" accept=".xlsx,.csv,.txt,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       </div>
+      <p class="small" id="plan-info" style="margin-top:.5rem"></p>
     </div>
 
     <div class="card">
@@ -685,58 +669,24 @@
     </div>
 
     <div class="card">
-      <h3>Position de la caméra frontale</h3>
-      <p class="small">Où se trouve l'objectif quand l'iPad est à la verticale ? Le repère « Regardez ici » se place de ce côté.</p>
-      <div class="seg" id="seg-cam" style="margin-top:.5rem">
-        <button data-v="haut">En haut</button>
-        <button data-v="gauche">À gauche</button>
-        <button data-v="droite">À droite</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Cadrage de référence</h3>
-      <p class="small">Une personne se place comme vous voulez que tous les candidats soient (visage bien grand, yeux sur la ligne), puis touchez « Mémoriser ». La borne guide ensuite chaque candidat vers ce même cadrage, ce qui uniformise les vidéos. Sans référence, la borne vise un visage de taille moyenne.</p>
-      <p class="mono" id="frame-ref-info" style="margin-top:.5rem">–</p>
-      <div class="row">
-        <button class="btn" id="btn-frame-ref">Mémoriser le cadrage actuel</button>
-        <button class="btn btn-ghost" id="btn-frame-clear">Effacer la référence</button>
-      </div>
-      <p class="small" style="margin-top:.7rem"><b>Important :</b> désactiver « Cadrage centré » (Center Stage) dans le Centre de contrôle de l'iPad › Effets vidéo : sinon l'iPad zoome et recadre tout seul selon la position du candidat, ce qui change le champ d'une personne à l'autre.</p>
-    </div>
-
-    <div class="card">
-      <h3>Volume du retour son après la prise</h3>
-      <div class="seg" id="seg-vol">
-        <button data-v="normal">Normal</button>
-        <button data-v="fort">Fort</button>
-        <button data-v="max">Très fort (recommandé)</button>
-      </div>
-      <p class="small" style="margin-top:.5rem">Amplifie le son de la vidéo que le candidat revoit. Mettez aussi le volume de l'iPad au maximum avec les boutons latéraux.</p>
-    </div>
-
-    <div class="card">
-      <h3>Écran blanc pendant la prise</h3>
-      <div class="seg" id="seg-ring">
-        <button data-v="on">Activé</button>
-        <button data-v="off">Désactivé</button>
-      </div>
-      <p class="small" style="margin-top:.5rem">Pendant l'enregistrement, tout l'écran devient blanc pour éclairer le visage ; seul un petit cadre reste visible, près de l'objectif, avec la question. Une application web ne peut pas régler la luminosité de l'iPad : mettez-la au maximum à la main (Centre de contrôle) et désactivez « Luminosité automatique » et « True Tone » (Réglages › Accessibilité › Affichage et taille du texte ; Réglages › Luminosité). C'est un appoint : il ne remplace pas une vraie lampe, et il peut se refléter dans les lunettes.</p>
-      <h3 style="margin-top:1.1rem">Retour vidéo pendant la prise</h3>
-      <div class="seg" id="seg-selfview">
-        <button data-v="off">Masqué (recommandé)</button>
-        <button data-v="on">Affiché</button>
-      </div>
-      <p class="small" style="margin-top:.5rem">Masqué : le candidat ne se voit pas pendant qu'il parle, il regarde l'objectif au lieu de son image. Il revoit sa vidéo juste après la prise.</p>
-    </div>
-
-    <div class="card">
-      <h3>Mode d'enregistrement</h3>
-      <div class="seg" id="seg-mode">
-        <button data-v="direct">Automatique (recommandé)</button>
-        <button data-v="canvas">Recadrage 9:16 forcé</button>
-      </div>
-      <p class="small" style="margin-top:.5rem">« Automatique » enregistre directement si la caméra fournit une image verticale 9:16, et recadre sinon. « Recadrage forcé » seulement si le test ci-dessous donne une vidéo couchée.</p>
+      <h3>Caméra et écran de tournage</h3>
+      <div class="srow"><span>Objectif de l'iPad vertical (repère « Regardez ici »)</span>
+        <div class="seg" id="seg-cam"><button data-v="haut">En haut</button><button data-v="gauche">À gauche</button><button data-v="droite">À droite</button></div></div>
+      <div class="srow"><span>Écran blanc pendant la prise</span>
+        <div class="seg" id="seg-ring"><button data-v="on">Activé</button><button data-v="off">Désactivé</button></div></div>
+      <div class="srow"><span>Retour vidéo pendant la prise</span>
+        <div class="seg" id="seg-selfview"><button data-v="off">Masqué (recommandé)</button><button data-v="on">Affiché</button></div></div>
+      <div class="srow"><span>Mode d'enregistrement</span>
+        <div class="seg" id="seg-mode"><button data-v="direct">Automatique (recommandé)</button><button data-v="canvas">Recadrage 9:16 forcé</button></div></div>
+      <div class="srow"><span>Cadrage de référence : <span class="mono" id="frame-ref-info">–</span></span>
+        <div class="row" style="margin:0"><button class="btn" id="btn-frame-ref">Mémoriser le cadrage actuel</button><button class="btn btn-ghost" id="btn-frame-clear">Effacer la référence</button></div></div>
+      <p class="small" style="margin-top:.7rem"><b>Important :</b> désactiver « Cadrage centré » (Center Stage) dans le Centre de contrôle de l'iPad › Effets vidéo, sinon l'iPad recadre tout seul selon la position du candidat.</p>
+      <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Explications des réglages</summary>
+        <p class="small" style="margin-top:.4rem"><b>Cadrage de référence :</b> une personne se place comme vous voulez que tous les candidats soient (visage bien grand, yeux sur la ligne), puis « Mémoriser » : la borne guide ensuite chaque candidat vers ce cadrage.</p>
+        <p class="small"><b>Écran blanc :</b> pendant l'enregistrement, l'écran devient blanc pour éclairer le visage ; seul un petit cadre reste visible près de l'objectif, avec la question. Mettez la luminosité de l'iPad au maximum à la main.</p>
+        <p class="small"><b>Retour vidéo masqué :</b> le candidat regarde l'objectif au lieu de son image ; il revoit sa vidéo juste après la prise.</p>
+        <p class="small"><b>Mode d'enregistrement :</b> « Automatique » enregistre directement si la caméra donne une image 9:16 et recadre sinon ; « Recadrage forcé » seulement si le test caméra donne une vidéo couchée.</p>
+      </details>
     </div>
 
     <div class="card">
@@ -771,6 +721,13 @@
         <button class="btn btn-ghost" id="btn-cam-restart">Redémarrer la caméra</button>
         <button class="btn btn-ghost" id="btn-profile-reset">Revenir au profil haute qualité</button>
       </div>
+    </div>
+
+    <div class="card" id="test-card" style="border:2px solid #e6007d">
+      <h3>Mode essai</h3>
+      <p class="small" id="test-help"></p>
+      <div class="row"><button class="btn" id="btn-testmode">Activer le mode essai</button><button class="btn btn-ghost hidden" id="btn-test-wipe" style="color:#ff8a80">Effacer les données d'essai</button></div>
+      <p class="small" id="test-info" style="margin-top:.4rem"></p>
     </div>
 
     <div class="card">
@@ -811,7 +768,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.9 · 28.10.2026';
+  const VERSION = '4.10 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -861,10 +818,8 @@
     exportBatch: null,
     noIdle: false,
     lot: LS.get('lot', '50'),
-    vol: LS.get('vol', 'max')
   };
-  if (!['50', '25', '10'].includes(state.lot)) state.lot = '50';
-  if (!['normal', 'fort', 'max'].includes(state.vol)) state.vol = 'max';
+  if (!['all', '50', '25', '10'].includes(state.lot)) state.lot = '50';
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
   document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#00a0e2');
@@ -2781,7 +2736,6 @@
 
   /* Retour son : l'iPad baisse le volume quand le micro est ouvert (mode « enregistrement »).
      On repasse en mode « lecture » pour la relecture et on amplifie le son (avec un limiteur pour éviter la saturation). */
-  const PLAYVOL = { normal: 1, fort: 3, max: 6 };
   const PB = { src: null, gain: null, comp: null, failed: false };
   function setAudioSession(t) { try { if (navigator.audioSession) navigator.audioSession.type = t; } catch (e) {} }
   function playbackBoost(v) {
@@ -2796,7 +2750,7 @@
         PB.src.connect(PB.gain); PB.gain.connect(PB.comp); PB.comp.connect(ctx.destination);
       } catch (e) { PB.failed = true; console.warn('Amplification du retour son indisponible', e); return; }
     }
-    PB.gain.gain.value = PLAYVOL[state.vol] || 1;
+    PB.gain.gain.value = 6;   // volume du retour : toujours très fort (réglable avec les boutons de l'iPad)
   }
 
   function showReview(blob, meta) {
@@ -2934,7 +2888,7 @@
   async function openAdmin() {
     try { testUi(); } catch (e) {}
     $('#admin').classList.remove('hidden');
-    setSeg('#seg-lot', state.lot); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
+    setSeg('#seg-lot', state.lot); frameRefInfo(); renderReportSync();
     const sel = $('#adm-day');
     sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
       '<option value="ALL">Toutes les journées (liste complète)</option>';
@@ -3020,10 +2974,6 @@
   }));
   document.querySelectorAll('#seg-selfview button').forEach(b => b.addEventListener('click', () => {
     state.selfview = b.dataset.v === 'on'; LS.set('selfview', state.selfview); setSeg('#seg-selfview', b.dataset.v);
-  }));
-  document.querySelectorAll('#seg-vol button').forEach(b => b.addEventListener('click', () => {
-    state.vol = b.dataset.v; LS.set('vol', state.vol); setSeg('#seg-vol', state.vol); if (PB.gain) PB.gain.gain.value = PLAYVOL[state.vol] || 1;
-    toast('Volume du retour son : ' + b.textContent.replace(/ \(.*/, ''));
   }));
   function frameRefInfo() {
     const r = LS.get('frameRef', null);
@@ -3158,6 +3108,7 @@
     LS.set('plan.info', info);
     return { counts, extra: extra.length, ignored, total: list.length };
   }
+  $('#btn-plan-pick').addEventListener('click', () => $('#plan-file').click());
   $('#plan-file').addEventListener('change', async ev => {
     const f = ev.target.files[0]; if (!f) return;
     const out = $('#plan-info'); out.textContent = 'Lecture de « ' + f.name + ' »…';
@@ -3395,22 +3346,10 @@
   const lanState = (t) => { $('#lan-state').textContent = t; };
   const LAN_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'recepteur.html';
   if ($('#lan-url')) $('#lan-url').textContent = LAN_URL;
-  async function lanPack(obj) {
-    const raw = new TextEncoder().encode(JSON.stringify(obj)); let bytes = raw, tag = 'BV1:';
-    if (typeof CompressionStream !== 'undefined') { bytes = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); tag = 'BV1z:'; }
-    let s = ''; for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
-    return tag + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-  async function lanUnpack(code) {
-    code = code.trim().replace(/\s+/g, ''); const m = /^(BV1z?):(.*)$/.exec(code); if (!m) throw new Error('code non reconnu (il doit commencer par BV1)');
-    const b64 = m[2].replace(/-/g, '+').replace(/_/g, '/'), bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4)); let bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-    if (m[1] === 'BV1z') bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
-    return JSON.parse(new TextDecoder().decode(bytes));
-  }
   const lanKick = () => { if (lan.wake) { const f = lan.wake; lan.wake = null; f(); } if (lan.low) { const f = lan.low; lan.low = null; f(); } };
   function lanClose() { try { if (lan.dc) lan.dc.close(); } catch (e) {} try { if (lan.pc) lan.pc.close(); } catch (e) {} try { if (lan.peer) lan.peer.destroy(); } catch (e) {} lan.pc = lan.dc = lan.peer = lan.conn = null; lan.open = false; lanKick(); }
   const lanSendJ = (o) => lan.dc.send(JSON.stringify(o));
-  function lanOpened() { lan.open = true; llog('canal ouvert'); lanState('✔ Connecté au Mac. Touchez « 4. Tout envoyer ».'); $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; }
+  function lanOpened() { lan.open = true; llog('canal ouvert'); lanState('✔ Connecté au Mac. Touchez « 4. Tout envoyer ».'); $('#btn-lan-send').disabled = false; }
   function lanBind(dc) {
     lan.dc = dc; dc.binaryType = 'arraybuffer'; try { dc.bufferedAmountLowThreshold = 1 << 20; } catch (e) {}
     dc.addEventListener('close', () => { lan.open = false; llog('canal fermé'); lanKick(); if (!lan.busy) lanState('Connexion fermée.'); });
@@ -3425,7 +3364,7 @@
     const code = $('#lan-code').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (code.length !== 6) { lanState('⚠ Tapez les 6 caractères affichés sur le Mac.'); return; }
     lanClose(); Object.assign(lan, { ack: 0, sent: 0, have: null, fin: null, err: null, ok: 0, bad: [] });
-    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; lanBar(0); $('#lan-pct').textContent = ''; $('#lan-info').textContent = '';
+    $('#btn-lan-send').disabled = true; lanBar(0); $('#lan-pct').textContent = ''; $('#lan-info').textContent = '';
     let settled = false; const fail = (m) => { if (settled) return; settled = true; lanState('⚠ ' + m); llog(m); try { if (lan.peer) lan.peer.destroy(); } catch (e) {} };
     try {
       lanState('Recherche du Mac…'); await lanLoadPeer();
@@ -3446,31 +3385,6 @@
     } catch (e) { fail(e && e.message || String(e)); }
   }
 
-  async function lanOffer() {
-    if (lan.busy) return;
-    lanClose(); Object.assign(lan, { ack: 0, sent: 0, have: null, fin: null, err: null, ok: 0, bad: [] });
-    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; $('#lan-answer').value = ''; lanBar(0); $('#lan-pct').textContent = ''; $('#lan-info').textContent = '';
-    try {
-      if (typeof RTCPeerConnection === 'undefined') throw new Error('cet appareil ne gère pas la connexion directe');
-      lanState('Préparation du code…');
-      const pc = new RTCPeerConnection({ iceServers: [] }); lan.pc = pc;
-      const dc = pc.createDataChannel('videos', { ordered: true }); lanBind(dc);
-      pc.onconnectionstatechange = () => { llog('connexion : ' + pc.connectionState); if (pc.connectionState === 'failed') { lanState('⚠ Connexion impossible : le Mac et l\'iPad ne se voient pas sur ce réseau (voir l\'aide ci-dessous).'); lanKick(); } };
-      await pc.setLocalDescription(await pc.createOffer());
-      await new Promise((res) => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); });
-      const code = await lanPack({ type: pc.localDescription.type, sdp: pc.localDescription.sdp });
-      $('#lan-offer').value = code; $('#lan-offer').classList.remove('hidden'); $('#btn-lan-copy').classList.remove('hidden');
-      lanState('Code prêt : copiez-le et collez-le sur le Mac.'); llog('code prêt (' + code.length + ' caractères)');
-    } catch (e) { lanState('⚠ ' + (e && e.message || e)); llog('ERREUR : ' + e); }
-  }
-  async function lanConnect() {
-    try {
-      if (!lan.pc) throw new Error('faites d\'abord « 1. Préparer la connexion »');
-      const ans = await lanUnpack($('#lan-answer').value); lanState('Connexion au Mac…');
-      await lan.pc.setRemoteDescription(ans); llog('réponse du Mac appliquée');
-      const pc = lan.pc; setTimeout(() => { if (lan.pc === pc && !lan.open && pc.connectionState !== 'failed') lanState('⚠ Toujours pas connecté après 20 secondes. Vérifiez que l\'iPad et le Mac sont sur le même réseau ; sinon, sur le Mac, cochez « Mode compatibilité » et recommencez.'); }, 20000);
-    } catch (e) { lanState('⚠ ' + (e && e.message || e)); llog('ERREUR : ' + e); }
-  }
   function lanOnMsg(ev) {
     if (typeof ev.data !== 'string') return;
     let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
@@ -3500,18 +3414,13 @@
     if (lan.err) throw new Error('le Mac signale : ' + lan.err);
     lan.dc.send(u8buf); lan.sent += u8buf.byteLength;
   }
-  async function lanSend(test, mb) {
-    if (lan.busy || !lan.open) return; lan.busy = true; lan.test = !!test; lan.stop = false; lan.err = null; lan.have = null; lan.fin = null; lan.ok = 0; lan.bad = []; lan.sent = 0; lan.ack = 0; lan.byPath = {};
-    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; $('#btn-lan-stop').classList.remove('hidden'); keepAwake();
+  async function lanSend() {
+    if (lan.busy || !lan.open) return; lan.busy = true; lan.test = false; lan.stop = false; lan.err = null; lan.have = null; lan.fin = null; lan.ok = 0; lan.bad = []; lan.sent = 0; lan.ack = 0; lan.byPath = {};
+    $('#btn-lan-send').disabled = true; $('#btn-lan-stop').classList.remove('hidden'); keepAwake();
     const info = $('#lan-info');
     try {
       let files = [];
-      if (test) {
-        mb = mb || 200;
-        if (mb <= 200) { for (let i = 1; i <= 2; i++) files.push({ path: 'ESSAI/essai-' + i + '.bin', size: mb * 500000, crc: null, at: Date.now(), fake: true }); }
-        else files.push({ path: 'ESSAI/essai-' + (mb >= 1000 ? Math.round(mb / 1000) + 'Go' : mb + 'Mo') + '.bin', size: mb * 1000000, crc: null, at: Date.now(), fake: true });
-      }
-      else {
+      {
         const all = await DB.all(), pool = exportable(all, $('#lan-rej').checked);
         if (!pool.length) { lanState('Rien à exporter : tout est déjà parti ✔'); return; }
         const totalIn = pool.reduce((a, m) => a + (m.size || 0), 0); let read = 0, empty = 0; const used = new Set();
@@ -3528,59 +3437,39 @@
       }
       lan.total = files.reduce((a, f) => a + f.size, 0); lan.t0 = Date.now(); lan.base = 0;
       lanState('Envoi en cours…'); llog('liste envoyée : ' + files.length + ' fichier(s), ' + fmtBytes(lan.total));
-      lanSendJ({ t: 'hello', files: files.map((f) => ({ path: f.path, size: f.size, crc: f.crc, at: f.at })), test: !!test });
+      lanSendJ({ t: 'hello', files: files.map((f) => ({ path: f.path, size: f.size, crc: f.crc, at: f.at })), test: false });
       await new Promise((res, rej) => { lan.haveWait = res; const t = setInterval(() => { if (!lan.open) { clearInterval(t); rej(new Error('connexion perdue')); } if (lan.have) clearInterval(t); }, 500); setTimeout(() => { clearInterval(t); if (!lan.have) rej(new Error('le Mac ne répond pas : la page de réception est-elle bien ouverte et le dossier choisi ?')); }, 90000); });
       const todo = [];
-      for (const f of files) { if (lan.have.has(f.path)) { lan.base += f.size; if (!test && lan.byPath[f.path]) lanConfirm(f.path); } else todo.push(f); }
+      for (const f of files) { if (lan.have.has(f.path)) { lan.base += f.size; if (lan.byPath[f.path]) lanConfirm(f.path); } else todo.push(f); }
       llog(lan.have.size + ' fichier(s) déjà présents sur le Mac, ' + todo.length + ' à envoyer');
       lan.t0 = Date.now(); lanShow();
       const CH = 65536;
       for (const f of todo) {
         if (lan.stop) throw new Error('envoi interrompu');
         lanSendJ({ t: 'file', path: f.path, size: f.size, crc: f.crc });
-        let fakeCrc = null;
-        if (f.fake) {   // données factices variées (compteur dans chaque bloc) : une perte ou un mélange de blocs change la somme de contrôle
-          const tpl = new Uint8Array(CH); for (let i = 0; i < CH; i++) tpl[i] = (i * 31 + 7) & 255;
-          let c = -1, idx = 0;
-          for (let o = 0; o < f.size; o += CH, idx++) {
-            const n = Math.min(CH, f.size - o), u = new Uint8Array(n); u.set(n === CH ? tpl : tpl.subarray(0, n)); if (n >= 4) new DataView(u.buffer).setUint32(0, idx);
-            c = crcUpdate(c, u); await lanPump(u.buffer);
-            if ((idx & 1023) === 0 && lan.stop) throw new Error('envoi interrompu');
-          }
-          fakeCrc = (~c) >>> 0;
+        const blob = await DB.blob(f.id); if (!blob || blob.size !== f.size) throw new Error('vidéo modifiée ou introuvable : ' + f.path);
+        for (let o = 0; o < f.size; o += 1 << 20) {
+          const ab = await blob.slice(o, Math.min(f.size, o + (1 << 20))).arrayBuffer();
+          for (let p = 0; p < ab.byteLength; p += CH) await lanPump(ab.slice(p, p + CH));
+          if (lan.stop) throw new Error('envoi interrompu');
         }
-        else {
-          const blob = await DB.blob(f.id); if (!blob || blob.size !== f.size) throw new Error('vidéo modifiée ou introuvable : ' + f.path);
-          for (let o = 0; o < f.size; o += 1 << 20) {
-            const ab = await blob.slice(o, Math.min(f.size, o + (1 << 20))).arrayBuffer();
-            for (let p = 0; p < ab.byteLength; p += CH) await lanPump(ab.slice(p, p + CH));
-            if (lan.stop) throw new Error('envoi interrompu');
-          }
-        }
-        lanSendJ({ t: 'end', path: f.path, crc: fakeCrc }); lanShow();
+        lanSendJ({ t: 'end', path: f.path }); lanShow();
       }
       lanSendJ({ t: 'done' }); llog('tout est envoyé, attente de la confirmation finale du Mac…'); lanState('Dernières vérifications sur le Mac…');
       await new Promise((res, rej) => { lan.finWait = res; const t = setInterval(() => { if (lan.fin) { clearInterval(t); } else if (!lan.open) { clearInterval(t); rej(new Error('connexion perdue avant la confirmation finale')); } else lanShow(); }, 700); setTimeout(() => { clearInterval(t); if (!lan.fin) rej(new Error('pas de confirmation finale du Mac')); }, 600000); });
       await lanDbChain; await refreshStats();
       const f = lan.fin, nOk = lan.ok, nTot = files.length; lanBar(f.errors ? 0.99 : 1); lanShow();
-      lanState(f.errors ? '⚠ Terminé avec ' + f.errors + ' erreur(s) : ' + nOk + ' / ' + nTot + ' fichier(s) confirmés. Relancez les étapes 1 à 3 puis « Tout envoyer » : seuls les manquants seront renvoyés.' : (test ? '✔ Essai réussi : la connexion directe fonctionne.' : '✔ Tout est arrivé sur le Mac et vérifié : ' + nOk + ' vidéo(s) (' + fmtBytes(lan.total) + '). Pensez à exporter aussi le rapport (carte 2).') );
+      lanState(f.errors ? '⚠ Terminé avec ' + f.errors + ' erreur(s) : ' + nOk + ' / ' + nTot + ' fichier(s) confirmés. Relancez les étapes 1 à 3 puis « Tout envoyer » : seuls les manquants seront renvoyés.' : ('✔ Tout est arrivé sur le Mac et vérifié : ' + nOk + ' vidéo(s) (' + fmtBytes(lan.total) + '). Pensez à exporter aussi le rapport (carte 2).') );
       llog('terminé : ' + nOk + ' / ' + nTot);
     } catch (e) {
       await lanDbChain; await refreshStats();
       lanState('⚠ ' + (e && e.message || e) + '. ' + lan.ok + ' fichier(s) déjà confirmés par le Mac (conservés). Refaites les étapes 1 à 3 pour reprendre : seuls les fichiers manquants seront envoyés.'); llog('ERREUR : ' + (e && e.message || e));
-    } finally { lan.busy = false; $('#btn-lan-stop').classList.add('hidden'); if (lan.open) { $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; } }
+    } finally { lan.busy = false; $('#btn-lan-stop').classList.add('hidden'); if (lan.open) { $('#btn-lan-send').disabled = false; } }
   }
   $('#btn-lan-join').addEventListener('click', lanJoin);
   $('#lan-code').addEventListener('keydown', (e) => { if (e.key === 'Enter') lanJoin(); });
   $('#btn-lan-copyurl').addEventListener('click', async () => { try { await navigator.clipboard.writeText(LAN_URL); toast('Adresse copiée : collez-la dans le navigateur du Mac (presse-papiers partagé Apple, ou envoyez-la par AirDrop / Messages)', 5000); } catch (e) { const r = document.createRange(); r.selectNodeContents($('#lan-url')); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r); toast('Adresse sélectionnée : touchez « Copier »'); } });
-  $('#btn-lan-offer').addEventListener('click', lanOffer);
-  $('#btn-lan-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lan-offer').value); toast('Code copié'); } catch (e) { $('#lan-offer').select(); toast('Sélectionné : touchez « Copier »'); } });
-  $('#btn-lan-paste').addEventListener('click', async () => { try { $('#lan-answer').value = await navigator.clipboard.readText(); } catch (e) { toast('Collage refusé : touchez longuement le champ, puis « Coller »'); } });
-  $('#btn-lan-connect').addEventListener('click', lanConnect);
-  $('#btn-lan-send').addEventListener('click', () => lanSend(false));
-  const lanTestHelp = () => { const mb = +$('#lan-testsize').value, s = mb / 1000; $('#lan-testhelp').textContent = 'Le Mac vérifie chaque octet (somme de contrôle) puis efface aussitôt le fichier d\'essai. ' + (mb >= 2000 ? 'Il écrit temporairement ' + s + ' Go sur le disque du Mac (prévoir au moins ' + (s + 2) + ' Go libres) et dure de ' + Math.round(s * 1000 / 40 / 60) + ' à ' + Math.round(s * 1000 / 10 / 60) + ' minutes selon le débit. Aucun octet ne passe par internet, donc rien n\'est décompté de votre forfait 5G.' : 'Durée : quelques secondes.'); };
-  $('#lan-testsize').addEventListener('change', lanTestHelp); lanTestHelp();
-  $('#btn-lan-test').addEventListener('click', () => lanSend(true, +$('#lan-testsize').value));
+  $('#btn-lan-send').addEventListener('click', () => lanSend());
   $('#btn-clean-tmp').addEventListener('click', async () => { if (lan.busy) return; await opfsCleanAll(); toast('Fichiers temporaires supprimés'); refreshStats(); });
   $('#btn-lan-stop').addEventListener('click', () => { lan.stop = true; llog('interruption demandée'); lanKick(); });
 
@@ -3866,7 +3755,7 @@
     }
     dashBoot();
   }
-  window.__borne = { pushStatuses, dashState, state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, fileName, lan, lanOffer, lanConnect, lanJoin, lanSend };   // pour les tests automatiques
+  window.__borne = { pushStatuses, dashState, state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, fileName, lan, lanJoin, lanSend };   // pour les tests automatiques
   boot();
 })();
 </script>

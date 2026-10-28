@@ -44,7 +44,7 @@ Ouverture : **5 touches rapides dans le coin en haut à droite** de l'écran d'a
    - la lecture est nette et le son propre (écouter avec le micro prévu pour le jour J).
    - la ligne *Profil* indique **lisible ✔** (sinon la borne essaie d'elle-même un autre profil) ;
    - Si la vidéo est couchée ou au mauvais format : passer en **« Recadrage 9:16 forcé »** et refaire le test.
-5. Faire un **essai d'export** (voir point 7) vers votre Mac pour valider toute la chaîne.
+5. Faire un **essai complet** du parcours en **mode essai** (dernière carte du menu organisateur, avant « Application ») : rien n'est envoyé au site ni à Contrôle-infos, les vidéos d'essai sont isolées des vraies et s'effacent en quittant le mode (double touche). Penser à quitter le mode essai le jour du shooting.
 
 ## 5. Mode borne (à faire chaque matin)
 
@@ -107,7 +107,7 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 - **Trois conseils seulement** après chaque prise : le son (voix assez forte ou non), le regard (vers l'objectif ou non) et le cadrage (distance, centrage, hauteur). Ton calme : la borne « conseille », le candidat décide. Les alertes de matériel (micro coupé, image figée…) sont gardées avec la vidéo et visibles dans le suivi du menu organisateur (icône 🔧).
 - **Contrôle du regard** : outil MediaPipe Face Mesh de Google (dossier `vendor/mediapipe`, fonctionne sans internet, chargé une fois puis gardé sur l'iPad). Il repère l'iris ; seuils réglés sur 942 images de 31 candidats (`regard` dans `config.js`). Il suppose l'objectif en haut de l'iPad. Si l'outil ne peut pas se charger, la borne revient à l'ancienne estimation.
 - **Cadrage de référence** : menu organisateur › « Cadrage de référence » › « Mémoriser le cadrage actuel » (une personne bien placée). Les candidats sont ensuite guidés vers cette même taille de visage. Désactiver « Cadrage centré » (Center Stage) dans le Centre de contrôle de l'iPad.
-- **Retour son** : le son de la vidéo revue est amplifié (menu organisateur › « Volume du retour son », réglé sur « Très fort ») ; mettre aussi le volume de l'iPad au maximum.
+- **Retour son** : le son de la vidéo revue est amplifié (toujours au maximum, sans réglage) ; mettre aussi le volume de l'iPad au maximum.
 - **Micro** : la borne reconnecte toute seule le micro s'il se coupe, devient muet ou vieillit (contrôle toutes les 5 secondes entre deux prises, et avant chaque prise).
 - **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, phrase finale (« Le 28 février on vote ! », pause, « En attendant, bon film ! ») en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
 
@@ -118,14 +118,12 @@ Les vidéos ne sont **jamais envoyées au site** : le dashboard ne reçoit que d
 **Envoi direct au Mac (v4.7, recommandé pour tout exporter d'un coup).** Les vidéos passent de l'iPad au Mac **par le réseau local** (même Wi-Fi, ou partage de connexion de l'iPhone), sans limite de taille. Elles ne passent jamais par internet : seule la mise en relation (un court échange technique, sans vidéo) passe par le service public gratuit [PeerJS](https://peerjs.com/), qui demande un accès internet un instant. Aucun serveur de relais n'est utilisé : si l'iPad et le Mac ne se voient pas sur le réseau, la connexion échoue plutôt que de passer par internet.
 
 1. Sur le Mac (Chrome, Edge ou Brave), ouvrir `https://spartaccus18.github.io/Borne-video/recepteur.html` (dans le menu organisateur de l'iPad, l'adresse est sélectionnable et un bouton « Copier l'adresse » la place dans le presse-papiers partagé Apple), puis « Choisir le dossier… » (le SSD). La page affiche un **code de 6 caractères**.
-2. Sur l'iPad (menu organisateur, carte « Envoyer toutes les vidéos au Mac ») : taper le code, « Connecter ». Quand l'état affiche « Connecté au Mac », « Tout envoyer ». L'**essai** (liste « Taille de l'essai » : 200 Mo, 2 Go ou 20 Go en un seul fichier) teste le réseau avant avec des données factices : le Mac vérifie chaque octet par somme de contrôle puis efface le fichier d'essai tout seul. Celui de 20 Go écrit temporairement 20 Go sur le disque du Mac (prévoir 22 Go libres) et ne consomme aucune donnée de forfait mobile, car tout reste sur le réseau local.
+2. Sur l'iPad (menu organisateur, carte « Envoyer toutes les vidéos au Mac ») : taper le code, « Connecter ». Quand l'état affiche « Connecté au Mac », « Tout envoyer ».
 3. Garder l'iPad allumé et l'app ouverte, le Mac réveillé. Une vidéo n'est marquée « exportée » qu'une fois confirmée et vérifiée par le Mac (somme de contrôle). Si la connexion se coupe : « Connecter » de nouveau avec le même code ; les fichiers déjà arrivés en entier sont reconnus et seuls les manquants sont renvoyés.
 
 **Brave.** Brave désactive volontairement l'accès direct aux dossiers ([discussion Brave](https://github.com/brave/brave-browser/issues/11407)). Il n'y a rien à activer : la page du Mac propose « Télécharger dans Téléchargements ». Les vidéos arrivent une à une, vérifiées, dans le dossier Téléchargements, sans sous-dossier par candidat (le nom du candidat est dans chaque nom de fichier ; le tri en dossiers peut se faire ensuite). Pour écrire directement sur le SSD, il faut Chrome ou Edge, ou le réglage expérimental de Brave (non recommandé).
 
 Si l'iPad n'arrive pas à se connecter : cocher « Mode compatibilité » sur la page du Mac ; sinon, essayer un autre navigateur (Chrome, Edge ou Safari) pour ce transfert plutôt que de modifier les réglages de Brave. Le réglage « WebRTC IP handling policy » de Brave (brave://settings/privacy) ne devrait être changé qu'en dernier recours, et remis ensuite ([réglages WebRTC de Brave](https://github.com/brave/brave-browser/wiki/WebRTC-Custom-Settings)).
-
-**Secours sans internet : connexion manuelle.** Si le service de rendez-vous est inaccessible, la carte propose un échange de deux codes à copier-coller (volet « Connexion manuelle » sur l'iPad et sur la page du Mac).
 
 **Export de secours (si l'envoi direct n'est pas possible) : par lots, avec la feuille de partage (AirDrop ou disque dur externe).** Safari charge en mémoire toutes les vidéos d'un même partage : on choisit donc un **nombre de vidéos par envoi** (50, 25 ou 10 ; 50 fonctionne). Un seul gros bouton affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
 
@@ -216,7 +214,7 @@ Réglages utiles dans `config.js` : `duree` de chaque question, `prisesMax`, `co
 
 ## Importer le planning Excel (v3.11)
 
-**Importer le planning** : menu organisateur > carte « Importer le planning (Excel) » > choisir « planning et infos shooting photo.xlsx » (ou un CSV). L'app lit les colonnes Date, Heure, Nom, Prénom et Arrondissement, répartit les candidats dans les journées J1 à J5 (dates dans `config.js`) et les classe par heure d'arrivée. L'heure et l'arrondissement s'affichent sous chaque nom. Les personnes sans date restent trouvables avec la recherche.
+**Importer le planning** : menu organisateur > carte « Journée active » > bouton « Importer le planning (xlsx) » > choisir « planning et infos shooting photo.xlsx » (ou un CSV). L'app lit les colonnes Date, Heure, Nom, Prénom et Arrondissement, répartit les candidats dans les journées J1 à J5 (dates dans `config.js`) et les classe par heure d'arrivée. L'heure et l'arrondissement s'affichent sous chaque nom. Les personnes sans date restent trouvables avec la recherche.
 
 **Rapport** : voir le chapitre 7 (carte 2 du menu organisateur, fichier .json, importable dans l'app contrôle des infos).
 
