@@ -127,21 +127,13 @@ Si l'iPad n'arrive pas à se connecter : cocher « Mode compatibilité » sur la
 
 **Secours sans internet : connexion manuelle.** Si le service de rendez-vous est inaccessible, la carte propose un échange de deux codes à copier-coller (volet « Connexion manuelle » sur l'iPad et sur la page du Mac).
 
-**Carte 1 : exporter toutes les vidéos d'un coup (fichiers ZIP).** Un seul bouton enchaîne plusieurs fichiers ZIP (par défaut 4 Go chacun ; 2 Go, 8 Go ou « Un seul fichier » au choix), avec un dossier par candidat (`Marie-Dupont/Marie-Dupont_Q1_p2_validee.mp4`). Un candidat n'est jamais coupé en deux, et le rapport n'en fait pas partie.
-
-Pourquoi plusieurs fichiers plutôt qu'un seul : un ZIP de 20 Go d'un seul tenant exige 20 Go de plus sur l'iPad, en plus des vidéos déjà stockées, et Safari supporte mal les très longs téléchargements ([StreamSaver, ticket 373](https://github.com/jimmywarting/StreamSaver.js/issues/373)). Avec des fichiers de 4 Go, il suffit d'avoir 4 Go libres à chaque instant : envoyer chaque ZIP au Mac (AirDrop depuis Fichiers) puis le supprimer.
-
-1. « 1. Préparer et vérifier » : l'app contrôle chaque vidéo et prépare la liste des fichiers.
-2. Choisir la **méthode de sortie**. **Partage (recommandée dans l'app installée)** : chaque ZIP est d'abord écrit dans le stockage privé de l'app (barre de progression), puis un bouton « Partager le fichier 1 / N » ouvre la feuille de partage (AirDrop vers le Mac, ou « Enregistrer dans Fichiers ») ; le fichier suivant se prépare tout seul. Un fichier est marqué « exporté » dès que le partage a abouti. Comptez la place d'un fichier, et autant s'il est enregistré dans Fichiers : préférez 2 Go. **Téléchargement Safari** : les fichiers partent l'un après l'autre dans Fichiers › iCloud Drive › Téléchargements ; fiable dans un onglet Safari, mais iOS gère mal les téléchargements dans l'app installée ([bug WebKit 290847](https://bugs.webkit.org/show_bug.cgi?id=290847)). Avec cette méthode, une barre indique le pourcentage, la vitesse et le temps restant ; si Safari ne démarre pas ou se bloque, un message l'indique et « Relancer » apparaît.
-3. Avec « Téléchargement Safari », à la fin, l'app liste la taille exacte de chaque fichier : la comparer dans l'app Fichiers, puis « Les fichiers sont bien arrivés ». Seuls les fichiers réellement envoyés sont marqués « exportés » ; les autres se refont.
-
-Le « Journal technique » (repliable) garde les dernières étapes : à montrer en cas de souci. Les **Essais de transfert** (faux ZIP de 200 Mo, 1, 4 ou 10 Go, avec la méthode choisie) testent l'iPad sans toucher aux vraies vidéos.
-
-**Autre option (repliée) : par lots, avec la feuille de partage (AirDrop, Fichiers).** Safari charge en mémoire toutes les vidéos d'un même partage : on choisit donc un **nombre de vidéos par envoi** (Tout en une fois, 50, 25 ou 10). Un seul gros bouton affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
+**Export de secours (si l'envoi direct n'est pas possible) : par lots, avec la feuille de partage (AirDrop ou disque dur externe).** Safari charge en mémoire toutes les vidéos d'un même partage : on choisit donc un **nombre de vidéos par envoi** (50, 25 ou 10 ; 50 fonctionne). Un seul gros bouton affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
 
 1. Choisir la destination : **AirDrop** (vers le Mac) ou **Disque dur externe** (dans la feuille de partage : « Enregistrer dans Fichiers », puis le disque).
 2. Toucher le bouton : l'iPad prépare le lot 1, puis propose « Partager le lot 1 / N ».
 3. Dans la feuille de partage : AirDrop puis le Mac (ou Fichiers puis le disque). Un lot n'est marqué « exporté » que si le partage a abouti.
+
+Les exports en fichiers ZIP (méthodes « Partage » et « Téléchargement Safari ») ont été retirés en v4.9 : ils plantaient au-delà de quelques Go sur l'app installée.
 
 **Carte 2 : rapport « qui a tourné quoi » (.json).** Un seul rapport remplace l'ancienne liste de contrôle et l'ancien rapport CSV : pour chaque candidat, ses vidéos (Pose, Q1 à Q4 : oui / rejetée), son éventuel refus, et la liste de ses fichiers (nom, taille, durée, somme de contrôle, exporté ou non). Il sert aussi à vérifier le contenu du disque.
 - **Synchronisation automatique** : la borne envoie ces informations à Contrôle-infos par le site, après chaque prise. L'état s'affiche dans la carte (bouton « Renvoyer maintenant » pour tout renvoyer).
@@ -221,10 +213,6 @@ Réglages utiles dans `config.js` : `duree` de chaque question, `prisesMax`, `co
 **Organisation**
 - [ ] Mac avec AirDrop + environ 15 Go libres par journée + disque externe de sauvegarde
 - [ ] Code organisateur noté, liste des candidats du jour
-
-## Revenir à l'ancien mannequin (v3.7)
-
-La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `versions/pose3d-v3.7-xbot.js`. Pour y revenir : remplacer `vendor/pose3d.js` par ce fichier (même contenu, renommé `pose3d.js`), puis changer le numéro de cache dans `sw.js` (`borne-video-v3-8` → un nouveau nom) pour que l'iPad recharge. Sur GitHub, le commit `aad155a` correspond exactement à la v3.7.
 
 ## Importer le planning Excel (v3.11)
 

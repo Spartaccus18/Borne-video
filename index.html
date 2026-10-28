@@ -362,6 +362,7 @@
 </style>
 </head>
 <body>
+<div id="test-banner" class="hidden" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#e6007d;color:#fff;text-align:center;font:700 14px/1 sans-serif;padding:6px;pointer-events:none">🧪 MODE ESSAI : rien n'est envoyé au site ni à Contrôle-infos</div>
 
 <!-- Accès organisateur : 5 touches rapides en haut à droite, depuis n'importe quel écran -->
 <div id="admin-hotspot" aria-hidden="true"></div>
@@ -551,6 +552,13 @@
       <button class="btn" id="btn-adm-close">Fermer</button>
     </div>
 
+    <div class="card" id="test-card" style="border:2px solid #e6007d">
+      <h3>Mode essai</h3>
+      <p class="small" id="test-help"></p>
+      <div class="row"><button class="btn" id="btn-testmode">Activer le mode essai</button><button class="btn btn-ghost hidden" id="btn-test-wipe" style="color:#ff8a80">Effacer les données d'essai</button></div>
+      <p class="small" id="test-info" style="margin-top:.4rem"></p>
+    </div>
+
     <div class="card" id="exp-check" style="border:2px solid #2e9e5b">
       <h3>Contrôle des exports</h3>
       <p id="exp-main" style="font-size:1.15rem;font-weight:600;margin:.2rem 0 .5rem">–</p>
@@ -611,46 +619,9 @@
     </div>
 
     <div class="card">
-      <h3>1. Exporter toutes les vidéos d'un coup (fichiers ZIP)</h3>
-      <p>Un seul bouton lance tout : l'app enchaîne toute seule plusieurs fichiers ZIP, classés par dossier de candidat (<span class="mono">Prenom-Nom/Prenom-Nom_Q1_p1_validee.mp4</span>). Un candidat n'est jamais coupé en deux. Le rapport n'en fait pas partie (carte 2).</p>
+      <h3>Export de secours : par lots (AirDrop ou disque dur externe)</h3>
+      <p class="small">À utiliser si l'envoi direct au Mac n'est pas possible. Safari charge en mémoire toutes les vidéos d'un même partage : choisissez un petit nombre de vidéos par envoi. L'app prépare le lot suivant toute seule ; un seul gros bouton à toucher à chaque lot.</p>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
-      <p class="small" style="margin-top:.6rem">Taille d'un fichier ZIP (plus c'est petit, plus c'est sûr, et moins il faut de place libre sur l'iPad) :</p>
-      <div class="seg" id="seg-zipcap" style="margin-top:.4rem">
-        <button data-v="2000">2 Go</button>
-        <button data-v="4000">4 Go</button>
-        <button data-v="8000">8 Go</button>
-        <button data-v="all">Un seul fichier</button>
-      </div>
-      <p class="small" style="margin-top:.6rem">Méthode de sortie :</p>
-      <div class="seg" id="seg-zipmode" style="margin-top:.4rem">
-        <button data-v="partage">Partage (app installée)</button>
-        <button data-v="telecharger">Téléchargement Safari</button>
-      </div>
-      <p class="small" id="zip-mode-help" style="margin-top:.4rem"></p>
-      <div class="row">
-        <button class="btn" id="btn-zip-prep">1. Préparer et vérifier</button>
-        <button class="btn btn-ok" id="btn-zip-go" disabled>2. Tout télécharger</button>
-        <button class="btn btn-ghost hidden" id="btn-zip-retry">Relancer</button>
-      </div>
-      <div class="bar" id="zip-bar" style="margin-top:.7rem;height:.9rem"><div></div></div>
-      <p id="zip-pct" style="margin-top:.4rem;font-weight:700"></p>
-      <p class="small" id="zip-info" style="margin-top:.3rem"></p>
-      <div id="zip-confirm" class="hidden">
-        <p class="small" id="zip-expect"></p>
-        <div class="row">
-          <button class="btn btn-ok" id="btn-zip-ok">3. Les fichiers sont bien arrivés : marquer comme exportés</button>
-          <button class="btn btn-ghost" id="btn-zip-ko">Annuler (rien n'est marqué)</button>
-        </div>
-      </div>
-      <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Journal technique (à me montrer en cas de problème)</summary>
-        <pre class="small" id="zip-log" style="white-space:pre-wrap;max-height:14rem;overflow:auto;margin-top:.4rem"></pre>
-      </details>
-      <details style="margin-top:.7rem"><summary class="small" style="cursor:pointer">Essai de transfert (fichier factice, sans vidéo réelle)</summary>
-      <p class="small" style="margin-top:.5rem">Prépare de faux ZIP remplis de zéros, découpés selon la taille choisie ci-dessus, avec la méthode de sortie choisie. Commencez par 200 Mo. Si vous avez envoyé les fichiers dans Fichiers, supprimez-les ensuite.</p>
-      <div class="row"><button class="btn btn-ghost" data-ztest="200">Essai 200 Mo</button><button class="btn btn-ghost" data-ztest="1000">Essai 1 Go</button><button class="btn btn-ghost" data-ztest="4000">Essai 4 Go</button><button class="btn btn-ghost" data-ztest="10000">Essai 10 Go</button></div>
-      </details>
-            <details style="margin-top:1rem"><summary class="small" style="cursor:pointer">Autre option : par lots, avec la feuille de partage (AirDrop, Fichiers)</summary>
-      <p class="small" style="margin-top:.5rem">Safari charge en mémoire toutes les vidéos d'un même partage : choisissez un petit nombre de vidéos par envoi. L'app prépare le lot suivant toute seule ; un seul gros bouton à toucher à chaque lot.</p>
       <p class="small" style="margin-top:.5rem">Destination :</p>
       <div class="seg" id="seg-dest" style="margin-top:.4rem">
         <button data-v="airdrop">AirDrop (vers le Mac)</button>
@@ -659,7 +630,6 @@
       <p class="small" id="dest-help" style="margin-top:.4rem"></p>
       <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi :</p>
       <div class="seg" id="seg-lot" style="margin-top:.4rem">
-        <button data-v="all">Tout en une fois</button>
         <button data-v="50">50</button>
         <button data-v="25">25</button>
         <button data-v="10">10</button>
@@ -667,7 +637,6 @@
       <div class="row"><button class="btn btn-ok" id="btn-exp-main" style="font-size:1.15rem;padding:1rem 1.4rem">Préparer l'export</button></div>
       <div class="bar" id="exp-bar" style="margin-top:.7rem;height:.6rem"><div></div></div>
       <p class="small" id="exp-info" style="margin-top:.5rem"></p>
-      </details>
       <div class="row">
         <button class="btn btn-ghost" id="btn-exp-reset">Remettre toutes les vidéos « à exporter »</button>
         <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà exportées</button>
@@ -842,7 +811,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.8 · 28.10.2026';
+  const VERSION = '4.9 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -859,6 +828,9 @@
     set(k, v) { try { localStorage.setItem('borne.' + k, JSON.stringify(v)); } catch (e) {} },
     del(k) { try { localStorage.removeItem('borne.' + k); } catch (e) {} }
   };
+
+  /* Mode essai : les prises, « passés » et « aucune vidéo » faits pendant un essai sont isolés (drapeau test), invisibles en mode normal, et rien n'est envoyé au site ni à Contrôle-infos */
+  function isTest() { return LS.get('testmode', false) === true; }
 
   const QUESTIONS = CFG.questions || [];
   const POSE = Object.assign({
@@ -889,13 +861,9 @@
     exportBatch: null,
     noIdle: false,
     lot: LS.get('lot', '50'),
-    zipcap: LS.get('zipcap', '4000'),
-    zipmode: LS.get('zipmode', 'partage'),
     vol: LS.get('vol', 'max')
   };
-  if (!['all', '50', '25', '10'].includes(state.lot)) state.lot = '50';
-  if (!['2000', '4000', '8000', 'all'].includes(state.zipcap)) state.zipcap = '4000';
-  if (!['partage', 'telecharger'].includes(state.zipmode)) state.zipmode = 'partage';
+  if (!['50', '25', '10'].includes(state.lot)) state.lot = '50';
   if (!['normal', 'fort', 'max'].includes(state.vol)) state.vol = 'max';
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
@@ -976,6 +944,12 @@
     all() {
       return new Promise((res, rej) => {
         const q = this.db.transaction('meta').objectStore('meta').getAll();
+        q.onsuccess = () => { const t = isTest(); res((q.result || []).filter(m => !!m.test === t)); }; q.onerror = () => rej(q.error);
+      });
+    },
+    allRaw() {
+      return new Promise((res, rej) => {
+        const q = this.db.transaction('meta').objectStore('meta').getAll();
         q.onsuccess = () => res(q.result || []); q.onerror = () => rej(q.error);
       });
     },
@@ -1044,10 +1018,11 @@
      Avancement des candidats : étapes faites ou passées, « aucune vidéo », fin de parcours
      ------------------------------------------------------------------ */
   state.prog = {};
-  const profiles = () => LS.get('profiles', {}) || {};
+  const PROFKEY = () => isTest() ? 'profiles.test' : 'profiles';
+  const profiles = () => LS.get(PROFKEY(), {}) || {};
   function setProfile(name, patch) {
-    const P = profiles(); P[name] = Object.assign(P[name] || {}, patch); LS.set('profiles', P);
-    if (patch && 'refus' in patch) {   // « aucune vidéo » : signalé au dashboard (statut seulement, jamais de vidéo)
+    const P = profiles(); P[name] = Object.assign(P[name] || {}, patch); LS.set(PROFKEY(), P);
+    if (patch && 'refus' in patch && !isTest()) {   // « aucune vidéo » : signalé au dashboard (statut seulement, jamais de vidéo)
       const R = LS.get('dash.refus', {}) || {};
       R[name] = { refus: !!patch.refus, sent: false, cid: ((LS.get('plan.info', {}) || {})[name] || {}).id || '', at: Date.now() };
       LS.set('dash.refus', R); setTimeout(() => { try { pushStatuses(); } catch (e) {} }, 300);
@@ -1122,7 +1097,7 @@
 
   /* Statut des prises (gardée / rejetée) : envoyé après chaque prise, et repris plus tard si besoin */
   async function pushStatuses() {
-    if (!dashOn() || DASH.statusBusy || !DB.db) return;
+    if (isTest() || !dashOn() || DASH.statusBusy || !DB.db) return;   // mode essai : rien n'est envoyé
     DASH.statusBusy = true;
     try {
       const todo = (await DB.all()).filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status);
@@ -1148,6 +1123,7 @@
 
   /* État de synchronisation avec le site : ✔ (liste reçue récemment, statuts des prises envoyés) ou ⚠ avec la raison */
   async function dashState() {
+    if (isTest()) return { ok: true, txt: '🧪 MODE ESSAI : rien n\'est envoyé au site ni à Contrôle-infos' };
     if (!DASH.url) return { ok: false, txt: '⚠ Non synchronisé avec le site (adresse absente)' };
     if (!DASH.key) return { ok: false, txt: '⚠ Non synchronisé avec le site : borne pas encore reliée' };
     let pend = 0;
@@ -2715,7 +2691,7 @@
       date: today(), dayId: state.dayId, candidate: state.candidate,
       cid: ((LS.get('plan.info', {}) || {})[state.candidate] || {}).id || '',
       questionId: q.id, questionIndex: state.qIndex, questionText: q.texte,
-      take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0, cam: camSnapshot()
+      take: 0, status: 'pending', exported: false, test: isTest(), createdAt: Date.now(), mime: '', duration: 0, size: 0, cam: camSnapshot()
     };
 
     hideLiveChip();
@@ -2956,8 +2932,9 @@
      Menu organisateur
      ------------------------------------------------------------------ */
   async function openAdmin() {
+    try { testUi(); } catch (e) {}
     $('#admin').classList.remove('hidden');
-    setSeg('#seg-lot', state.lot); setSeg('#seg-zipcap', state.zipcap); setSeg('#seg-zipmode', state.zipmode); zipModeUi(); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
+    setSeg('#seg-lot', state.lot); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
     const sel = $('#adm-day');
     sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
       '<option value="ALL">Toutes les journées (liste complète)</option>';
@@ -3323,7 +3300,7 @@
       if (navigator.storage && navigator.storage.estimate) {
         const est = await navigator.storage.estimate();
         const persisted = navigator.storage.persisted ? await navigator.storage.persisted() : false;
-        const tmp = zip.flow ? { bytes: 0, n: 0 } : await opfsSize();
+        const tmp = await opfsSize();
         $('#st-quota').textContent = 'Espace disponible pour la borne : ' + fmtBytes((est.quota || 0) - (est.usage || 0)) + (persisted ? ' · stockage protégé ✔' : '') + ' · occupé par les vidéos : ' + fmtBytes(all.reduce((a, m) => a + (m.size || 0), 0)) + ' · fichiers temporaires d\'export : ' + fmtBytes(tmp.bytes) + (tmp.n ? ' (' + tmp.n + ' fichier(s))' : '');
         const bc = $('#btn-clean-tmp'); if (bc) bc.classList.toggle('hidden', !tmp.n);
       }
@@ -3382,9 +3359,7 @@
   $('#btn-player-close').addEventListener('click', () => { const v = $('#adm-video'); v.pause(); $('#adm-player').classList.add('hidden'); });
 
   /* ------------------------------------------------------------------
-     Export en UN SEUL ZIP, écrit au fil de l'eau par le service worker (voir sw.js).
-     La page : 1) lit chaque vidéo une fois pour calculer sa somme de contrôle (et vérifier qu'elle est lisible),
-     2) dépose la liste dans le cache, 3) lance le téléchargement. Aucune vidéo ne passe par la mémoire de la page.
+     Somme de contrôle (CRC32) des vidéos, utilisée par l'envoi direct au Mac.
      ------------------------------------------------------------------ */
   const T8 = (() => {
     const t = new Int32Array(256 * 8);
@@ -3406,148 +3381,7 @@
     for (;;) { const r = await rd.read(); if (r.done) break; c = crcUpdate(c, r.value); n += r.value.length; onBytes(r.value.length); }
     return { crc: (~c) >>> 0, size: n };
   }
-  const zipBar = (f) => { $('#zip-bar > div').style.width = Math.round(100 * Math.max(0, Math.min(1, f))) + '%'; };
-  const zip = { busy: false, parts: [], total: 0, ping: null, flow: false, cur: -1, test: false, t0: 0, launchedAt: 0, started: false, lastMsg: 0, watch: null, log: [], capOverride: 0 };
-  const zlog = (msg) => {
-    const d = new Date(), p = (n) => String(n).padStart(2, '0');
-    zip.log.push(p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '  ' + msg); if (zip.log.length > 60) zip.log.shift();
-    const el = $('#zip-log'); if (el) { el.textContent = zip.log.join('\n'); el.scrollTop = el.scrollHeight; }
-  };
   const fmtDur = (s) => s < 90 ? Math.round(s) + ' s' : s < 5400 ? Math.floor(s / 60) + ' min ' + String(Math.round(s % 60)).padStart(2, '0') + ' s' : Math.floor(s / 3600) + ' h ' + String(Math.floor((s % 3600) / 60)).padStart(2, '0') + ' min';
-
-  /* Taille exacte d'un ZIP (même calcul que sw.js) */
-  function zipSizeOf(files) {
-    const enc = new TextEncoder(); let off = 0, cd = 0;
-    files.forEach(f => { const n = f.name.length, size = typeof f.text === 'string' ? enc.encode(f.text).length : f.size; cd += 46 + n + (off >= 0xFFFFFFFF ? 12 : 0); off += 30 + n + size; });
-    const z64 = off >= 0xFFFFFFFF || files.length >= 0xFFFF || cd >= 0xFFFFFFFF;
-    return off + cd + (z64 ? 76 : 0) + 22;
-  }
-  /* Découpage en fichiers ZIP : un candidat n'est jamais coupé en deux, sauf s'il dépasse à lui seul la taille d'un fichier */
-  function planParts(items, cap) {
-    if (!isFinite(cap)) return [items];
-    const byC = []; items.forEach(it => { const l = byC[byC.length - 1]; if (l && l.c === it.candidate) l.its.push(it); else byC.push({ c: it.candidate, its: [it] }); });
-    const parts = []; let cur = [], curSize = 0;
-    const flush = () => { if (cur.length) parts.push(cur); cur = []; curSize = 0; };
-    for (const g of byC) {
-      const gs = g.its.reduce((a, it) => a + it.size, 0);
-      if (gs > cap) { flush(); for (const it of g.its) { if (cur.length && curSize + it.size > cap) flush(); cur.push(it); curSize += it.size; } flush(); continue; }
-      if (cur.length && curSize + gs > cap) flush();
-      cur.push(...g.its); curSize += gs;
-    }
-    flush(); return parts;
-  }
-  const zipCap = () => zip.capOverride || (state.zipcap === 'all' ? Infinity : Number(state.zipcap) * 1e6);
-  const manKey = (name) => 'm-' + encodeURIComponent(name) + '.json';
-  async function zipClearManifests() { try { const c = await caches.open('borne-export'); for (const k of await c.keys()) await c.delete(k); } catch (e) {} }
-
-  /* Range les fichiers dans des parties, écrit une liste (manifeste) par partie pour le service worker */
-  async function zipBuild(items, label) {
-    const cap = zipCap(), groups = planParts(items, cap), base = (label || 'Videos-borne') + '_' + today();
-    await zipClearManifests();
-    const c = await caches.open('borne-export'); zip.parts = [];
-    for (let k = 0; k < groups.length; k++) {
-      const name = groups.length === 1 ? base + '.zip' : base + '_partie-' + (k + 1) + '-sur-' + groups.length + '.zip';
-      const files = groups[k].map(it => it.file);
-      await c.put(manKey(name), new Response(JSON.stringify({ token: String(Date.now()) + k, zipName: name, files }), { headers: { 'Content-Type': 'application/json' } }));
-      zip.parts.push({ name, size: zipSizeOf(files), n: files.length, metas: groups[k].map(it => it.meta).filter(Boolean), status: 'wait', sent: 0 });
-    }
-    zip.total = zip.parts.reduce((a, p) => a + p.size, 0);
-  }
-
-  async function zipPrepare() {
-    if (zip.busy || zip.flow) return;
-    const info = $('#zip-info'); zip.busy = true; zip.test = false; zip.shareState = null; zipModeUi(); $('#btn-zip-prep').disabled = true; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = '';
-    try {
-      if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('le mode hors ligne de l\'app n\'est pas actif : fermez puis rouvrez la borne (une fois avec du réseau), puis réessayez');
-      const all = await DB.all(), pool = exportable(all, $('#exp-rej').checked);
-      if (!pool.length) { info.textContent = 'Rien à exporter : tout est déjà parti ✔'; zipBar(1); return; }
-      const totalIn = pool.reduce((a, m) => a + (m.size || 0), 0); let read = 0; const items = [], used = new Set(); let empty = 0;
-      zlog('préparation : ' + pool.length + ' vidéos, ' + fmtBytes(totalIn));
-      for (let i = 0; i < pool.length; i++) {
-        const m = pool[i]; info.textContent = 'Vérification ' + (i + 1) + ' / ' + pool.length + ' · ' + fmtBytes(read) + ' sur ' + fmtBytes(totalIn) + '…';
-        const b = await DB.blob(m.id);
-        if (!b || b.size < MIN_BYTES) { empty++; read += m.size || 0; zipBar(read / totalIn); continue; }
-        if (m.crc == null || m.crcSize !== b.size) {
-          const r = await crcOfBlob(b, n => { read += n; if ((read & 0xFFFFF) < n) zipBar(read / totalIn); });
-          if (r.size !== b.size) throw new Error('lecture incomplète de ' + fileName(m));
-          m.crc = r.crc; m.crcSize = r.size; await DB.put(m);
-        } else { read += b.size; }
-        zipBar(read / totalIn);
-        let path = whoSlug(m) + '/' + fileName(m);
-        if (used.has(path)) path = whoSlug(m) + '/' + fileName(m).replace(/(\.\w+)$/, '_n' + m.id + '$1');
-        used.add(path);
-        items.push({ candidate: m.candidate, size: b.size, meta: m, file: { name: path, id: m.id, size: b.size, crc: m.crc, at: m.createdAt } });
-      }
-      if (!items.length) { info.textContent = 'Les vidéos à exporter sont vides (enregistrements ratés) : rien à envoyer.'; return; }
-      await zipBuild(items);
-      zipBar(1); $('#btn-zip-go').disabled = false;
-      zlog('prêt : ' + zip.parts.length + ' fichier(s), ' + fmtBytes(zip.total));
-      info.textContent = '✔ Prêt : ' + items.length + ' vidéo(s) vérifiée(s), ' + zip.parts.length + ' fichier(s) ZIP (' + zip.parts.map(p => fmtBytes(p.size)).join(' + ') + ' = ' + fmtBytes(zip.total) + ').' + (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + ' Touchez « ' + (state.zipmode === 'partage' ? '2. Préparer et partager' : '2. Tout télécharger') + ' ».';
-    } catch (e) { info.textContent = '⚠ Préparation impossible : ' + (e && e.message || e); zlog('ERREUR préparation : ' + (e && e.message || e)); }
-    finally { zip.busy = false; $('#btn-zip-prep').disabled = false; }
-  }
-
-  /* Progression globale : octets déjà envoyés / total, vitesse et temps restant */
-  function zipShow() {
-    const done = zip.parts.reduce((a, p) => a + (p.status === 'done' ? p.size : p.sent), 0), n = zip.parts.length, p = zip.parts[zip.cur];
-    zipBar(zip.total ? done / zip.total : 0);
-    const el = (Date.now() - zip.t0) / 1000, speed = el > 2 ? done / el : 0;
-    $('#zip-pct').textContent = Math.round(100 * done / Math.max(1, zip.total)) + ' % · ' + fmtBytes(done) + ' sur ' + fmtBytes(zip.total);
-    if (p) $('#zip-info').textContent = 'Fichier ' + (zip.cur + 1) + ' / ' + n + ' : ' + fmtBytes(p.sent) + ' sur ' + fmtBytes(p.size) + (speed > 1e6 ? ' · ' + Math.round(speed / 1e6) + ' Mo/s · il reste environ ' + fmtDur((zip.total - done) / speed) : '') + '.';
-  }
-  function zipProblem(msg) { $('#zip-info').textContent = '⚠ ' + msg; $('#btn-zip-retry').classList.remove('hidden'); const p = zip.parts[zip.cur]; $('#btn-zip-retry').textContent = 'Relancer le fichier ' + (zip.cur + 1) + ' / ' + zip.parts.length; zlog('PROBLÈME : ' + msg); }
-  function zipWatchdog() {
-    if (!zip.flow || !zip.parts[zip.cur] || zip.parts[zip.cur].status !== 'run') return;
-    const now = Date.now();
-    if (!zip.started && now - zip.launchedAt > 8000 && !zip.warned) { zip.warned = true; zipProblem('Safari n\'a pas démarré le téléchargement après 8 secondes. Si une question « Autoriser les téléchargements ? » est apparue, répondez « Autoriser », puis touchez « Relancer ». Sinon, vérifiez la place libre sur l\'iPad.'); }
-    else if (zip.started && now - zip.lastMsg > 45000 && !zip.warned) { zip.warned = true; zipProblem('Aucune progression depuis 45 secondes : le téléchargement est probablement bloqué. Touchez « Relancer ».'); }
-  }
-  async function zipRunPart(i) {
-    const p = zip.parts[i]; if (!p) return;
-    zip.cur = i; p.status = 'run'; p.sent = 0; zip.started = false; zip.warned = false; zip.launchedAt = Date.now(); zip.lastMsg = Date.now();
-    $('#btn-zip-retry').classList.add('hidden');
-    try { if (!(await caches.open('borne-export').then(c => c.match(manKey(p.name))))) throw new Error('liste d\'export perdue : refaites « 1. Préparer »'); } catch (e) { p.status = 'err'; zip.flow = false; return zipProblem(e.message || e); }
-    zlog('lancement du fichier ' + (i + 1) + ' / ' + zip.parts.length + ' : ' + p.name + ' (' + p.size + ' octets)');
-    $('#zip-info').textContent = 'Fichier ' + (i + 1) + ' / ' + zip.parts.length + ' : demande envoyée à Safari… (si rien ne bouge après 8 secondes, un message l\'indiquera)';
-    document.querySelectorAll('iframe.zip-dl').forEach(f => f.remove());
-    const fr = document.createElement('iframe'); fr.className = 'zip-dl'; fr.style.cssText = 'display:none'; fr.src = './__export/' + encodeURIComponent(p.name); document.body.appendChild(fr);
-  }
-  function zipStartDownload() {
-    if (!zip.parts.length) return;
-    zip.flow = true; zip.t0 = Date.now(); $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = true;
-    keepAwake();
-    clearInterval(zip.ping); zip.ping = setInterval(() => { try { navigator.serviceWorker.controller && navigator.serviceWorker.controller.postMessage({ type: 'ping' }); } catch (e) {} }, 8000);
-    clearInterval(zip.watch); zip.watch = setInterval(zipWatchdog, 1000);
-    zip.parts.forEach(p => { if (p.status !== 'done') { p.status = 'wait'; p.sent = 0; } });
-    const first = zip.parts.findIndex(p => p.status !== 'done'); zipRunPart(first < 0 ? 0 : first);
-  }
-  function zipEnd() {
-    clearInterval(zip.ping); clearInterval(zip.watch); zip.flow = false; $('#btn-zip-retry').classList.add('hidden');
-    const ok = zip.parts.filter(p => p.status === 'done'), bad = zip.parts.length - ok.length;
-    zipShow(); zlog('terminé : ' + ok.length + ' / ' + zip.parts.length + ' fichier(s) envoyé(s)');
-    $('#zip-info').textContent = bad ? '⚠ ' + bad + ' fichier(s) pas encore envoyé(s). Touchez « 2. Tout télécharger » pour reprendre ceux qui manquent.' : '✔ Tous les fichiers ont été envoyés à Safari. Vérifiez-les dans l\'app Fichiers (tailles ci-dessous), puis confirmez.';
-    $('#btn-zip-go').disabled = !bad;
-    if (!ok.length) return;
-    $('#zip-expect').innerHTML = (zip.test ? 'ESSAI : ' : '') + 'Dans l\'app Fichiers, chaque fichier doit faire exactement :<br>' + zip.parts.map((p, k) => (p.status === 'done' ? '✔ ' : '✘ ') + esc(p.name) + ' → <b>' + fmtBytes(p.size) + '</b> (' + p.size.toLocaleString('fr-CH') + ' octets)').join('<br>') + (zip.test ? '<br>Supprimez-les ensuite dans Fichiers.' : '<br>Si un fichier est plus petit, ne confirmez pas et recommencez.');
-    $('#zip-confirm').classList.toggle('hidden', zip.test);
-  }
-  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (ev) => {
-    const d = ev.data || {}; if (!d.type || !/^export-/.test(d.type) || !zip.flow) return;
-    const p = zip.parts[zip.cur]; if (!p || d.name !== p.name) return;
-    zip.lastMsg = Date.now();
-    if (d.type === 'export-start') { zip.started = true; zip.warned = false; zlog('le service worker a reçu la demande'); }
-    else if (d.type === 'export-open') { zlog('Safari lit le flux'); }
-    else if (d.type === 'export-progress') { zip.started = true; p.sent = d.sent; zipShow(); }
-    else if (d.type === 'export-done') {
-      p.status = 'done'; p.sent = p.size; zlog('fichier ' + (zip.cur + 1) + ' : tout a été envoyé à Safari'); zipShow();
-      const next = zip.parts.findIndex((q, k) => k > zip.cur && q.status !== 'done');
-      if (next >= 0) { $('#zip-info').textContent += ' Fichier suivant dans 3 secondes…'; setTimeout(() => { if (zip.flow) zipRunPart(next); }, 3000); }
-      else zipEnd();
-    }
-    else if (d.type === 'export-error') { p.status = 'err'; zlog('ERREUR du fichier ' + (zip.cur + 1) + ' : ' + d.msg); zipProblem('Échec du fichier ' + (zip.cur + 1) + ' : ' + d.msg + '. Rien n\'est marqué comme exporté pour ce fichier : touchez « Relancer ».'); }
-    else if (d.type === 'export-cancel') { zlog('annulé (Safari a interrompu le téléchargement)'); p.status = 'err'; zipProblem('Safari a interrompu le téléchargement du fichier ' + (zip.cur + 1) + '. Touchez « Relancer ».'); }
-  });
-
 
   /* ==========================================================================
      Envoi direct iPad → Mac par le réseau local (WebRTC), sans serveur ni internet.
@@ -3747,137 +3581,12 @@
   const lanTestHelp = () => { const mb = +$('#lan-testsize').value, s = mb / 1000; $('#lan-testhelp').textContent = 'Le Mac vérifie chaque octet (somme de contrôle) puis efface aussitôt le fichier d\'essai. ' + (mb >= 2000 ? 'Il écrit temporairement ' + s + ' Go sur le disque du Mac (prévoir au moins ' + (s + 2) + ' Go libres) et dure de ' + Math.round(s * 1000 / 40 / 60) + ' à ' + Math.round(s * 1000 / 10 / 60) + ' minutes selon le débit. Aucun octet ne passe par internet, donc rien n\'est décompté de votre forfait 5G.' : 'Durée : quelques secondes.'); };
   $('#lan-testsize').addEventListener('change', lanTestHelp); lanTestHelp();
   $('#btn-lan-test').addEventListener('click', () => lanSend(true, +$('#lan-testsize').value));
-  $('#btn-clean-tmp').addEventListener('click', async () => { if (zip.flow || lan.busy) return; await opfsCleanAll(); toast('Fichiers temporaires supprimés'); refreshStats(); });
+  $('#btn-clean-tmp').addEventListener('click', async () => { if (lan.busy) return; await opfsCleanAll(); toast('Fichiers temporaires supprimés'); refreshStats(); });
   $('#btn-lan-stop').addEventListener('click', () => { lan.stop = true; llog('interruption demandée'); lanKick(); });
 
-  /* ---------- Méthode « Partage » : ZIP écrit dans le stockage privé de l'app (OPFS), puis feuille de partage ---------- */
-  const MODE_HELP = {
-    partage: 'Recommandé dans l\'app installée : chaque fichier ZIP est d\'abord écrit dans le stockage de l\'app (barre de progression), puis vous touchez « Partager » : AirDrop vers le Mac ou « Enregistrer dans Fichiers ». Il faut de la place libre pour un fichier, et autant pour sa copie si vous l\'enregistrez dans Fichiers : préférez 2 Go.',
-    telecharger: 'Les fichiers sont téléchargés par Safari, dans Fichiers › iCloud Drive › Téléchargements. Fonctionne dans un onglet Safari ; dans l\'app installée, iOS peut bloquer ou perdre le téléchargement.'
-  };
-  function zipModeUi() {
-    const h = $('#zip-mode-help'); if (h) h.textContent = MODE_HELP[state.zipmode];
-    if (!zip.flow) $('#btn-zip-go').textContent = state.zipmode === 'partage' ? '2. Préparer et partager' : '2. Tout télécharger';
-  }
-  async function opfsClean() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) if (/\.zip$/.test(n)) names.push(n); for (const n of names) await r.removeEntry(n); } catch (e) {} }
-  /* Fichiers temporaires d'export (ZIP restés dans le stockage privé de l'app après un plantage ou une interruption) */
+  /* ---------- Fichiers temporaires restés dans le stockage privé de l'app (anciens exports interrompus) ---------- */
   async function opfsSize() { let tot = 0, n = 0; try { const r = await navigator.storage.getDirectory(); for await (const [name, h] of r.entries()) { if (h.kind === 'file') { try { tot += (await h.getFile()).size; n++; } catch (e) {} } } } catch (e) {} return { bytes: tot, n }; }
-  async function opfsCleanAll() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) names.push(n); for (const n of names) await r.removeEntry(n, { recursive: true }); } catch (e) {} await zipClearManifests(); }
-  const zipGo = () => state.zipmode === 'partage' ? (zip.shareState === 'ready' ? shareNow() : shareStart()) : zipStartDownload();
-
-  function shareStart() {
-    if (!zip.parts.length) return;
-    if (!navigator.storage || !navigator.storage.getDirectory || typeof Worker === 'undefined') { $('#zip-info').textContent = '⚠ Cet appareil ne permet pas la méthode « Partage » : choisissez « Téléchargement Safari ».'; return; }
-    zip.flow = true; zip.t0 = Date.now(); $('#zip-confirm').classList.add('hidden'); keepAwake();
-    zip.parts.forEach(p => { if (p.status !== 'done') { p.status = 'wait'; p.sent = 0; p.file = null; } });
-    const first = zip.parts.findIndex(p => p.status !== 'done'); sharePrepare(first < 0 ? 0 : first);
-  }
-  function shareShow(p) {
-    const n = zip.parts.length, done = zip.parts.reduce((a, q) => a + (q.status === 'done' ? q.size : q.sent), 0), el = (Date.now() - zip.tp) / 1000, sp = el > 2 ? p.sent / el : 0;
-    zipBar(zip.total ? done / zip.total : 0);
-    $('#zip-pct').textContent = Math.round(100 * done / Math.max(1, zip.total)) + ' % · ' + fmtBytes(done) + ' sur ' + fmtBytes(zip.total);
-    $('#zip-info').textContent = 'Préparation du fichier ' + (zip.cur + 1) + ' / ' + n + ' : ' + fmtBytes(p.sent) + ' sur ' + fmtBytes(p.size) + (sp > 1e6 ? ' · ' + Math.round(sp / 1e6) + ' Mo/s · fichier prêt dans environ ' + fmtDur((p.size - p.sent) / sp) : '') + '.';
-  }
-  async function sharePrepare(i) {
-    const p = zip.parts[i], n = zip.parts.length, g = $('#btn-zip-go'); if (!p) return;
-    zip.cur = i; p.status = 'write'; p.sent = 0; p.file = null; zip.shareState = 'write'; zip.tp = Date.now();
-    g.disabled = true; g.textContent = 'Préparation du fichier ' + (i + 1) + ' / ' + n + '…';
-    const rb = $('#btn-zip-retry'); rb.textContent = 'Annuler'; rb.classList.remove('hidden');
-    try {
-      const hit = await caches.open('borne-export').then(c => c.match(manKey(p.name))); if (!hit) throw new Error('liste d\'export perdue : refaites « 1. Préparer »');
-      const man = await hit.json(); await opfsClean();
-      zlog('écriture du fichier ' + (i + 1) + ' / ' + n + ' dans le stockage de l\'app : ' + p.name + ' (' + p.size + ' octets)');
-      const w = new Worker('opfs-zip.js'); zip.worker = w;
-      w.onmessage = async (ev) => {
-        const d = ev.data || {};
-        if (d.type === 'progress') { p.sent = d.pos; shareShow(p); }
-        else if (d.type === 'done') {
-          try {
-            // le système peut mettre un instant à rendre le fichier complet : on relit sa taille jusqu'à 30 s avant de conclure
-            const root = await navigator.storage.getDirectory(); let raw = null, t = 0;
-            for (;;) { raw = await (await root.getFileHandle(p.name)).getFile(); if (raw.size === p.size || ++t > 60) break; await sleep(500); }
-            if (raw.size !== p.size) { zlog('taille relue ' + raw.size + ' au lieu de ' + p.size); throw new Error('taille écrite ' + raw.size + ' au lieu de ' + p.size); }
-            p.file = new File([raw], p.name, { type: 'application/zip' });
-          } catch (e) { try { w.terminate(); } catch (x) {} zip.worker = null; return shareProblem('Fichier illisible après écriture : ' + (e && e.message || e)); }
-          try { w.terminate(); } catch (x) {} zip.worker = null;
-          p.status = 'ready'; p.sent = p.size; zip.shareState = 'ready'; shareShow(p); zlog('fichier ' + (i + 1) + ' prêt (' + p.size + ' octets)');
-          rb.classList.add('hidden'); g.disabled = false; g.textContent = 'Partager le fichier ' + (i + 1) + ' / ' + n + ' · ' + fmtBytes(p.size);
-          $('#zip-info').textContent = '✔ Fichier ' + (i + 1) + ' / ' + n + ' prêt (' + fmtBytes(p.size) + '). Touchez « Partager », puis AirDrop (Mac déverrouillé, à côté) ou « Enregistrer dans Fichiers ».';
-        }
-        else if (d.type === 'error') { w.terminate(); zip.worker = null; shareProblem(d.msg); }
-      };
-      w.onerror = (e) => { shareProblem('erreur du module d\'écriture : ' + (e && e.message || 'inconnue')); };
-      w.postMessage({ type: 'start', name: p.name, files: man.files });
-    } catch (e) { shareProblem(e && e.message || e); }
-  }
-  function shareProblem(msg) {
-    const p = zip.parts[zip.cur], g = $('#btn-zip-go'); if (p) { p.status = 'wait'; p.sent = 0; p.file = null; }
-    zip.shareState = null; zip.flow = false; $('#btn-zip-retry').classList.add('hidden');
-    $('#zip-info').textContent = '⚠ ' + msg; zlog('PROBLÈME : ' + msg);
-    g.disabled = false; g.textContent = 'Réessayer le fichier ' + (zip.cur + 1) + ' / ' + zip.parts.length; opfsClean();
-  }
-  async function shareCancel() {
-    if (zip.worker) { try { zip.worker.postMessage({ type: 'cancel' }); } catch (e) {} setTimeout(() => { if (zip.worker) { try { zip.worker.terminate(); } catch (e) {} zip.worker = null; shareProblem('Préparation annulée.'); } }, 2500); }
-  }
-  /* Appelé directement par le toucher de l'utilisateur : le partage doit partir sans aucune attente avant */
-  function shareNow() {
-    const p = zip.parts[zip.cur], n = zip.parts.length, g = $('#btn-zip-go'); if (!p || !p.file) return;
-    if (!(navigator.share && navigator.canShare && navigator.canShare({ files: [p.file] }))) { zip.shareState = null; zip.flow = false; $('#zip-info').textContent = '⚠ Cet iPad refuse de partager ce fichier ZIP (partage de fichiers indisponible). Journal : ' + (navigator.canShare ? 'canShare=faux' : 'canShare absent') + '. Essayez la méthode « Téléchargement Safari » ou l\'envoi par lots.'; zlog('canShare refusé pour ' + p.name); g.textContent = 'Partager le fichier ' + (zip.cur + 1) + ' / ' + n; zip.shareState = 'ready'; return; }
-    g.disabled = true; zlog('ouverture de la feuille de partage pour le fichier ' + (zip.cur + 1));
-    navigator.share({ files: [p.file] }).then(async () => {
-      zlog('partage terminé pour le fichier ' + (zip.cur + 1));
-      p.status = 'done'; p.file = null; zip.shareState = null;
-      if (!zip.test) for (const m of p.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = 'zip'; await DB.put(m); }
-      try { const r = await navigator.storage.getDirectory(); await r.removeEntry(p.name); } catch (e) {}
-      await refreshStats();
-      const next = zip.parts.findIndex(q => q.status !== 'done');
-      if (next >= 0) { $('#zip-info').textContent = '✔ Fichier ' + (zip.cur + 1) + ' envoyé. Préparation du suivant…'; sharePrepare(next); return; }
-      zip.flow = false; zipBar(1); $('#zip-pct').textContent = '100 %';
-      $('#zip-info').textContent = zip.test ? '✔ Essai terminé : le partage a fonctionné.' : '✔ Tout est exporté (' + fmtBytes(zip.total) + '). Pensez à exporter aussi le rapport (carte 2).';
-      g.disabled = true; g.textContent = zip.test ? '2. Préparer et partager' : 'Tout est exporté ✔'; if (!zip.test) { zip.parts = []; zip.total = 0; await zipClearManifests(); }
-    }).catch((e) => {
-      zip.shareState = 'ready'; g.disabled = false; zlog('partage : ' + (e && e.name) + ' ' + (e && e.message || ''));
-      if (e && e.name === 'AbortError') $('#zip-info').textContent = 'Partage annulé : rien n\'est marqué comme exporté. Le fichier reste prêt : touchez de nouveau « Partager ».';
-      else $('#zip-info').textContent = '⚠ Échec du partage (' + (e && e.name) + ' : ' + (e && e.message || '') + '). Rien n\'est marqué comme exporté ; le fichier reste prêt. Réessayez, ou choisissez une taille de fichier plus petite.';
-    });
-  }
-  async function zipTest(mb) {
-    if (zip.busy || zip.flow) return; zip.busy = true;
-    try {
-      if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('mode hors ligne de l\'app non actif : fermez puis rouvrez la borne');
-      const items = []; let left = mb * 1e6, i = 1;
-      while (left > 0) { const sz = Math.min(1073741824, left); items.push({ candidate: 'essai-' + i, size: sz, file: { name: 'ESSAI/essai-' + String(i).padStart(2, '0') + '.bin', fake: true, size: sz, at: Date.now() } }); left -= sz; i++; }
-      zip.test = true; await zipBuild(items, 'ESSAI-' + mb + 'Mo');
-      zlog('essai ' + mb + ' Mo : ' + zip.parts.length + ' fichier(s), méthode ' + state.zipmode);
-      $('#zip-info').textContent = 'Essai prêt : ' + zip.parts.length + ' fichier(s) factice(s), ' + fmtBytes(zip.total) + ' au total.';
-      zipGo();
-    } catch (e) { $('#zip-info').textContent = '⚠ Essai impossible : ' + (e && e.message || e); }
-    finally { zip.busy = false; }
-  }
-  document.querySelectorAll('[data-ztest]').forEach(b => b.addEventListener('click', () => zipTest(Number(b.dataset.ztest))));
-  document.querySelectorAll('#seg-zipcap button').forEach(b => b.addEventListener('click', () => {
-    if (zip.flow) return;
-    state.zipcap = b.dataset.v; LS.set('zipcap', state.zipcap); setSeg('#seg-zipcap', state.zipcap);
-    zip.parts = []; zip.total = 0; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = ''; $('#zip-info').textContent = 'Taille changée : touchez « 1. Préparer et vérifier ».';
-  }));
-  document.querySelectorAll('#seg-zipmode button').forEach(b => b.addEventListener('click', () => {
-    if (zip.flow) return;
-    state.zipmode = b.dataset.v; LS.set('zipmode', state.zipmode); setSeg('#seg-zipmode', state.zipmode); zipModeUi();
-    zip.parts = []; zip.total = 0; zip.shareState = null; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = ''; $('#zip-info').textContent = 'Méthode changée : touchez « 1. Préparer et vérifier ».';
-  }));
-  $('#btn-zip-prep').addEventListener('click', zipPrepare);
-  $('#btn-zip-go').addEventListener('click', zipGo);
-  $('#btn-zip-retry').addEventListener('click', () => { if (state.zipmode === 'partage') return shareCancel(); keepAwake(); zip.lastMsg = Date.now(); if (!zip.flow) { zip.flow = true; zip.t0 = zip.t0 || Date.now(); clearInterval(zip.watch); zip.watch = setInterval(zipWatchdog, 1000); } zipRunPart(Math.max(0, zip.cur)); });
-  $('#btn-zip-ok').addEventListener('click', async () => {
-    let n = 0;
-    for (const p of zip.parts) if (p.status === 'done') for (const m of p.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = 'zip'; await DB.put(m); n++; }
-    zip.parts = []; zip.total = 0; zip.flow = false; clearInterval(zip.ping); clearInterval(zip.watch);
-    $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = true; zipBar(1);
-    $('#zip-info').textContent = '✔ ' + n + ' vidéo(s) marquée(s) comme exportée(s).'; await refreshStats();
-    await zipClearManifests();
-  });
-  $('#btn-zip-ko').addEventListener('click', () => { zip.flow = false; clearInterval(zip.ping); clearInterval(zip.watch); $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = !zip.parts.length; $('#zip-info').textContent = 'Rien n\'a été marqué comme exporté.'; });
-
+  async function opfsCleanAll() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) names.push(n); for (const n of names) await r.removeEntry(n, { recursive: true }); } catch (e) {} try { const c = await caches.open('borne-export'); for (const k of await c.keys()) await c.delete(k); } catch (e) {} }
 
   /* Export en deux temps : préparer (lecture des fichiers), puis partager (geste direct) */
   const DEST_HELP = {
@@ -4094,6 +3803,38 @@
   });
   $('#btn-reload').addEventListener('click', () => location.reload());
 
+  /* ---------- Mode essai ---------- */
+  async function testUi() {
+    const on = isTest(); $('#test-banner').classList.toggle('hidden', !on);
+    $('#btn-testmode').textContent = on ? 'Quitter le mode essai (efface les essais)' : 'Activer le mode essai';
+    $('#btn-test-wipe').classList.toggle('hidden', !on);
+    $('#test-help').textContent = on
+      ? 'Mode essai actif : les prises de test restent sur l\'iPad, rien n\'est envoyé au site ni à Contrôle-infos, et les vraies vidéos ne sont pas touchées. Le jour du shooting, quittez ce mode.'
+      : 'Pour tester le parcours sans laisser de trace : rien n\'est envoyé au site ni à Contrôle-infos, les vidéos d\'essai sont isolées des vraies et s\'effacent en un geste.';
+    try { const raw = DB.db ? await DB.allRaw() : []; const n = raw.filter(m => m.test).length; $('#test-info').textContent = n ? n + ' vidéo(s) d\'essai sur l\'iPad.' : ''; } catch (e) {}
+  }
+  async function testWipe() {
+    const raw = await DB.allRaw(); for (const m of raw.filter(x => x.test)) await DB.remove(m.id);   // iPad seulement : jamais signalé au site
+    LS.del('profiles.test'); await refreshStats(); await testUi();
+  }
+  let testArm = 0;
+  $('#btn-testmode').addEventListener('click', async () => {
+    if (isTest()) {
+      if (Date.now() - testArm > 6000) { testArm = Date.now(); toast('Quitter le mode essai ? Les vidéos d\'essai seront effacées de l\'iPad. Touchez encore une fois pour confirmer.', 6000); return; }
+      testArm = 0; await testWipe(); LS.set('testmode', false);
+      try { await refreshProgress(); renderNames(); } catch (e) {}
+      toast('Mode essai terminé : essais effacés, mode normal'); await refreshStats(); try { renderDashBadge(); renderReportSync(); } catch (e) {}
+    } else {
+      LS.set('testmode', true); toast('Mode essai activé : rien ne part vers le site'); await refreshStats();
+      try { await refreshProgress(); renderNames(); renderDashBadge(); renderReportSync(); } catch (e) {}
+    }
+    testUi();
+  });
+  $('#btn-test-wipe').addEventListener('click', async () => {
+    if (Date.now() - testArm > 6000) { testArm = Date.now(); toast('Effacer toutes les vidéos d\'essai de l\'iPad ? Touchez encore une fois pour confirmer.', 6000); return; }
+    testArm = 0; await testWipe(); try { await refreshProgress(); renderNames(); } catch (e) {} toast('Données d\'essai effacées');
+  });
+
   /* ------------------------------------------------------------------
      Démarrage
      ------------------------------------------------------------------ */
@@ -4117,7 +3858,7 @@
     show('home');
     try { await DB.open(); }
     catch (e) { toast('⚠ Stockage indisponible sur cet appareil (navigation privée ?)', 10000); }
-    await refreshProgress(); renderNames();
+    await refreshProgress(); renderNames(); testUi();
     try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
     setTimeout(() => { loadFaceApi(); loadMannequin(); loadFaceMesh(); }, 1500);
     if ('serviceWorker' in navigator && window.isSecureContext) {
@@ -4125,7 +3866,7 @@
     }
     dashBoot();
   }
-  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, zipTest, zip, fileName, lan, lanOffer, lanConnect, lanJoin, lanSend };   // pour les tests automatiques
+  window.__borne = { pushStatuses, dashState, state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, fileName, lan, lanOffer, lanConnect, lanJoin, lanSend };   // pour les tests automatiques
   boot();
 })();
 </script>
