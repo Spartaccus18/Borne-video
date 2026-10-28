@@ -57,17 +57,21 @@ Ouverture : **5 touches rapides dans le coin en haut à droite** de l'écran d'a
 
 ## 6. Parcours du candidat
 
-Accueil (liste des noms + recherche) › « Bonjour [nom] ! » › 3 conseils, un par écran, sans caméra (ils défilent seuls ; toucher l'écran avance) › vérification du cadrage › pour chaque question (1 à 4) : écran de la question › décompte 3-2-1 › enregistrement (barre de temps, bouton « Terminer ») › relecture › « C'est parfait » ou « Recommencer » (3 essais max) › puis, en dernier, la pose finale (même déroulé, 16 s) › « Merci ! » › retour automatique à l'accueil.
+Accueil (noms dans l'ordre de passage, les candidats déjà passés en bas de liste) › **fiche du candidat** (sommaire des 5 étapes, faites = grisées, à faire = blanches) › « Commencer » › **vérification du cadrage** › « Bonjour [nom] ! » et 3 conseils, un par écran, sans caméra (ils défilent seuls ; toucher l'écran avance) › pour chaque étape (questions 1 à 4, puis la pose = étape 5) : écran de la question › décompte 3-2-1 › enregistrement (barre de temps, bouton « Terminer ») › relecture et 3 conseils (son, regard, cadrage) › « C'est parfait » ou « Recommencer » (autant d'essais que voulu ; la question est relue avant chaque nouvelle prise) › « Merci ! » › retour automatique à l'accueil.
+
+- **Se repérer** : une barre de progression et « Étape 2 sur 5 » sont visibles à chaque étape. Le lien « Sommaire » (et « Question précédente ») permet de revenir en arrière ou de refaire une vidéo manquante ; « Annuler cette prise » arrête la prise en cours sans rien garder.
+- **Candidat qui ne tournera aucune vidéo** : petit bouton « Je refuse de tourner la vidéo » en bas de sa fiche, ou bouton « Aucune vidéo » dans le menu organisateur (suivi des candidats). Son nom passe en bas de liste, marqué « aucune vidéo ». Annulable de la même façon. Le refus est signalé au dashboard (statut seulement) et apparaît dans la colonne « Remarques » de l'Excel de Contrôle-infos.
+- **Menu organisateur depuis n'importe quel écran** : 5 touches rapides dans le coin en haut à droite, même pendant une prise (la prise est alors annulée).
 
 - « Passer » permet de sauter une question.
-- Si personne ne touche l'écran pendant 90 s, la borne revient à l'accueil (une prise en attente de relecture est conservée).
+- Si personne ne touche l'écran pendant 10 minutes, la borne revient à l'accueil (une prise en attente de relecture est conservée).
 - Nom absent de la liste : le candidat tape son prénom et son nom dans la recherche ; s'il n'y a aucune correspondance, le bouton « Continuer avec ce nom » apparaît juste en dessous (la touche « OK » du clavier fait la même chose). La recherche ignore les accents, les majuscules et l'ordre des mots.
 - Les textes des conseils et leur durée se modifient dans `config.js` (`consignes`, `dureeBonjour`, `dureeConsigne`).
 
 ## 6 bis. Nouveautés v3 : la pose et l'analyse automatique
 
 - **La pose** (dernière étape, après les questions 1 à 4, 16 s, avec le son) : un mannequin 3D montre cinq gestes, puis le candidat les enchaîne devant la caméra : droit face à l'objectif → profil de trois-quarts → bras croisés → sourire → en montrant l'objectif de l'index, « Le 28 février on vote ! », une courte pause, puis « En attendant, bon film ! » (clip pour la pub au cinéma). Le son de cette phrase est contrôlé comme celui des réponses. Réglable ou désactivable dans `config.js` (`pose`).
-- **Aide au cadrage en direct** sur l'écran de préparation : « Approchez-vous », « Placez-vous au centre », « Cadrage parfait ✔ »…
+- **Aide au cadrage en direct** sur l'écran de préparation : « Rapprochez-vous de la caméra », « Éloignez-vous de la caméra », « Placez-vous au centre », « Cadrage parfait ✔ »…
 - **Analyse de chaque prise** (sur l'iPad, sans internet) : cadrage, lumière, volume de la voix, saturation, phrase coupée, sourire. Si un défaut important est détecté, le bouton « Recommencer » est mis en avant. Désactivable : `analyseAuto: false`.
 - Fichiers à envoyer sur GitHub en plus : le dossier `vendor` (3D et analyse) et le dossier `models` (modèles de détection du visage).
 
@@ -97,25 +101,40 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 
 ## 6 quater. Nouveautés v3.5 : charte, écran de tournage, regard
 
-- **Charte PLR Suisse 2027** : fond cyan (#00A0E2), bleu foncé (#074EA1) pour les cadres, magenta (#E6007D) pour le bouton « C'est parfait », police Jost, logo PLR blanc. Les mêmes couleurs et la même police sont utilisées par le montage automatique.
+- **Charte PLR Suisse 2027** : fond cyan (#00A0E2), bleu foncé (#074EA1) pour les cadres, magenta (#E6007D) pour le bouton « C'est parfait », police Jost, logo PLR blanc.
 - **Écran de tournage sans retour vidéo** : pendant la prise, l'écran est entièrement blanc (lumière maximale sur le visage). Seul un cadre bleu foncé, placé près de l'objectif, affiche la question (ou le mannequin pour la pose). Le candidat revoit sa vidéo juste après la prise. Le retour vidéo peut être réaffiché dans le menu organisateur (« Retour vidéo pendant la prise »).
 - **Luminosité** : une application web ne peut pas régler la luminosité de l'iPad. Avant le shooting : luminosité au maximum (Centre de contrôle), « Luminosité automatique » et « True Tone » désactivés.
-- **Contrôle du regard** : la borne mesure la position de l'iris et l'orientation de la tête. Si le candidat ne regarde pas l'objectif pendant plus de 40 % de la prise, elle conseille de recommencer. Réglage : `seuilRegardX` et `seuilRegardY` dans `config.js`. Le contrôle suppose l'objectif en haut de l'iPad.
+- **Trois conseils seulement** après chaque prise : le son (voix assez forte ou non), le regard (vers l'objectif ou non) et le cadrage (distance, centrage, hauteur). Ton calme : la borne « conseille », le candidat décide. Les alertes de matériel (micro coupé, image figée…) sont gardées avec la vidéo et visibles dans le suivi du menu organisateur (icône 🔧).
+- **Contrôle du regard** : outil MediaPipe Face Mesh de Google (dossier `vendor/mediapipe`, fonctionne sans internet, chargé une fois puis gardé sur l'iPad). Il repère l'iris ; seuils réglés sur 942 images de 31 candidats (`regard` dans `config.js`). Il suppose l'objectif en haut de l'iPad. Si l'outil ne peut pas se charger, la borne revient à l'ancienne estimation.
+- **Cadrage de référence** : menu organisateur › « Cadrage de référence » › « Mémoriser le cadrage actuel » (une personne bien placée). Les candidats sont ensuite guidés vers cette même taille de visage. Désactiver « Cadrage centré » (Center Stage) dans le Centre de contrôle de l'iPad.
+- **Retour son** : le son de la vidéo revue est amplifié (menu organisateur › « Volume du retour son », réglé sur « Très fort ») ; mettre aussi le volume de l'iPad au maximum.
+- **Micro** : la borne reconnecte toute seule le micro s'il se coupe, devient muet ou vieillit (contrôle toutes les 5 secondes entre deux prises, et avant chaque prise).
 - **Pose** : le mannequin est le modèle libre « X Bot » (exemple fourni avec Three.js, fichier `models/mannequin.glb`), un mannequin lisse à squelette humain avec doigts. Il reproduit les gestes de la vidéo de référence : face, trois-quarts, bras croisés, sourire dessiné, phrase finale (« Le 28 février on vote ! », pause, « En attendant, bon film ! ») en restant de trois-quarts, l'index pointé vers l'objectif et l'autre bras toujours croisé.
 
-## 7. Récupérer les vidéos (fin de journée)
+## 7. Récupérer les vidéos et le rapport (fin de journée)
 
-1. Menu organisateur › **Nombre de vidéos par envoi** : « Tout en une fois » (réglage par défaut), 50, 25 ou 10.
-2. **1. Préparer l'export** (un compteur indique l'avancement) › **2. Partager** › **AirDrop** vers votre Mac (ou « Enregistrer dans Fichiers »). Sur Mac, les vidéos arrivent dans Téléchargements.
-3. Si le partage échoue (envoi très volumineux), rien n'est marqué comme exporté : choisir 50 ou 25 et recommencer. Répéter jusqu'au message « Tout est exporté ✔ ».
-4. Vérifier les fichiers sur le Mac, puis **Supprimer les vidéos déjà exportées** (double touche de confirmation) pour libérer de l'espace.
+Les vidéos ne sont **jamais envoyées au site** : le dashboard ne reçoit que des statuts (qui a tourné quoi, qui a refusé). Le menu organisateur propose deux exports **séparés**, car ils ne vont pas au même endroit.
 
-Autres boutons : **Supprimer les vidéos vides** (n'apparaît que s'il y a des enregistrements ratés) et **Tout effacer (remise à zéro)**, par exemple pour effacer les vidéos de test avant la première date (double touche ; un avertissement indique s'il reste des vidéos jamais exportées).
+**Carte 1 : exporter toutes les vidéos (feuille de partage).** Les vidéos partent par la feuille de partage de l'iPad, sans passer par les téléchargements de Safari. Elles sont renommées et classées par candidat (`Marie-Dupont_Q1_p2_validee.mp4`).
 
-Conseil : pour un premier essai sur l'iPad, faire un envoi de 25 et vérifier que tout arrive bien, puis passer à « Tout en une fois » les jours suivants.
+Limite à connaître : Safari charge en mémoire tous les fichiers d'un même partage ; au-delà de 1 à 2 Go, l'app peut planter. L'envoi de 20 Go ou plus ne peut donc pas tenir dans un seul partage. L'app le découpe en **lots de candidats entiers** (500 Mo, 1 Go ou 2 Go au choix, 1 Go par défaut) et prépare le lot suivant toute seule : un **seul gros bouton** à toucher, qui affiche « Préparer l'export », puis « Partager le lot 3 / 12 », jusqu'à « Tout est exporté ✔ ».
 
-Nom des fichiers : `2026-10-27_J1_Dupont-Marie_Q1-presentation_p2.mp4`
-(date · journée · candidat · question · numéro de prise). Les prises rejetées ne sont exportées que si la case correspondante est cochée ; elles portent alors le suffixe `_rejetee`.
+1. Choisir la destination : **AirDrop** (vers le Mac) ou **Disque dur externe** (dans la feuille de partage : « Enregistrer dans Fichiers », puis le disque). Case « Inclure aussi les prises rejetées » cochée par défaut.
+2. Toucher le bouton : l'iPad prépare le lot 1, puis le bouton propose « Partager le lot 1 / N ».
+3. Dans la feuille de partage : AirDrop puis le Mac (ou Fichiers puis le disque). Un lot n'est marqué « exporté » que si le partage a abouti ; annulé ou échoué, il se refait tel quel.
+4. Recommencer jusqu'à « Tout est exporté ✔ ». Garder l'iPad et le Mac déverrouillés, côte à côte, pendant AirDrop.
+
+**Carte 2 : rapport « qui a tourné quoi » (.json).** Un seul rapport remplace l'ancienne liste de contrôle et l'ancien rapport CSV : pour chaque candidat, ses vidéos (Pose, Q1 à Q4 : oui / rejetée), son éventuel refus, et la liste de ses fichiers (nom, taille, durée, somme de contrôle, exporté ou non). Il sert aussi à vérifier le contenu du disque.
+- **Synchronisation automatique** : la borne envoie ces informations à Contrôle-infos par le site, après chaque prise. L'état s'affiche dans la carte (bouton « Renvoyer maintenant » pour tout renvoyer).
+- **Secours** : « Exporter le rapport (.json) », à envoyer par AirDrop sur l'iPad d'accueil, puis Contrôle-infos › Administration › « Importer le rapport de la borne ».
+
+Dans l'Excel, les colonnes Q1 à Q5 affichent **Oui** (vidéo gardée), **Non** (le candidat est passé à l'accueil mais la vidéo manque : oubli) ou **Refus** (le candidat ne veut pas de vidéo), en rouge pour Non et Refus. Rien n'est écrit dans la colonne Remarques.
+
+**Autre option : tout télécharger en une seule fois (ZIP)** (sous le bouton de partage, passe par les téléchargements de Safari) : écrit au fil de l'eau, vidéo après vidéo, sans limite de mémoire, avec un dossier par candidat et **sans** rapport. Il exige autant de place libre sur l'iPad que le fichier ; l'iPad affiche la taille exacte attendue, à comparer dans Fichiers avant de confirmer. L'**Essai de transfert** (faux ZIP de 2, 10 ou 25 Go) permet de le tester à l'avance.
+
+Autres boutons : **Supprimer les vidéos déjà exportées** (double touche), **Supprimer les vidéos vides** (n'apparaît que s'il y a des enregistrements ratés) et **Tout effacer (remise à zéro)** (double touche ; un avertissement indique s'il reste des vidéos jamais exportées ; efface aussi les « passés » et « aucune vidéo » mémorisés).
+
+Nom des fichiers : `Marie-Dupont_Q1_p2_validee.mp4` (prénom-nom · étape · numéro de prise · statut). La pose est la **Q5**. Les prises rejetées portent `_rejetee`. Les noms n'ont **jamais** d'accent ni de symbole (lettres, chiffres, tirets, soulignements) : ils s'ouvrent tels quels sous Windows, macOS et Linux.
 
 **Exporter chaque soir.** Ne jamais supprimer l'icône de la borne de l'écran d'accueil avant d'avoir exporté : cela peut effacer les vidéos qu'elle contient.
 
@@ -190,11 +209,11 @@ Réglages utiles dans `config.js` : `duree` de chaque question, `prisesMax`, `co
 
 La version 3.7 du mannequin (bras croisés plus raides) est conservée dans `versions/pose3d-v3.7-xbot.js`. Pour y revenir : remplacer `vendor/pose3d.js` par ce fichier (même contenu, renommé `pose3d.js`), puis changer le numéro de cache dans `sw.js` (`borne-video-v3-8` → un nouveau nom) pour que l'iPad recharge. Sur GitHub, le commit `aad155a` correspond exactement à la v3.7.
 
-## Importer le planning Excel et faire le rapport de fin de journée (v3.11)
+## Importer le planning Excel (v3.11)
 
 **Importer le planning** : menu organisateur > carte « Importer le planning (Excel) » > choisir « planning et infos shooting photo.xlsx » (ou un CSV). L'app lit les colonnes Date, Heure, Nom, Prénom et Arrondissement, répartit les candidats dans les journées J1 à J5 (dates dans `config.js`) et les classe par heure d'arrivée. L'heure et l'arrondissement s'affichent sous chaque nom. Les personnes sans date restent trouvables avec la recherche.
 
-**Rapport de fin de journée** : menu organisateur > carte « Suivi des candidats » > « Rapport de fin de journée ». L'app produit un seul fichier CSV, prêt à être importé dans l'app contrôle des infos (Administration > « Importer le récap vidéo (borne) »), et ouvrable dans Excel : pour chaque candidat, quelles vidéos ont été tournées (Pose, Q1, Q2, Q3, Q4), avec « Oui (prise N) » ou « Rejetée ». Les colonnes portent les mêmes noms que celles ajoutées dans l'Excel du planning (« Vidéo Pose », « Vidéo Q1 Présentation »…).
+**Rapport** : voir le chapitre 7 (carte 2 du menu organisateur, fichier .json, importable dans l'app contrôle des infos).
 
 ## Contrôle des exports (v3.12)
 
@@ -208,7 +227,7 @@ Tout en haut du menu organisateur, la carte « Contrôle des exports » indique 
 
 **Statut des prises** : chaque prise gardée ou rejetée est signalée au dashboard (colonne 🎬 de l'onglet Shooting). Sans réseau, rien ne se perd : le statut part plus tard.
 
-**Envoyer les vidéos au serveur** : menu organisateur > carte « Dashboard » > « Envoyer les vidéos au serveur ». À faire sur un bon Wi-Fi (environ 200 Mo par candidat). Les vidéos partent une par une, par morceaux de 8 Mo ; si le réseau coupe, toucher de nouveau le bouton : l'envoi reprend là où il s'était arrêté. Une vidéo n'est marquée « exportée » que lorsque le serveur l'a reçue en entier. Si le serveur est presque plein, l'envoi s'arrête et les vidéos restent sur l'iPad. L'export AirDrop reste disponible.
+**Vidéos** : depuis la v4.0, la borne n'envoie plus les vidéos au serveur (liste du jour et statuts seulement). Elles se récupèrent par l'export AirDrop ou disque (point 7).
 
 ## Confirmation de la liaison (v3.16)
 

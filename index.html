@@ -105,6 +105,7 @@
     font-size: 1.3rem; font-weight: 600; text-align: center; line-height: 1.25;
   }
   .name-btn:active { background: var(--glass-strong); transform: scale(.98); }
+  .name-btn { -webkit-touch-callout: none; }
   .names .empty { grid-column: 1 / -1; opacity: .7; padding: 2rem; font-size: 1.2rem; }
   /* Nom absent de la liste : proposition juste sous le champ de recherche */
   .add-name { margin-top: 1.2rem; width: min(100%, 36rem); background: var(--glass); border-radius: 1.2rem; padding: 1.2rem 1.3rem 1.3rem; animation: pop .25s ease-out; }
@@ -112,7 +113,46 @@
   .add-q b { font-weight: 800; }
   .add-name .btn { margin-top: 1rem; width: 100%; font-size: 1.4rem; padding: .95rem 1.4rem; min-height: 3.6rem; }
   @keyframes pop { from { opacity: 0; transform: translateY(-.4rem); } to { opacity: 1; transform: none; } }
-  #admin-hotspot { position: absolute; top: 0; right: 0; width: 90px; height: 90px; z-index: 5; }
+  #admin-hotspot { position: fixed; top: 0; right: 0; width: 220px; height: 200px; z-index: 45; }
+  .name-btn.passed { opacity: .5; background: rgba(255,255,255,.07); }
+  .name-btn .tag { display: inline-block; margin-left: .5rem; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .12rem .55rem; border-radius: 999px; background: rgba(255,255,255,.24); vertical-align: .12em; }
+  .names .sep { grid-column: 1 / -1; text-align: left; font-size: .9rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .7; padding: .8rem .2rem 0; }
+
+  /* ---------- Liens discrets, navigation, progression ---------- */
+  .link-btn { color: inherit; opacity: .8; font-size: 1.1rem; font-weight: 600; padding: .7rem 1rem; text-decoration: underline; text-underline-offset: .25em; text-decoration-thickness: 1px; }
+  .link-btn.faint { font-size: .95rem; opacity: .55; }
+  .nav-row { margin-top: 1.4rem; display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; }
+  .stepper { display: flex; flex-direction: column; align-items: center; gap: .55rem; width: min(100%, 26rem); }
+  .stepper .bars { display: flex; gap: .4rem; width: 100%; align-items: center; }
+  .stepper .bars i { flex: 1; height: .3rem; border-radius: 999px; background: currentColor; opacity: .28; }
+  .stepper .bars i.done { opacity: .85; }
+  .stepper .bars i.cur { opacity: 1; height: .5rem; }
+  .stepper span { font-size: 1rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; opacity: .85; }
+  html.noself .rec-card .stepper { margin: 0 auto .8rem; }
+  #s-record > .stepper { margin-top: 1.1rem; }
+
+  /* ---------- Fiche du candidat (sommaire) ---------- */
+  #s-hub h1 { margin-top: .5rem; font-size: 3rem; }
+  .hub-kicker { margin-top: 1.2rem; font-size: 1.1rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .8; min-height: 1.3rem; }
+  .hub-sub { margin-top: .7rem; font-size: 1.3rem; opacity: .9; }
+  .hub-list { list-style: none; width: min(100%, 40rem); margin-top: 1.8rem; display: flex; flex-direction: column; gap: .8rem; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: .2rem .2rem .6rem; }
+  .hub-row { display: flex; align-items: center; gap: 1.1rem; width: 100%; text-align: left; padding: 1.05rem 1.4rem; border-radius: 1.1rem; background: #fff; color: var(--dark); box-shadow: 0 6px 18px rgba(7,78,161,.18); }
+  .hub-row:active { transform: scale(.985); }
+  .hub-row .n { flex: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--main); color: #fff; font-weight: 800; font-size: 1.2rem; }
+  .hub-row .t { flex: 1; font-size: 1.35rem; font-weight: 700; line-height: 1.25; }
+  .hub-row .t small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-weight: 500; font-size: .95rem; opacity: .7; margin-top: .15rem; }
+  .hub-row .s { flex: none; font-size: .95rem; font-weight: 700; opacity: .8; }
+  .hub-row.done { background: rgba(255,255,255,.55); color: rgba(7,78,161,.72); box-shadow: none; }
+  .hub-row.done .n { background: rgba(7,78,161,.4); }
+  .hub-row.next { box-shadow: 0 0 0 3px rgba(255,255,255,.55), 0 8px 22px rgba(7,78,161,.25); }
+  .hub-actions { margin-top: 1.6rem; width: min(100%, 40rem); }
+  #btn-hub-go { width: 100%; font-size: 2rem; min-height: 5rem; background: var(--cta); color: #fff; }
+  .hub-foot { margin-top: 1rem; display: flex; gap: 1.4rem; justify-content: center; flex-wrap: wrap; }
+  .hub-banner { margin-top: 1.4rem; background: rgba(255,255,255,.16); border-radius: 1rem; padding: .9rem 1.3rem; font-size: 1.15rem; max-width: 40rem; }
+  .overlay.ask { background: var(--main); justify-content: center; z-index: 56; text-align: center; }
+  .overlay.ask .lead { margin-top: 1.2rem; max-width: 34rem; }
+  .overlay.ask .row { margin-top: 2.4rem; }
+  .qa li.bad .i { color: #ffe08a; font-size: .8rem; }
 
   /* ---------- Accueil du candidat et consignes (une à la fois, sans caméra) ---------- */
   #s-intro { justify-content: center; }
@@ -322,12 +362,14 @@
 </head>
 <body>
 
+<!-- Accès organisateur : 5 touches rapides en haut à droite, depuis n'importe quel écran -->
+<div id="admin-hotspot" aria-hidden="true"></div>
+
 <!-- Repère « regardez ici » (position réglable dans le menu admin) -->
 <div id="camCue" class="cam-cue cue-haut hidden"><span class="arrow">↑</span><span class="cue-txt">Regardez ici</span></div>
 
 <!-- ============ ACCUEIL ============ -->
 <section id="s-home" class="screen">
-  <div id="admin-hotspot" aria-hidden="true"></div>
   <div class="brand-bar"><img class="brand-logo brand-left hidden" alt="PLR"><img class="brand-logo brand-right hidden" alt="Content Camp"></div>
   <h1 id="home-title">Bienvenue</h1>
   <p class="lead" id="home-sub"></p>
@@ -339,6 +381,20 @@
     <button class="btn" id="btn-add-name">Continuer</button>
   </div>
   <div id="names" class="names"></div>
+</section>
+
+<!-- ============ FICHE DU CANDIDAT : sommaire des étapes ============ -->
+<section id="s-hub" class="screen hidden">
+  <p class="hub-kicker" id="hub-kicker"></p>
+  <h1 id="hub-name"></h1>
+  <p class="hub-sub" id="hub-sub">Votre programme</p>
+  <div class="hub-banner hidden" id="hub-banner"></div>
+  <ol class="hub-list" id="hub-list"></ol>
+  <div class="hub-actions"><button class="btn" id="btn-hub-go">Commencer</button></div>
+  <div class="hub-foot">
+    <button class="link-btn" id="btn-hub-back">Ce n'est pas moi</button>
+    <button class="link-btn faint" id="btn-hub-refuse">Je refuse de tourner la vidéo</button>
+  </div>
 </section>
 
 <!-- ============ BONJOUR + CONSIGNES (une par écran, sans retour caméra) ============ -->
@@ -376,14 +432,14 @@
     <p class="mic-name" id="mic-name-prep"></p>
   </div>
   <div class="row">
-    <button class="btn btn-ghost" id="btn-prep-back">Revoir les conseils</button>
+    <button class="btn btn-ghost" id="btn-prep-back">Retour au sommaire</button>
     <button class="btn" id="btn-prep-go">C'est parti</button>
   </div>
 </section>
 
 <!-- ============ LA POSE ============ -->
 <section id="s-pose" class="screen hidden">
-  <p class="q-count">Étape 1 · La pose</p>
+  <div class="stepper" data-stepper></div>
   <h2 id="pose-title" style="margin-top:.9rem">Pour finir, la pose</h2>
   <p class="lead" style="margin-top:.7rem" id="pose-lead">Imitez le mannequin : une courte vidéo muette de 9 secondes.</p>
   <div class="pose-wrap">
@@ -395,11 +451,12 @@
     <button class="btn btn-ghost" id="btn-pose-skip">Passer</button>
     <button class="btn" id="btn-pose-go">Je suis prêt, on tourne</button>
   </div>
+  <div class="nav-row"><button class="link-btn" id="btn-p-prev">‹ Question précédente</button><button class="link-btn" id="btn-p-hub">Sommaire</button></div>
 </section>
 
 <!-- ============ QUESTION ============ -->
 <section id="s-question" class="screen center hidden">
-  <p class="q-count" id="q-count">Question 1 sur 4</p>
+  <div class="stepper" data-stepper></div>
   <p class="q-text" id="q-text"></p>
   <p class="q-help" id="q-help"></p>
   <p class="q-dur" id="q-dur"></p>
@@ -407,10 +464,12 @@
     <button class="btn btn-ghost" id="btn-q-skip">Passer</button>
     <button class="btn" id="btn-q-go">Je suis prêt, on tourne</button>
   </div>
+  <div class="nav-row"><button class="link-btn" id="btn-q-prev">‹ Question précédente</button><button class="link-btn" id="btn-q-hub">Sommaire</button></div>
 </section>
 
 <!-- ============ ENREGISTREMENT ============ -->
 <section id="s-record" class="screen hidden">
+  <div class="stepper" data-stepper></div>
   <p class="rec-q rec-card" id="rec-q"></p>
   <div class="rec-pose rec-card hidden" id="rec-pose"><canvas id="mini-canvas"></canvas><div class="rec-pose-txt"><span class="rec-pose-n" id="rec-pose-n"></span><span id="rec-pose-txt"></span></div></div>
   <div class="preview-wrap" id="rec-wrap">
@@ -426,12 +485,14 @@
     <div class="bar" id="bar"><div></div></div>
     <div class="rec-time" id="rec-time">0:30</div>
     <button class="btn btn-stop" id="btn-stop" disabled>Terminer</button>
+    <button class="link-btn faint" id="btn-rec-cancel">Annuler cette prise</button>
   </div>
 </section>
 
 <!-- ============ RELECTURE ============ -->
 <section id="s-review" class="screen hidden">
-  <h2>Ça vous convient ?</h2>
+  <div class="stepper" data-stepper></div>
+  <h2 style="margin-top:.8rem">Ça vous convient ?</h2>
   <div class="preview-wrap" id="rev-wrap">
     <div class="preview-box" id="rev-box">
       <video id="rev-video" playsinline></video>
@@ -444,6 +505,7 @@
     <button class="btn btn-ok" id="btn-keep">C'est parfait</button>
   </div>
   <p class="small" id="rev-info" style="margin-top:.8rem"></p>
+  <div class="nav-row" style="margin-top:.4rem"><button class="link-btn" id="btn-rev-hub">Sommaire</button></div>
 </section>
 
 <!-- ============ FIN ============ -->
@@ -463,6 +525,13 @@
     <button class="btn" id="btn-err-retry">Réessayer</button>
   </div>
 </section>
+
+<!-- ============ CONFIRMATION ============ -->
+<div id="ask" class="overlay ask hidden">
+  <h2 id="ask-title"></h2>
+  <p class="lead" id="ask-txt"></p>
+  <div class="row"><button class="btn btn-ghost" id="ask-no">Annuler</button><button class="btn" id="ask-yes">Confirmer</button></div>
+</div>
 
 <!-- ============ CODE ADMIN ============ -->
 <div id="pin" class="overlay hidden" style="justify-content:center">
@@ -484,22 +553,18 @@
     <div class="card" id="exp-check" style="border:2px solid #2e9e5b">
       <h3>Contrôle des exports</h3>
       <p id="exp-main" style="font-size:1.15rem;font-weight:600;margin:.2rem 0 .5rem">–</p>
-      <div id="exp-site" style="padding:.55rem .8rem;border-radius:.5rem;border-left:6px solid #888;margin:.3rem 0;background:rgba(0,0,0,.2)">–</div>
       <div id="exp-local" style="padding:.55rem .8rem;border-radius:.5rem;border-left:6px solid #888;margin:.3rem 0 .6rem;background:rgba(0,0,0,.2)">–</div>
       <div id="exp-days" class="small"></div>
     </div>
 
     <div class="card" id="dash-card">
-      <h3>Dashboard (liste du jour et envoi des vidéos)</h3>
+      <h3>Liaison avec le dashboard (liste du jour et statut des prises)</h3>
       <p class="small" id="dash-status">–</p>
       <div class="row">
-        <button class="btn btn-ok" id="btn-dash-upload">Envoyer les vidéos au serveur</button>
-        <button class="btn hidden" id="btn-dash-stop">Arrêter l'envoi</button>
         <button class="btn btn-ghost" id="btn-dash-pull">Actualiser la liste du jour</button>
       </div>
-      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="dash-rej"> <span>Envoyer aussi les prises rejetées</span></label>
       <p class="small" id="dash-info" style="margin-top:.5rem"></p>
-      <p class="small" style="margin-top:.7rem">À faire sur un bon Wi-Fi (fin de journée ou pause) : environ 200 Mo par candidat. Une vidéo n'est marquée « envoyée au site » que lorsque le serveur l'a reçue en entier ; si le réseau coupe, l'envoi reprend là où il s'était arrêté.</p>
+      <p class="small" style="margin-top:.7rem">La borne reçoit la liste du jour et signale au site les prises gardées ou rejetées. Les vidéos elles-mêmes ne sont jamais envoyées au site : elles se récupèrent par l'export ci-dessous (AirDrop ou disque dur).</p>
       <div class="dash-badge ko" id="dash-badge" role="status">–</div>
       <div class="row" style="align-items:center;gap:.5rem">
         <input type="password" id="dash-key" placeholder="Clé iPad (onglet Shooting du dashboard)" autocomplete="off" autocapitalize="off" spellcheck="false" style="flex:1;min-width:14rem;padding:.6rem;border-radius:.5rem;border:0;font:inherit">
@@ -519,35 +584,66 @@
     </div>
 
     <div class="card">
-      <h3>Exporter (AirDrop ou disque dur externe)</h3>
-      <p>Étape 1 : préparer. Étape 2 : partager. Une vidéo exportée est marquée comme telle et n'est jamais renvoyée une seconde fois. Cet export est indépendant de l'envoi au site.</p>
-      <p class="small" style="margin-top:.7rem">Destination :</p>
+      <h3>1. Exporter toutes les vidéos (feuille de partage)</h3>
+      <p>Les vidéos partent par la <b>feuille de partage de l'iPad</b> (AirDrop vers le Mac, ou « Enregistrer dans Fichiers » vers le disque dur), sans passer par les téléchargements de Safari. Elles sont <b>renommées et classées par candidat</b> : <span class="mono">Prenom-Nom_Q1_p1_validee.mp4</span>. Le rapport n'en fait pas partie (carte 2).</p>
+      <p class="small">Safari ne peut pas envoyer 20 Go en un seul partage (il charge les fichiers en mémoire) : l'app découpe l'envoi en <b>lots de candidats entiers</b> et prépare le lot suivant toute seule. Il suffit de toucher le gros bouton à chaque lot, jusqu'à « Tout est exporté ».</p>
+      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
+      <p class="small" style="margin-top:.5rem">Destination :</p>
       <div class="seg" id="seg-dest" style="margin-top:.4rem">
         <button data-v="airdrop">AirDrop (vers le Mac)</button>
         <button data-v="disque">Disque dur externe</button>
       </div>
       <p class="small" id="dest-help" style="margin-top:.4rem"></p>
-      <p class="small" style="margin-top:.7rem">Nombre de vidéos par envoi :</p>
+      <p class="small" style="margin-top:.7rem">Taille maximale d'un lot :</p>
       <div class="seg" id="seg-lot" style="margin-top:.4rem">
-        <button data-v="all">Tout en une fois</button>
-        <button data-v="50">50</button>
-        <button data-v="25">25</button>
-        <button data-v="10">10</button>
+        <button data-v="500">500 Mo</button>
+        <button data-v="1000">1 Go</button>
+        <button data-v="2000">2 Go</button>
       </div>
-      <div class="row">
-        <button class="btn" id="btn-exp-prep">1. Préparer l'export</button>
-        <button class="btn btn-ok" id="btn-exp-share" disabled>2. Partager</button>
-      </div>
-      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej"> <span>Inclure aussi les prises rejetées</span></label>
+      <div class="row"><button class="btn btn-ok" id="btn-exp-main" style="font-size:1.15rem;padding:1rem 1.4rem">Préparer l'export</button></div>
+      <div class="bar" id="exp-bar" style="margin-top:.7rem;height:.6rem"><div></div></div>
       <p class="small" id="exp-info" style="margin-top:.5rem"></p>
+      <details open style="margin-top:1rem"><summary class="small" style="cursor:pointer"><b>Autre option : tout télécharger en une seule fois (un seul fichier ZIP)</b></summary>
+      <p class="small" style="margin-top:.5rem">Un seul fichier pour toutes les vidéos, sans lots. Il passe par les téléchargements de Safari. Un seul ZIP, écrit au fur et à mesure (pas de limite de mémoire), avec un dossier par candidat. Il arrive dans le dossier de téléchargement de Safari et exige autant de place libre sur l'iPad que le fichier.</p>
+      <div class="row">
+        <button class="btn" id="btn-zip-prep">1. Préparer et vérifier</button>
+        <button class="btn btn-ok" id="btn-zip-go" disabled>2. Télécharger le ZIP</button>
+      </div>
+      <div class="bar" id="zip-bar" style="margin-top:.7rem;height:.6rem"><div></div></div>
+      <p class="small" id="zip-info" style="margin-top:.5rem"></p>
+      <div id="zip-confirm" class="hidden">
+        <p class="small" id="zip-expect"></p>
+        <div class="row">
+          <button class="btn btn-ok" id="btn-zip-ok">3. Le fichier est bien arrivé : marquer comme exporté</button>
+          <button class="btn btn-ghost" id="btn-zip-ko">Annuler (rien n'est marqué)</button>
+        </div>
+      </div>
+      <p class="small" style="margin-top:.7rem">Le fichier arrive dans le dossier de téléchargement de Safari (Réglages › Safari › Téléchargements). Il faut autant de place libre sur l'iPad que le fichier. Gardez l'écran allumé et l'app ouverte pendant le téléchargement. Ensuite : AirDrop depuis l'app Fichiers, ou copie sur le disque.</p>
+      <details style="margin-top:.7rem"><summary class="small" style="cursor:pointer">Essai de transfert (fichier factice, sans vidéo réelle)</summary>
+      <p class="small" style="margin-top:.5rem">Télécharge un faux ZIP rempli de zéros, pour vérifier que l'iPad, Safari et le disque supportent un gros fichier. Supprimez-le ensuite dans l'app Fichiers. Il faut autant de place libre que la taille choisie.</p>
+      <div class="row"><button class="btn btn-ghost" data-ztest="2">Essai 2 Go</button><button class="btn btn-ghost" data-ztest="10">Essai 10 Go</button><button class="btn btn-ghost" data-ztest="25">Essai 25 Go</button></div>
+      </details>
+      </details>
       <div class="row">
         <button class="btn btn-ghost" id="btn-exp-reset">Remettre toutes les vidéos « à exporter »</button>
-        <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà sauvegardées (site ou export)</button>
+        <button class="btn btn-ghost" id="btn-del-exp" style="color:#ff8a80">Supprimer les vidéos déjà exportées</button>
         <button class="btn btn-ghost hidden" id="btn-del-empty" style="color:#ff8a80">Supprimer les vidéos vides</button>
         <button class="btn btn-ghost" id="btn-del-all" style="color:#ff8a80">Tout effacer (remise à zéro)</button>
         <button class="btn btn-ghost" id="btn-del-test" style="color:#ff8a80">Effacer les tests : iPad ET site</button>
-        <div class="hint" style="margin-top:4px">Les autres boutons de suppression n'effacent que sur l'iPad : les vidéos restent sur le site.</div>
+        <div class="hint" style="margin-top:4px">Les boutons de suppression n'effacent que sur l'iPad. Seul « Effacer les tests : iPad ET site » retire aussi les prises du site (corbeille du serveur).</div>
       </div>
+    </div>
+    <div class="card">
+      <h3>2. Rapport « qui a tourné quoi » (.json)</h3>
+      <p>Un <b>seul rapport</b>, lu par l'app Contrôle-infos : pour chaque candidat, ses vidéos (oui / rejetée), son éventuel refus et la liste de ses fichiers (nom, taille, durée, export).</p>
+      <p class="small"><b>Synchronisation automatique :</b> la borne envoie ces informations à Contrôle-infos par le site, après chaque prise (seulement des statuts, jamais de vidéo).</p>
+      <div class="dash-badge ko" id="report-sync" role="status">–</div>
+      <div class="row">
+        <button class="btn btn-ghost" id="btn-sync-now">Renvoyer maintenant</button>
+        <button class="btn btn-ok" id="btn-report-json">Exporter le rapport (.json)</button>
+      </div>
+      <p class="small" id="report-info"></p>
+      <p class="small">Le fichier .json sert de secours en cas de problème de synchronisation : à envoyer sur l'iPad d'accueil (AirDrop), puis dans Contrôle-infos : menu administrateur › « Importer le rapport de la borne ».</p>
     </div>
 
     <div class="card">
@@ -572,8 +668,6 @@
     <div class="card">
       <h3>Suivi des candidats de la journée</h3>
       <p class="small" id="track-sum"></p>
-      <div class="row"><button class="btn btn-ok" id="btn-report">Rapport de fin de journée (fichier à importer dans l'app contrôle des infos)</button></div>
-      <p class="small" id="report-info"></p>
       <ul class="cand-list" id="track-list"></ul>
     </div>
 
@@ -585,6 +679,27 @@
         <button data-v="gauche">À gauche</button>
         <button data-v="droite">À droite</button>
       </div>
+    </div>
+
+    <div class="card">
+      <h3>Cadrage de référence</h3>
+      <p class="small">Une personne se place comme vous voulez que tous les candidats soient (visage bien grand, yeux sur la ligne), puis touchez « Mémoriser ». La borne guide ensuite chaque candidat vers ce même cadrage, ce qui uniformise les vidéos. Sans référence, la borne vise un visage de taille moyenne.</p>
+      <p class="mono" id="frame-ref-info" style="margin-top:.5rem">–</p>
+      <div class="row">
+        <button class="btn" id="btn-frame-ref">Mémoriser le cadrage actuel</button>
+        <button class="btn btn-ghost" id="btn-frame-clear">Effacer la référence</button>
+      </div>
+      <p class="small" style="margin-top:.7rem"><b>Important :</b> désactiver « Cadrage centré » (Center Stage) dans le Centre de contrôle de l'iPad › Effets vidéo : sinon l'iPad zoome et recadre tout seul selon la position du candidat, ce qui change le champ d'une personne à l'autre.</p>
+    </div>
+
+    <div class="card">
+      <h3>Volume du retour son après la prise</h3>
+      <div class="seg" id="seg-vol">
+        <button data-v="normal">Normal</button>
+        <button data-v="fort">Fort</button>
+        <button data-v="max">Très fort (recommandé)</button>
+      </div>
+      <p class="small" style="margin-top:.5rem">Amplifie le son de la vidéo que le candidat revoit. Mettez aussi le volume de l'iPad au maximum avec les boutons latéraux.</p>
     </div>
 
     <div class="card">
@@ -683,7 +798,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '3.21 · 26.10.2026';
+  const VERSION = '4.2 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -729,12 +844,11 @@
     recording: null,
     exportBatch: null,
     noIdle: false,
-    lot: LS.get('lot', null)
+    lot: LS.get('lot2', '1000'),
+    vol: LS.get('vol', 'max')
   };
-  if (!['all', '50', '25', '10'].includes(state.lot)) {
-    const n = Number(CFG.exportParLot);
-    state.lot = !n || n >= 50 ? (n === 50 ? '50' : 'all') : n >= 25 ? '25' : '10';
-  }
+  if (!['500', '1000', '2000'].includes(state.lot)) state.lot = '1000';
+  if (!['normal', 'fort', 'max'].includes(state.vol)) state.vol = 'max';
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
   document.documentElement.style.setProperty('--main', CFG.couleurPrincipale || '#00a0e2');
@@ -858,22 +972,76 @@
     }
   };
 
+  /* Nom de fichier : Prenom-Nom_Q1_p1_validee.mp4  (la pose est la « Q5 » : dernière étape).
+     Toujours en ASCII (lettres sans accent, chiffres, tiret, soulignement) : lisible tel quel sous Windows, macOS et Linux. */
+  const WIN_RESERVED = /^(con|prn|aux|nul|com[0-9]|lpt[0-9])$/i;
+  const fileSlug = (s) => {
+    let t = String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/œ/g, 'oe').replace(/Œ/g, 'Oe').replace(/æ/g, 'ae').replace(/Æ/g, 'Ae').replace(/ß/g, 'ss').replace(/ø/g, 'o').replace(/Ø/g, 'O').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/ł/g, 'l').replace(/Ł/g, 'L').replace(/ð/g, 'd').replace(/Ð/g, 'D').replace(/þ/g, 'th').replace(/Þ/g, 'Th');
+    t = t.replace(/[^A-Za-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+    if (WIN_RESERVED.test(t)) t += '-';
+    return t || 'Inconnu';
+  };
+  const stepNo = (m) => { const k = STEPS.findIndex(s => s.id === m.questionId); return k >= 0 ? k + 1 : (Number(m.questionIndex) || 0) + 1; };
+  function whoSlug(m) {
+    const inf = (LS.get('plan.info', {}) || {})[m.candidate];
+    return inf && inf.pre && inf.nom ? fileSlug(inf.pre) + '-' + fileSlug(inf.nom) : fileSlug(m.candidate);
+  }
   function fileName(m) {
     const ext = /webm/.test(m.mime) ? 'webm' : 'mp4';
-    return [m.date, m.dayId, slug(m.candidate), m.questionId, 'p' + m.take].join('_') +
-      (m.status === 'rejected' ? '_rejetee' : '') + '.' + ext;
+    return whoSlug(m) + '_Q' + stepNo(m) + '_p' + m.take + (m.status === 'rejected' ? '_rejetee' : '_validee') + '.' + ext;
   }
 
   /* ------------------------------------------------------------------
-     Dashboard PLR Vaud : liste du jour, statut des prises, envoi des vidéos
+     Avancement des candidats : étapes faites ou passées, « aucune vidéo », fin de parcours
+     ------------------------------------------------------------------ */
+  state.prog = {};
+  const profiles = () => LS.get('profiles', {}) || {};
+  function setProfile(name, patch) {
+    const P = profiles(); P[name] = Object.assign(P[name] || {}, patch); LS.set('profiles', P);
+    if (patch && 'refus' in patch) {   // « aucune vidéo » : signalé au dashboard (statut seulement, jamais de vidéo)
+      const R = LS.get('dash.refus', {}) || {};
+      R[name] = { refus: !!patch.refus, sent: false, cid: ((LS.get('plan.info', {}) || {})[name] || {}).id || '', at: Date.now() };
+      LS.set('dash.refus', R); setTimeout(() => { try { pushStatuses(); } catch (e) {} }, 300);
+    }
+  }
+  async function refreshProgress() {
+    let all = []; try { all = DB.db ? await DB.all() : []; } catch (e) {}
+    const out = {}, get = (n) => out[n] || (out[n] = { done: new Set(), skip: new Set(), refus: false, fin: false });
+    all.forEach(m => { if (m.status !== 'rejected' && (m.size || 0) >= MIN_BYTES) get(m.candidate).done.add(m.questionId); });
+    const P = profiles();
+    Object.keys(P).forEach(n => { const o = get(n), p = P[n]; o.refus = !!p.refus; o.fin = !!p.fin; (p.skip || []).forEach(q => o.skip.add(q)); });
+    state.prog = out; return out;
+  }
+  const progOf = (n) => state.prog[n] || { done: new Set(), skip: new Set(), refus: false, fin: false };
+  const stepDone = (p, st) => p.done.has(st.id) || p.skip.has(st.id);
+  const isPasse = (n) => { const p = progOf(n); return p.refus || (STEPS.length > 0 && STEPS.every(st => stepDone(p, st))); };
+  const stepLabel = (st) => st.titreCourt || (st.type === 'pose' ? 'La pose' : (VIDEO_LABELS[st.id] || '').replace(/^Q\d\s+/, '') || String(st.texte || '').slice(0, 40));
+  function renderSteppers() {
+    const p = progOf(state.candidate), cur = state.qIndex, st = STEPS[cur];
+    if (!st) return;
+    const bars = STEPS.map((s, i) => '<i class="' + (i === cur ? 'cur' : stepDone(p, s) ? 'done' : '') + '"></i>').join('');
+    const lbl = 'Étape ' + (cur + 1) + ' sur ' + STEPS.length + ' · ' + esc(stepLabel(st));
+    document.querySelectorAll('[data-stepper]').forEach(el => { el.innerHTML = '<div class="bars">' + bars + '</div><span>' + lbl + '</span>'; });
+  }
+  function askConfirm(title, txt, yes) {
+    return new Promise(res => {
+      $('#ask-title').textContent = title; $('#ask-txt').textContent = txt; $('#ask-yes').textContent = yes || 'Confirmer';
+      $('#ask').classList.remove('hidden');
+      const done = (v) => { $('#ask').classList.add('hidden'); $('#ask-yes').onclick = null; $('#ask-no').onclick = null; res(v); };
+      $('#ask-yes').onclick = () => done(true); $('#ask-no').onclick = () => done(false);
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     Dashboard PLR Vaud : liste du jour, statut des prises
      (clé X-Ipad-Key ; sans réseau, tout reste sur l'iPad et repart plus tard)
      ------------------------------------------------------------------ */
   const DASH = {
     url: (CFG.dashboardUrl || '').replace(/\/+$/, ''), key: LS.get('dash.key', ''),
-    last: LS.get('dash.last', ''), err: '', uploading: false, stop: false, statusBusy: false
+    last: LS.get('dash.last', ''), err: '', statusBusy: false
   };
-  const CHUNK = 8 * 1024 * 1024;
-  const deviceId = () => { let d = LS.get('dash.device', ''); if (!d) { d = 'borne-' + Math.random().toString(36).slice(2, 10); LS.set('dash.device', d); } return d; };
+    const deviceId = () => { let d = LS.get('dash.device', ''); if (!d) { d = 'borne-' + Math.random().toString(36).slice(2, 10); LS.set('dash.device', d); } return d; };
   const takeUid = (m) => deviceId() + '-' + m.id;
   function dashOn() { return !!(DASH.url && DASH.key); }
   async function dapi(path, opts) {
@@ -911,94 +1079,43 @@
     try {
       const todo = (await DB.all()).filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status);
       let dels = []; try { dels = JSON.parse(LS.get('dash.del', '[]') || '[]'); } catch (e) {}
-      if (!todo.length && !dels.length) return;
+      const RF = LS.get('dash.refus', {}) || {}, rtodo = Object.keys(RF).filter(n => !RF[n].sent);
+      if (!todo.length && !dels.length && !rtodo.length) return;
       const items = todo.map(m => ({ uid: takeUid(m), cid: m.cid || '', name: m.candidate, date: m.date, dayId: m.dayId,
         questionId: m.questionId, take: m.take, status: m.status, size: m.size, duration: m.duration }))
-        .concat(dels.map(uid => ({ uid, status: 'deleted' })));
+        .concat(dels.map(uid => ({ uid, status: 'deleted' })))
+        .concat(rtodo.map(n => ({ uid: deviceId() + '-refus-' + fileSlug(n), cid: RF[n].cid || '', name: n, status: RF[n].refus ? 'refus' : 'refus_annule' })));
       const res = await dapi('/videos/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items }) });
       const ok = new Set(res.ok || []);
       for (const m of todo) if (ok.has(takeUid(m))) { m.statusSent = m.status; await DB.put(m); }
       if (dels.length) LS.set('dash.del', JSON.stringify(dels.filter(u => !ok.has(u))));
+      if (rtodo.length) {
+        let any = false; rtodo.forEach(n => { if (ok.has(deviceId() + '-refus-' + fileSlug(n))) { RF[n].sent = true; any = true; } });
+        LS.set('dash.refus', RF); if (any) LS.set('dash.refusOk', true);   // le site connaît « aucune vidéo » : on peut alors signaler un retard d'envoi
+      }
       DASH.err = '';
     } catch (e) { DASH.err = dashErr(e); }
     finally { DASH.statusBusy = false; renderDashBadge(); }
   }
 
-  const toUpload = (all, incl) => all.filter(m => !m.uploaded && m.status !== 'pending' && (m.size || 0) >= MIN_BYTES && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id);
-  async function uploadOne(m, onProgress) {
-    const blob = await DB.blob(m.id);
-    if (!blob || blob.size < MIN_BYTES) return false;
-    const uid = takeUid(m), total = blob.size;
-    const qs = new URLSearchParams({ uid, cid: m.cid || '', cname: m.candidate || '', questionId: m.questionId || '', take: String(m.take || ''),
-      status: m.status || '', name: fileName(m), total: String(total) }).toString();
-    let st = await dapi('/videos/upload?uid=' + encodeURIComponent(uid)), fails = 0;
-    while (!st.done) {
-      if (DASH.stop) throw new Error('arrêté');
-      const off = st.size;
-      onProgress(off, total);
-      try {
-        st = await dapi('/videos/upload?' + qs + '&offset=' + off, { method: 'POST', timeout: 120000,
-          headers: { 'Content-Type': 'application/octet-stream' }, body: blob.slice(off, Math.min(total, off + CHUNK)) });
-        fails = 0;
-      } catch (e) {
-        if (e.status === 409 && e.body && typeof e.body.size === 'number') { st = { done: false, size: e.body.size }; continue; }
-        if (e.status === 401 || e.status === 507 || ++fails > 4) throw e;
-        await sleep(2000 * fails);   // coupure réseau : on réessaie le même morceau
-        st = await dapi('/videos/upload?uid=' + encodeURIComponent(uid)).catch(() => ({ done: false, size: off }));
-      }
-    }
-    if (st.size !== total) throw new Error('taille reçue différente (' + st.size + ' / ' + total + ')');
-    m.uploaded = true; m.uploadedAt = Date.now();
-    await DB.put(m);
-    return true;
-  }
-  async function uploadAll() {
-    if (!dashOn()) { $('#dash-info').textContent = 'Collez d\'abord la clé iPad (ci-dessous).'; return; }
-    if (DASH.uploading) return;
-    DASH.uploading = true; DASH.stop = false; state.noIdle = true; keepAwake();
-    $('#btn-dash-upload').classList.add('hidden'); $('#btn-dash-stop').classList.remove('hidden');
-    const info = $('#dash-info');
-    let sent = 0, bytes = 0;
-    try {
-      await pushStatuses();
-      const list = toUpload(await DB.all(), $('#dash-rej').checked);
-      if (!list.length) { info.textContent = 'Rien à envoyer : toutes les vidéos sont déjà sur le serveur ✔'; return; }
-      const totalBytes = list.reduce((a, m) => a + (m.size || 0), 0);
-      for (let i = 0; i < list.length; i++) {
-        const m = list[i];
-        const ok = await uploadOne(m, (off, tot) => {
-          info.textContent = 'Envoi ' + (i + 1) + ' / ' + list.length + ' · ' + m.candidate + ' · ' + (m.questionId || '') +
-            ' · ' + Math.round(100 * off / tot) + ' % · total ' + fmtBytes(bytes + off) + ' / ' + fmtBytes(totalBytes);
-        });
-        if (ok) { sent++; bytes += m.size || 0; }
-      }
-      info.textContent = '✔ ' + sent + ' vidéo(s) envoyée(s) au serveur (' + fmtBytes(bytes) + '). Elles sont marquées « envoyées au site » (l\'export AirDrop / disque reste à part).';
-    } catch (e) {
-      info.textContent = (e && e.message === 'arrêté' ? 'Envoi arrêté. ' : 'Envoi interrompu : ' + dashErr(e) + '. ') +
-        sent + ' vidéo(s) envoyée(s). Rien n\'est perdu : touchez « Envoyer » pour reprendre.';
-    } finally {
-      DASH.uploading = false; state.noIdle = false;
-      $('#btn-dash-upload').classList.remove('hidden'); $('#btn-dash-stop').classList.add('hidden');
-      await refreshStats(); refreshDash();
-    }
-  }
   /* État de synchronisation avec le site : ✔ (liste reçue récemment, statuts des prises envoyés) ou ⚠ avec la raison */
   async function dashState() {
     if (!DASH.url) return { ok: false, txt: '⚠ Non synchronisé avec le site (adresse absente)' };
     if (!DASH.key) return { ok: false, txt: '⚠ Non synchronisé avec le site : borne pas encore reliée' };
-    let pend = 0, left = 0;
-    try { if (DB.db) { const all = await DB.all(); pend = all.filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status).length; left = toUpload(all, false).length; } } catch (e) {}
+    let pend = 0;
+    try { if (DB.db) { const all = await DB.all(); pend = all.filter(m => (m.status === 'kept' || m.status === 'rejected') && m.statusSent !== m.status).length; } } catch (e) {}
     const hm = DASH.last ? new Date(DASH.last).toLocaleTimeString('fr-CH', { hour: '2-digit', minute: '2-digit' }) : '';
-    const vid = left ? ' · ' + left + ' vidéo(s) à envoyer en fin de journée' : '';
     if (DASH.err) return { ok: false, txt: '⚠ Non synchronisé : ' + DASH.err + (hm ? ' (dernière liste reçue à ' + hm + ')' : '') };
     if (!DASH.last) return { ok: false, txt: '⚠ Non synchronisé : liste du site pas encore reçue' };
     if (pend) return { ok: false, txt: '⚠ Non synchronisé : ' + pend + ' prise(s) pas encore signalée(s) au site' };
+    if (LS.get('dash.refusOk', false)) { const R = LS.get('dash.refus', {}) || {}, np = Object.keys(R).filter(n => !R[n].sent).length; if (np) return { ok: false, txt: '⚠ Non synchronisé : ' + np + ' « aucune vidéo » pas encore signalé(s) au site' }; }
     if (Date.now() - new Date(DASH.last).getTime() > 10 * 60000) return { ok: false, txt: '⚠ Non synchronisé depuis ' + hm };
-    return { ok: true, txt: '✔ Synchronisé avec le site · ' + hm + vid };
+    return { ok: true, txt: '✔ Synchronisé avec le site · ' + hm };
   }
   async function renderDashBadge() {
     const el = $('#dash-badge'); if (!el) return;
     const st = await dashState(); el.textContent = st.txt; el.className = 'dash-badge ' + (st.ok ? 'ok' : 'ko');
+    try { renderReportSync(); } catch (e) {}
     return st;
   }
   async function refreshDash() {
@@ -1006,11 +1123,8 @@
     const el = $('#dash-status'); if (!el) return;
     if (!DASH.url) { el.textContent = 'Adresse du dashboard absente de config.js.'; return; }
     if (!DASH.key) { el.innerHTML = '<span class="warn">Non connecté : collez la clé iPad ci-dessous (ou ouvrez le lien donné dans l\'onglet Shooting du dashboard).</span>'; return; }
-    let left = 0, leftBytes = 0;
-    try { if (DB.db) { const l = toUpload(await DB.all(), $('#dash-rej').checked); left = l.length; leftBytes = l.reduce((a, m) => a + (m.size || 0), 0); } } catch (e) {}
     el.innerHTML = (!DASH.err && DASH.last ? '<b>✔ Borne reliée au dashboard.</b> ' : '') + (DASH.err ? '<span class="warn">Dernière tentative échouée : ' + esc(DASH.err) + '.</span> ' : '') +
-      (DASH.last ? 'Liste du jour reçue le ' + esc(new Date(DASH.last).toLocaleString('fr-CH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) + '. ' : 'Liste du jour jamais reçue. ') +
-      (left ? '<b>' + left + ' vidéo(s) à envoyer au serveur (' + fmtBytes(leftBytes) + ').</b>' : 'Toutes les vidéos sont sur le serveur ✔');
+      (DASH.last ? 'Liste du jour reçue le ' + esc(new Date(DASH.last).toLocaleString('fr-CH', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })) + '.' : 'Liste du jour jamais reçue.');
   }
   function dashBoot() {
     const m = /[#&]cle=([^&]+)/.exec(location.hash || '');
@@ -1027,8 +1141,6 @@
     setInterval(() => { if (state.screen === 'home' && !state.recording) { pullRoster(); pushStatuses(); } }, 45000);
     window.addEventListener('online', () => { pushStatuses(); });
   }
-  $('#btn-dash-upload').addEventListener('click', uploadAll);
-  $('#btn-dash-stop').addEventListener('click', () => { DASH.stop = true; $('#dash-info').textContent = 'Arrêt après le morceau en cours…'; });
   $('#btn-dash-pull').addEventListener('click', async () => { $('#dash-info').textContent = 'Actualisation…'; await pullRoster(); await pushStatuses(); $('#dash-info').textContent = DASH.err ? 'Échec : ' + DASH.err : 'Liste du jour à jour ✔'; refreshDash(); });
   $('#btn-dash-key').addEventListener('click', () => {
     DASH.key = $('#dash-key').value.trim(); LS.set('dash.key', DASH.key); DASH.err = '';
@@ -1037,7 +1149,6 @@
     $('#dash-info').textContent = 'Clé enregistrée : vérification de la connexion…';
     pullRoster().then(() => { $('#dash-info').textContent = DASH.err ? '⚠ Connexion impossible : ' + DASH.err + (/refus/.test(DASH.err) ? ' (recopiez la clé depuis l\'onglet Shooting du dashboard)' : '') : '✔ Borne reliée au dashboard : liste du jour reçue.'; if (!DASH.err) toast('✔ Borne reliée au dashboard', 5000); });
   });
-  $('#dash-rej').addEventListener('change', refreshDash);
 
   /* ------------------------------------------------------------------
      Caméra et micro
@@ -1075,7 +1186,7 @@
     }
     if (!s) throw lastErr;
     stream = s;
-    stream.getTracks().forEach(t => t.addEventListener('ended', () => { if (stream === s) stream = null; }));
+    stream.getVideoTracks().forEach(t => t.addEventListener('ended', () => { if (stream === s) stream = null; }));   // seule la caméra invalide le flux : un micro coupé se reconnecte tout seul
     ['#prep-video', '#rec-video', '#cal-video'].forEach(sel => { const v = $(sel); v.srcObject = stream; v.play().catch(() => {}); });
     micAttach();
     await waitFrames($('#rec-video'));
@@ -1232,6 +1343,14 @@
     } };
   }
 
+  /* Réglages réels de la caméra pendant la prise (pour comprendre un cadrage qui change d'un candidat à l'autre) */
+  function camSnapshot() {
+    try {
+      const st = stream.getVideoTracks()[0].getSettings(), f = frameSize();
+      return { w: st.width || f.w, h: st.height || f.h, fps: Math.round(st.frameRate || 0), zoom: st.zoom || null, el: f.w + 'x' + f.h };
+    } catch (e) { return null; }
+  }
+
   /* Safari écrit parfois une durée d'image aberrante (0xFFFFFFFF) dans le MP4 fragmenté :
      le fichier se lit mais sa durée apparaît fausse dans certains logiciels. On la corrige. */
   async function fixMp4(blob) {
@@ -1363,7 +1482,7 @@
   const BUILTIN_RE = /ipad|iphone|macbook|imac|mac mini|mac studio|int[ée]gr|built.?in|internal|interne|front microphone|back microphone|bottom microphone|top microphone/i;
   const MIC = {
     ctx: null, src: null, an: null, sink: null, td: null, fd: null, track: null, timer: null,
-    tick: 0, hist: [], phase: null, info: { label: '', builtin: null, rate: null, id: '' }, devices: [],
+    tick: 0, hist: [], phase: null, info: { label: '', builtin: null, rate: null, id: '' }, devices: [], attachedAt: 0,
     deadMs: 0, lastT: 0, lost: false, okAt: 0, lvl: -120
   };
   const quant = (a, p) => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); return b[Math.min(b.length - 1, Math.floor(p * b.length))]; };
@@ -1387,7 +1506,7 @@
     if (MIC.track === tr && MIC.an) return;
     const ctx = micCtx(); if (!ctx) return;
     try { if (MIC.src) MIC.src.disconnect(); } catch (e) {}
-    MIC.track = tr; MIC.lost = false; MIC.deadMs = 0; MIC.hist = []; MIC.okAt = 0;
+    MIC.track = tr; MIC.lost = false; MIC.deadMs = 0; MIC.hist = []; MIC.okAt = 0; MIC.attachedAt = Date.now();
     try {
       MIC.src = ctx.createMediaStreamSource(new MediaStream([tr]));
       MIC.an = ctx.createAnalyser(); MIC.an.fftSize = 8192; MIC.an.smoothingTimeConstant = 0;
@@ -1450,6 +1569,45 @@
     try { await ensureCamera(); micAttach(); fitAll(); return !!MIC.track; }
     catch (e) { micBanner(); return false; }
   }
+  /* Reconnexion du micro seul : la caméra n'est pas touchée (pas de scintillement à l'écran) */
+  async function micReconnectAudio() {
+    if (!stream || state.recording || !navigator.mediaDevices) return false;
+    const proc = !!CFG.traitementAudio;
+    const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: true, channelCount: { ideal: 1 } };
+    const want = LS.get('micId', '');
+    const tries = (want ? [Object.assign({}, audio, { deviceId: { exact: want } })] : []).concat([audio]);
+    for (const a of tries) {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: a });
+        const nt = s.getAudioTracks()[0]; if (!nt) continue;
+        stream.getAudioTracks().forEach(t => { try { stream.removeTrack(t); } catch (e) {} try { t.stop(); } catch (e) {} });
+        stream.addTrack(nt);
+        MIC.track = null; MIC.lost = false; micAttach();
+        return !!MIC.track;
+      } catch (e) {}
+    }
+    return false;
+  }
+  /* Surveillance : si le micro est coupé, muet ou ancien, on le reconnecte tout seul entre deux prises */
+  let micRecoverBusy = false, micRecoverAt = 0, micFails = 0;
+  async function micRecover() {
+    if (micRecoverBusy || state.recording || Date.now() - micRecoverAt < 6000) return false;
+    micRecoverBusy = true; micRecoverAt = Date.now();
+    try {
+      let ok = await micReconnectAudio();
+      if (!ok && ++micFails >= 2) { ok = await micReconnect(); micFails = 0; }    // en dernier recours : on rouvre aussi la caméra
+      if (ok) micFails = 0;
+      return ok;
+    } finally { micRecoverBusy = false; micBanner(); micNameUi(); }
+  }
+  function micWatchNow() {
+    if (!stream || state.recording || state.screen === 'record') return;
+    const tr = stream.getAudioTracks()[0];
+    const stale = MIC.attachedAt && Date.now() - MIC.attachedAt > 20 * 60000 && (state.screen === 'home' || state.screen === 'hub');
+    if (!tr || tr.readyState !== 'live' || MIC.lost || tr.muted || MIC.deadMs > 5000 || stale) micRecover();
+  }
+  setInterval(micWatchNow, 5000);
+  window.addEventListener('pageshow', () => setTimeout(micWatchNow, 500));
 
   function bandDb(lo, hi) {
     const bin = MIC.ctx.sampleRate / MIC.an.fftSize;
@@ -1643,6 +1801,76 @@
      - image : lumière, contre-jour, reflets, netteté, image figée
      - son : voir « Contrôle du son en direct » ci-dessus
      ------------------------------------------------------------------ */
+  /* MediaPipe Face Mesh (Google, licence Apache 2.0) : 468 repères du visage + l'iris de chaque œil.
+     Fichiers dans vendor/mediapipe/, chargés une fois puis gardés sur l'iPad ; fonctionne sans internet.
+     Réglage des seuils : 942 images de 31 candidats du 27.10 (regard vers l'objectif : position de l'iris à 0,49 ± 0,02). */
+  const GZ = { fm: null, ok: false, busy: false, last: null, loading: null };
+  function loadFaceMesh() {
+    if (!qaEnabled() || CFG.detectionRegard === false) return Promise.resolve();
+    if (GZ.loading) return GZ.loading;
+    GZ.loading = new Promise((res) => {
+      const s = document.createElement('script');
+      s.src = './vendor/mediapipe/face_mesh.js';
+      s.onload = async () => {
+        try {
+          const fm = new window.FaceMesh({ locateFile: (f) => './vendor/mediapipe/' + f });
+          fm.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+          fm.onResults((r) => { GZ.last = r; });
+          await fm.initialize();
+          GZ.fm = fm; GZ.ok = true;
+        } catch (e) { console.warn('Détection du regard indisponible', e); }
+        res();
+      };
+      s.onerror = () => { console.warn('face_mesh.js introuvable'); res(); };
+      document.head.appendChild(s);
+    });
+    return GZ.loading;
+  }
+  const GAZE = Object.assign({ h: 0.065, bas: 0.57, tete: 0.2, part: 0.4, ouvert: 0.14 }, CFG.regard || {});
+  function meshMetrics(L, W, H) {
+    const x = (k) => L[k].x, y = (k) => L[k].y;
+    const hr = (c, o, i) => (x(c) - x(o)) / ((x(i) - x(o)) || 1e-9);
+    const vr = (c, u, l) => (y(c) - y(u)) / ((y(l) - y(u)) || 1e-9);
+    const eyeW = (Math.abs(x(133) - x(33)) + Math.abs(x(263) - x(362))) / 2 * W;
+    const open = ((Math.abs(y(145) - y(159)) + Math.abs(y(374) - y(386))) / 2 * H) / (eyeW || 1e-9);
+    return {
+      face: true,
+      h: (hr(468, 33, 133) + hr(473, 362, 263)) / 2,                  // 0,5 = iris centré dans l'œil
+      v: (vr(468, 159, 145) + vr(473, 386, 374)) / 2,                 // plus grand = regard vers le bas
+      yaw: (x(1) - x(234)) / ((x(454) - x(234)) || 1e-9),             // 0,5 = tête de face
+      fh: y(152) - y(10),                                             // hauteur du visage / hauteur de l'image
+      cx: (x(234) + x(454)) / 2, eyeY: y(168), open
+    };
+  }
+  async function meshFrame(src) {
+    if (!GZ.ok || GZ.busy || !src || !src.videoWidth) return null;
+    GZ.busy = true; GZ.last = null;
+    try { await GZ.fm.send({ image: src }); } catch (e) { GZ.busy = false; return null; }
+    GZ.busy = false;
+    const r = GZ.last, L = r && r.multiFaceLandmarks && r.multiFaceLandmarks[0];
+    return L ? meshMetrics(L, src.videoWidth, src.videoHeight) : { face: false };
+  }
+  /* Le candidat regarde-t-il ailleurs que l'objectif ? (iris décentré, regard vers le bas = vers l'écran, tête tournée) */
+  function gazeOff(m) {
+    const cam = state.camPos === 'haut';
+    return Math.abs(m.yaw - 0.5) > GAZE.tete || (cam && (Math.abs(m.h - 0.49) > GAZE.h || m.v > GAZE.bas));
+  }
+  /* Cadrage visé : cadrage de référence mémorisé dans le menu organisateur, sinon une fenêtre moyenne */
+  function framingTarget() {
+    const ref = LS.get('frameRef', null), C = CFG.cadrage || {};
+    if (ref && ref.fh) return { lo: ref.fh * 0.86, hi: ref.fh * 1.14, eyeLo: ref.eyeY - 0.07, eyeHi: ref.eyeY + 0.07, ref: true };
+    return { lo: Number(C.visageMin) || 0.18, hi: Number(C.visageMax) || 0.26, eyeLo: 0.26, eyeHi: 0.47, ref: false };
+  }
+  function framingVerdict(fh, cx, ey) {
+    const T = framingTarget();
+    if (fh < T.lo) return { ok: false, txt: fh < T.lo * 0.8 ? 'Vous êtes trop loin : rapprochez-vous de la caméra.' : 'Rapprochez-vous un peu de la caméra.' };
+    if (fh > T.hi) return { ok: false, txt: fh > T.hi * 1.2 ? 'Vous êtes trop près : éloignez-vous de la caméra, pour que l\'on voie votre buste et vos mains.' : 'Éloignez-vous un peu de la caméra.' };
+    if (Math.abs(cx - 0.5) > 0.1) return { ok: false, txt: 'Placez-vous un peu plus au centre.' };
+    if (ey > T.eyeHi) return { ok: false, txt: 'Redressez-vous un peu : vos yeux devraient être près de la ligne du haut.' };
+    if (ey < T.eyeLo) return { ok: false, txt: 'Vous êtes un peu haut dans l\'image : baissez-vous légèrement.' };
+    return { ok: true, txt: 'Votre cadrage est bon.' };
+  }
+
   const QA = { api: null, lm: false, loading: null, canvas: null, ctx: null, map: null, crop: null, cctx: null };
   const QW = 144, QH = 256, CROP = 128;
   function qaEnabled() { return CFG.analyseAuto !== false; }
@@ -1748,6 +1976,7 @@
   async function analyseFrame(v, o) {
     o = o || {};
     if (!grabFrame(v)) return null;
+    const mesh = o.mesh && GZ.ok ? await meshFrame(v) : null;
     let det = null, faces = null, geo = {}, sharp = null;
     if (QA.api) {
       const opt = () => new QA.api.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 });
@@ -1779,7 +2008,7 @@
       top: box ? box.y / QH : null,
       luma: L.face != null ? L.face : L.bg, bg: L.bg, hot: L.hot, hash: L.hash,
       happy: det && det.expressions ? det.expressions.happy : null,
-      faces, sharp, gx: geo.gx != null ? geo.gx : null, gy: geo.gy != null ? geo.gy : null, yaw: geo.yaw != null ? geo.yaw : null, roll: geo.roll != null ? geo.roll : null, ear: geo.ear != null ? geo.ear : null
+      mesh, faces, sharp, gx: geo.gx != null ? geo.gx : null, gy: geo.gy != null ? geo.gy : null, yaw: geo.yaw != null ? geo.yaw : null, roll: geo.roll != null ? geo.roll : null, ear: geo.ear != null ? geo.ear : null
     };
   }
   function startSampling(v, isPose, dur) {
@@ -1787,6 +2016,14 @@
     state.liveFaceMiss = 0;
     if (!qaEnabled()) return { stop: () => samples };
     let alive = true, busy = false, i = 0;
+    const meshes = [];
+    if (GZ.ok) (async () => {     // repères du visage et iris : boucle à part, aussi vite que l'appareil le permet
+      while (alive) {
+        const m = await meshFrame(v);
+        if (m && alive) { m.t = (performance.now() - t0) / 1000; meshes.push(m); }
+        await sleep(m ? 90 : 250);
+      }
+    })();
     const iv = setInterval(async () => {
       if (!alive || busy) return;
       busy = true;
@@ -1800,7 +2037,7 @@
       if (r && alive) { r.t = t; samples.push(r); if (QA.api) state.liveFaceMiss = r.face ? 0 : (state.liveFaceMiss || 0) + 1; }
       busy = false;
     }, 380);
-    return { stop() { alive = false; clearInterval(iv); state.liveFaceMiss = 0; return samples; } };
+    return { stop() { alive = false; clearInterval(iv); state.liveFaceMiss = 0; samples.meshList = meshes; return samples; } };
   }
   async function audioProfile(blob) {
     try {
@@ -1827,139 +2064,82 @@
   const median = (a) => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y); return b[Math.floor(b.length / 2)]; };
   const sd = (a) => { if (a.length < 2) return 0; const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
 
-  /* Bilan d'une prise.
-     redo : la prise n'est pas publiable, on conseille de recommencer
-     tip  : conseil pour la suite (prise utilisable)
-     tech : remarque pour l'organisateur (matériel), affichée à part */
+  /* Bilan d'une prise : trois conseils seulement, toujours dans le même ordre, ton calme.
+       Son (la voix est-elle assez forte ?), Regard (vers l'objectif ?), Cadrage (distance, centrage, hauteur).
+     Les alertes de matériel (micro coupé, image figée…) ne sont plus montrées comme des alarmes : elles sont gardées avec la vidéo
+     (suivi du menu organisateur), sauf si le son n'est pas parvenu : le candidat est alors invité à prévenir un organisateur. */
   function buildReport(step, samples, audio, byTimer, live) {
-    const items = [];
-    const add = (lvl, code, txt) => items.push({ lvl, code, txt });
+    const rows = [], tech = [], codes = [];
     const isPose = step.type === 'pose';
-
-    // ---------- Image
-    const S = samples || [], F = S.filter(x => x.face);
-    let run = 1, maxRun = 1;
-    for (let i = 1; i < S.length; i++) { run = S[i].hash === S[i - 1].hash ? run + 1 : 1; if (run > maxRun) maxRun = run; }
-    if (S.length >= 6 && maxRun >= 6) { add('redo', 'frozen', 'L\'image s\'est figée pendant la prise : recommencez.'); add('tech', 'frozen', 'Image figée : si cela se répète, « Redémarrer la caméra » dans ce menu (iPad trop chaud ?).'); }
-    const faceOk = !!QA.api && S.length >= 3;
-    if (faceOk) {
-      if (F.length / S.length < 0.5) add('redo', 'face', 'Votre visage sort souvent de l\'image : restez bien face à l\'iPad.');
-      else {
-        const h = median(F.map(x => x.h)), cx = median(F.map(x => x.cx)), cy = median(F.map(x => x.cy)), top = median(F.map(x => x.top));
-        if (h < 0.15) add('tip', 'far', 'Rapprochez-vous un peu : votre visage paraîtra plus grand à l\'écran.');
-        else if (h > 0.56) add('tip', 'near', 'Reculez légèrement : votre visage est très proche.');
-        if (Math.abs(cx - 0.5) > 0.16) add('tip', 'center', 'Placez-vous bien au centre de l\'image.');
-        if (cy > 0.5) add('tip', 'low', 'Votre visage est un peu bas dans l\'image : redressez-vous (les sous-titres s\'affichent en bas).');
-        else if (top < 0.025) add('tip', 'headroom', 'Le haut de votre tête est coupé : reculez un peu.');
-        if (!isPose && F.length >= 6 && Math.max(sd(F.map(x => x.cx)), sd(F.map(x => x.cy))) > 0.06) add('tip', 'moving', 'Vous bougez beaucoup : restez bien en place, épaules face à l\'iPad.');
-        const G = F.filter(x => x.yaw != null);
-        // Regard : le candidat doit fixer l'objectif, pas l'écran (ni une personne à côté). Deux mesures :
-        // orientation de la tête (yaw) et position de l'iris dans l'œil (gx horizontal, gy vertical, positif = vers le bas).
-        const Z = F.filter(x => x.gx != null), GX = Number(CFG.seuilRegardX) || 0.15, GY = Number(CFG.seuilRegardY) || 0.1;
-        if (!isPose && (G.length >= 5 || Z.length >= 5)) {
-          const headOff = G.length >= 5 ? G.filter(x => Math.abs(x.yaw) > 0.28).length / G.length : 0;
-          const eyeOff = (Z.length >= 5 && state.camPos === 'haut') ? Z.filter(x => Math.abs(x.gx) > GX || x.gy > GY).length / Z.length : 0;
-          live.gazeOff = Math.round(100 * Math.max(headOff, eyeOff));
-          if (headOff > 0.4 || eyeOff > 0.4) add('redo', 'gaze', 'Vous ne regardez pas l\'objectif de la caméra : recommencez en fixant le petit objectif, en haut de l\'iPad, pas l\'écran.');
-          else if (G.filter(x => x.ear != null && x.ear < 0.14).length / Math.max(1, G.length) > 0.35) add('tip', 'eyes', 'On voit peu vos yeux : levez le regard vers l\'objectif, en haut de l\'iPad.');
-          if (G.length >= 5 && Math.abs(median(G.map(x => x.roll))) > 12) add('tip', 'roll', 'Votre tête est penchée sur le côté : redressez-la.');
-        }
-        const M = S.filter(x => x.faces != null);
-        if (M.length >= 3 && M.filter(x => x.faces >= 2).length / M.length > 0.3) add('tip', 'others', 'Une autre personne apparaît derrière vous : demandez-lui de sortir du champ.');
-        // Netteté : comparée aux prises précédentes de la journée (objectif sale, flou de mouvement)
-        const sh = median(F.map(x => x.sharp).filter(x => x != null));
-        if (sh != null) {
-          const hist = LS.get('sharpHist', []);
-          if (hist.length >= 6 && sh < 0.45 * median(hist)) add('tech', 'blur', 'Image moins nette que d\'habitude : essuyer l\'objectif de la caméra frontale (traces de doigts).');
-          live.sharp = sh;
-        }
-      }
-    }
-    const lum = median((F.length ? F : S).map(x => x.luma).filter(x => x != null));
-    if (lum != null) {
-      if (lum < 55) add('redo', 'dark', 'Votre visage est très sombre : avancez vers la lumière.');
-      else if (lum < 80) add('tip', 'dark', 'Votre visage est un peu sombre : avancez d\'un pas vers la lumière.');
-      else if (lum > 235) add('tip', 'bright', 'Beaucoup de lumière sur votre visage : reculez d\'un pas.');
-      else if (F.length) {
-        const bg = median(F.map(x => x.bg)), hot = median(F.map(x => x.hot).filter(x => x != null));
-        if (bg - lum > 55) add('tip', 'backlight', 'Vous êtes à contre-jour : tournez-vous vers la lumière.');
-        else if (hot != null && hot > 0.2) add('tip', 'shine', 'Reflet ou lumière trop forte sur le visage : reculez d\'un pas ou tournez-vous légèrement.');
-      }
-    }
+    const S = samples || [], F = S.filter(x => x.face), Mz = (S.meshList || []).filter(x => x.face);
+    live = live || {};
+    const out = { fh: null, eyeY: null };
 
     // ---------- Son
-    if (isPose) {
-      if (faceOk) {
-        const hs = S.filter(x => x.happy != null).map(x => x.happy);
-        if (hs.length && Math.max(...hs) < 0.5) add('tip', 'smile', 'Votre sourire était discret : osez un vrai grand sourire !');
-      }
-      // phrase finale (« Le 28 février on vote ! … En attendant, bon film ! ») : on doit l'entendre clairement (la pose dure 16 s, la voix n'en occupe qu'une partie)
-      if (live && live.st) {
-        const st = live.st;
-        if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
-        else if (st.dead > 0.85) { add('redo', 'micdead', 'On n\'entend rien : le micro ne capte pas.'); add('tech', 'micdead', 'Aucun signal du micro : vérifier qu\'il est allumé, chargé et connecté.'); }
-        else if (st.voiced < 0.02 || st.speech == null) add('redo', 'nobonfilm', st.noise > -42 ? 'Trop de bruit autour de vous : on n\'entend pas votre phrase finale.' : 'On ne vous entend pas dire la phrase finale : parlez plus fort à la fin de la pose.');
-        else {
-          if (st.speech < -44) add('redo', 'quiet', 'Votre phrase finale est trop faible : dites-la plus fort.');
-          else if (st.speech < -35) add('tip', 'quiet', 'Dites la phrase finale un peu plus fort.');
-          if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : parlez un peu moins fort.');
-          if (st.snr < 10) add('redo', 'noise', 'Trop de bruit autour de vous : recommencez quand le calme revient.');
-          else if (st.snr < 16) add('tip', 'noise', 'Il y a du bruit de fond : demandez le calme autour de la borne.');
-          if (st.gaps >= 2) add('redo', 'gap', 'Le son a été coupé à plusieurs reprises : recommencez.');
-          if (st.gaps >= 1) add('tech', 'gap', 'Coupures du micro sans fil (' + st.gaps + ') : rapprocher le récepteur, vérifier la batterie, éviter les obstacles.');
-          if (st.clicksPs > 1.2) add('redo', 'crackle', 'Le son grésille : recommencez.');
-          if (st.hum != null && st.hum > 18) add('tech', 'hum', 'Bourdonnement électrique (50 Hz) : éloigner le micro et le récepteur des câbles et des chargeurs.');
-          if (st.narrow || (MIC.info.rate && MIC.info.rate <= 16000)) add('tech', 'narrow', 'Son de qualité « téléphone » : le micro Bluetooth fonctionne en mode mains libres (16 kHz).');
-        }
-        if (micExternalWanted() && live.info && live.info.builtin) add('tech', 'builtin', 'Prise enregistrée avec le micro de l\'iPad : le micro externe n\'était pas connecté.');
-      }
-    } else if (live && live.st) {
-      const st = live.st;
-      if (live.lost) { add('redo', 'miclost', 'Le micro s\'est coupé pendant la prise : recommencez.'); add('tech', 'miclost', 'Micro déconnecté pendant la prise : vérifier la connexion Bluetooth et la batterie du micro.'); }
-      else if (st.dead > 0.85) { add('redo', 'micdead', 'On n\'entend rien : le micro ne capte pas.'); add('tech', 'micdead', 'Aucun signal du micro : vérifier qu\'il est allumé, chargé et connecté.'); }
-      else if ((st.voiced < 0.08 || st.speech == null) && st.noise > -42) add('redo', 'noise', 'Trop de bruit autour de vous : on n\'entend pas votre voix. Recommencez quand le calme revient.');
-      else if (st.voiced < 0.08 || st.speech == null) add('redo', 'silent', 'On ne vous entend presque pas : parlez plus fort, face à l\'iPad.');
-      else {
-        if (st.speech < -44) add('redo', 'quiet', 'Le son est trop faible : parlez plus fort (ou rapprochez le micro de votre bouche).');
-        else if (st.speech < -35) add('tip', 'quiet', 'Parlez un peu plus fort, comme à quelqu\'un placé à deux mètres.');
-        if (st.clipV > 0.05) add('redo', 'clip', 'Le son sature : parlez un peu moins fort (ou éloignez un peu le micro).');
-        else if (st.clipV > 0.01) add('tip', 'clip', 'Le son sature par moments : parlez un peu moins fort.');
-        if (st.snr < 10) add('redo', 'noise', 'Trop de bruit autour de vous : recommencez quand le calme revient.');
-        else if (st.snr < 16) add('tip', 'noise', 'Il y a du bruit de fond : demandez le calme autour de la borne.');
-        if (st.gaps >= 2) add('redo', 'gap', 'Le son a été coupé à plusieurs reprises : recommencez.');
-        if (st.gaps >= 1) add('tech', 'gap', 'Coupures du micro sans fil (' + st.gaps + ') : rapprocher le récepteur, vérifier la batterie, éviter les obstacles.');
-        if (st.clicksPs > 1.2) add('redo', 'crackle', 'Le son grésille : recommencez.');
-        if (st.clicksPs > 0.5) add('tech', 'crackle', 'Grésillements dans le son : vérifier le micro et sa connexion.');
-        if (st.rub > 0.15) add('tip', 'rub', 'Le micro frotte (vêtement, cheveux, bijou) : ne le touchez pas pendant la prise.');
-        if (st.hum != null && st.hum > 18) add('tech', 'hum', 'Bourdonnement électrique (50 Hz) : éloigner le micro et le récepteur des câbles et des chargeurs.');
-        if (st.narrow || (MIC.info.rate && MIC.info.rate <= 16000)) add('tech', 'narrow', 'Son de qualité « téléphone » : le micro Bluetooth fonctionne en mode mains libres (16 kHz).');
-        const tail = live.preTail || [];
-        if (st.first != null && st.first < 0.2 && tail.filter(f => f.rms > st.thr).length >= 3) add('redo', 'early', 'Vous avez commencé à parler pendant le décompte : votre premier mot est coupé.');
-        if (byTimer && st.last != null && st.last < 0.5) add('redo', 'cut', 'Vous avez été coupé en fin de phrase : visez un peu plus court.');
-        else if (st.span < 5 && !items.some(i => i.code === 'quiet' || i.code === 'noise')) add('tip', 'short', 'Réponse très courte : vous pouvez développer un peu.');
-        if (st.pause > 4) add('tip', 'pause', 'Il y a un long silence au milieu de votre réponse : restez dans l\'élan.');
-      }
-      if (micExternalWanted() && live.info && live.info.builtin) add('tech', 'builtin', 'Prise enregistrée avec le micro de l\'iPad : le micro externe n\'était pas connecté.');
-    } else if (audio && audio.frames.length) {   // repli : analyse du fichier enregistré
+    const st = live.st;
+    let son = null;
+    if (st) {
+      if (live.lost) { son = { ok: false, txt: 'Le son ne nous est pas parvenu : prévenez un organisateur.' }; tech.push('Micro déconnecté pendant la prise.'); codes.push('miclost'); }
+      else if (st.dead > 0.85) { son = { ok: false, txt: 'Le son ne nous est pas parvenu : prévenez un organisateur.' }; tech.push('Aucun signal du micro.'); codes.push('micdead'); }
+      else if (st.voiced < (isPose ? 0.02 : 0.08) || st.speech == null) son = { ok: false, txt: isPose ? 'On ne vous entend pas dire la phrase finale : dites-la un peu plus fort.' : 'Votre voix est à peine audible : parlez un peu plus fort.' };
+      else if (st.speech < -38) son = { ok: false, txt: isPose ? 'Votre phrase finale est un peu faible : dites-la un peu plus fort.' : 'Votre voix est un peu faible : parlez un peu plus fort ou rapprochez le micro.' };
+      else son = { ok: true, txt: isPose ? 'Votre phrase finale est bien audible.' : 'Votre voix est bien audible.' };
+      if (st.gaps >= 1) { tech.push('Coupures du micro sans fil (' + st.gaps + ').'); codes.push('gap'); }
+      if (st.clicksPs > 0.5) { tech.push('Grésillements dans le son.'); codes.push('crackle'); }
+      if (st.clipV > 0.05) { tech.push('Le son sature.'); codes.push('clip'); }
+      if (st.snr != null && st.snr < 10) { tech.push('Beaucoup de bruit autour.'); codes.push('noise'); }
+      if (st.hum != null && st.hum > 18) { tech.push('Bourdonnement électrique (50 Hz).'); codes.push('hum'); }
+      if (st.narrow || (MIC.info.rate && MIC.info.rate <= 16000)) { tech.push('Son de qualité « téléphone » (Bluetooth mains libres).'); codes.push('narrow'); }
+      if (micExternalWanted() && live.info && live.info.builtin) { tech.push('Micro de l\'iPad utilisé : le micro externe n\'était pas connecté.'); codes.push('builtin'); }
+    } else if (audio && audio.frames.length) {
       const fr = audio.frames, voiced = fr.filter(x => x > -42);
-      if (voiced.length / fr.length < 0.08) add('redo', 'silent', 'On ne vous entend presque pas : parlez plus fort, face à l\'iPad.');
+      if (voiced.length / fr.length < 0.08) son = { ok: false, txt: 'Votre voix est à peine audible : parlez un peu plus fort.' };
+      else son = median(voiced) < -33 ? { ok: false, txt: 'Votre voix est un peu faible : parlez un peu plus fort.' } : { ok: true, txt: 'Votre voix est bien audible.' };
+    }
+    if (son) rows.push(Object.assign({ key: 'son' }, son));
+
+    // ---------- Image figée (organisateur)
+    let run = 1, maxRun = 1;
+    for (let i = 1; i < S.length; i++) { run = S[i].hash === S[i - 1].hash ? run + 1 : 1; if (run > maxRun) maxRun = run; }
+    if (S.length >= 6 && maxRun >= 6) { tech.push('Image figée pendant la prise.'); codes.push('frozen'); }
+
+    // ---------- Regard (pas pour la pose : on y tourne la tête)
+    if (!isPose) {
+      const V = Mz.filter(m => m.open >= GAZE.ouvert);
+      let gz = null;
+      if (V.length >= 5) {
+        const off = V.filter(gazeOff).length / V.length;
+        live.gazeOff = Math.round(100 * off);
+        gz = off > GAZE.part;
+      } else if (!GZ.ok) {       // repli si l'outil de regard n'a pas pu se charger : orientation de la tête et position de l'iris
+        const G = F.filter(x => x.yaw != null), Z = F.filter(x => x.gx != null);
+        if (G.length >= 5 || Z.length >= 5) {
+          const headOff = G.length >= 5 ? G.filter(x => Math.abs(x.yaw) > 0.28).length / G.length : 0;
+          const eyeOff = (Z.length >= 5 && state.camPos === 'haut') ? Z.filter(x => Math.abs(x.gx) > 0.15 || x.gy > 0.1).length / Z.length : 0;
+          live.gazeOff = Math.round(100 * Math.max(headOff, eyeOff)); gz = Math.max(headOff, eyeOff) > 0.4;
+        }
+      }
+      if (gz !== null) rows.push(gz ? { key: 'regard', ok: false, txt: 'Essayez de regarder l\'objectif (' + objectifTexte() + ') plutôt que l\'écran.' } : { key: 'regard', ok: true, txt: 'Vous regardez bien l\'objectif.' });
+    }
+
+    // ---------- Cadrage
+    if (Mz.length >= 3) {
+      const fh = median(Mz.map(m => m.fh)), cx = median(Mz.map(m => m.cx)), ey = median(Mz.map(m => m.eyeY));
+      out.fh = Math.round(fh * 1000) / 1000; out.eyeY = Math.round(ey * 100) / 100;
+      rows.push(Object.assign({ key: 'cadrage' }, (S.meshList || []).length >= 4 && Mz.length / (S.meshList || []).length < 0.5 ? { ok: false, txt: 'Votre visage sort souvent de l\'image : restez bien face à l\'iPad.' } : framingVerdict(fh, cx, ey)));
+    } else if (S.length >= 3 && (QA.api || GZ.ok)) {
+      if (F.length / S.length < 0.5) rows.push({ key: 'cadrage', ok: false, txt: 'Votre visage sort souvent de l\'image : restez bien face à l\'iPad.' });
       else {
-        const lvl = median(voiced);
-        if (lvl < -33) add('tip', 'quiet', 'Parlez un peu plus fort, comme à quelqu\'un placé à deux mètres.');
-        if (audio.clipRatio > 0.0008) add('tip', 'clip', 'Le son sature par moments : parlez un peu moins fort ou reculez légèrement.');
-        const first = fr.findIndex(x => x > -42), last = fr.length - 1 - fr.slice().reverse().findIndex(x => x > -42);
-        if (byTimer && (last + 1) * 0.1 > audio.duration - 0.6) add('redo', 'cut', 'Vous avez été coupé en fin de phrase : visez un peu plus court.');
-        else if ((last - first) * 0.1 < 5) add('tip', 'short', 'Réponse très courte : vous pouvez développer un peu.');
+        const h = median(F.map(x => x.h)), cx = median(F.map(x => x.cx));
+        const msg = h < 0.15 ? 'Rapprochez-vous de la caméra.' : h > 0.56 ? 'Éloignez-vous de la caméra.' : Math.abs(cx - 0.5) > 0.16 ? 'Placez-vous un peu plus au centre.' : null;
+        rows.push(msg ? { key: 'cadrage', ok: false, txt: msg } : { key: 'cadrage', ok: true, txt: 'Votre cadrage est bon.' });
       }
     }
-    if (!isPose && faceOk && !items.some(i => i.lvl !== 'tech')) {
-      const hs = S.filter(x => x.happy != null).map(x => x.happy);
-      if (hs.length >= 4 && Math.max(...hs) < 0.12) add('tip', 'smile', 'Un petit sourire au début et à la fin rend la vidéo plus chaleureuse.');
-    }
-    const seen = new Set(), uniq = (a) => a.filter(i => { const k = i.lvl + i.code; if (seen.has(k)) return false; seen.add(k); return true; });
-    const all = uniq(items);
-    const cand = all.filter(i => i.lvl === 'redo').concat(all.filter(i => i.lvl === 'tip')).slice(0, 3);
-    return { items: cand, tech: all.filter(i => i.lvl === 'tech').slice(0, 3), redo: all.some(i => i.lvl === 'redo'), codes: all.map(i => i.code) };
+    // netteté de l'objectif (organisateur)
+    const sh = median(F.map(x => x.sharp).filter(x => x != null));
+    if (sh != null) { const hist = LS.get('sharpHist', []); if (hist.length >= 6 && sh < 0.45 * median(hist)) { tech.push('Image moins nette que d\'habitude : essuyer l\'objectif.'); codes.push('blur'); } live.sharp = sh; }
+
+    return { rows, tech, redo: rows.some(r => !r.ok), codes, fh: out.fh, eyeY: out.eyeY };
   }
   async function analyseTake(step, blob, samples, dur, byTimer, sess, live, meta) {
     if (!qaEnabled()) return;
@@ -1967,33 +2147,39 @@
     const audio = step.type === 'pose' || live.st ? null : await audioProfile(blob);
     const rep = buildReport(step, samples, audio, byTimer, live);
     // Bilan conservé avec la vidéo (visible dans le suivi du menu organisateur)
-    meta.qa = { redo: rep.redo, codes: [...new Set(rep.codes)], mic: live.info ? live.info.label : '',
+    meta.qa = { redo: rep.redo, codes: [...new Set(rep.codes)], tech: rep.tech, mic: live.info ? live.info.label : '',
       voix: live.st && live.st.speech != null ? Math.round(live.st.speech) : null, bruit: live.st ? Math.round(live.st.noise) : null,
-      regard: live.gazeOff != null ? live.gazeOff : null };
+      regard: live.gazeOff != null ? live.gazeOff : null, visage: rep.fh, yeux: rep.eyeY };
     try { await DB.put(meta); } catch (e) {}
     if (live.sharp != null && !rep.codes.includes('blur')) { const h = LS.get('sharpHist', []); h.push(live.sharp); LS.set('sharpHist', h.slice(-40)); }
     if (sess !== state.session || state.screen !== 'review') return;
-    const left = (CFG.prisesMax || 3) - state.takesThisQ;
-    const icon = { ok: '✔', tip: '💡', redo: '⚠', tech: '🔧' };
-    const callOrg = rep.tech.some(t => ['miclost', 'micdead', 'frozen'].includes(t.code));
+    const rows = rep.rows.slice();
     let title;
-    if (!rep.items.length) { title = 'Très bonne prise ✔'; rep.items.push({ lvl: 'ok', txt: step.type === 'pose' ? 'Cadrage, lumière, sourire et phrase finale : tout est en ordre.' : 'Cadrage, lumière et son : tout est en ordre.' }); }
-    else if (rep.redo && left > 0) { title = 'Nous vous conseillons de recommencer'; $('#btn-retake').classList.add('advised'); }
-    else if (rep.redo) title = 'Prise enregistrée. Un conseil pour la suite :';
-    else title = 'Bonne prise ✔ Un petit conseil :';
-    if (callOrg) title += ' · appelez un organisateur';
+    if (!rows.length) { title = 'Prise enregistrée ✔'; rows.push({ ok: true, txt: 'Rien à signaler.' }); }
+    else if (rep.redo) { title = 'Une nouvelle prise pourrait l\'améliorer — c\'est vous qui décidez'; $('#btn-retake').classList.add('advised'); }
+    else title = 'Très bonne prise ✔';
     $('#qa-title').textContent = title;
-    $('#qa-list').innerHTML = rep.items.map(it => '<li><span class="i">' + icon[it.lvl] + '</span><span>' + esc(it.txt) + '</span></li>').join('');
-    $('#qa-tech').classList.toggle('hidden', !rep.tech.length);
-    $('#qa-tech-list').innerHTML = rep.tech.map(it => '<li class="tech"><span class="i">🔧</span><span>' + esc(it.txt) + '</span></li>').join('');
+    $('#qa-list').innerHTML = rows.map(it => '<li class="' + (it.ok ? 'ok' : 'bad') + '"><span class="i">' + (it.ok ? '✔' : '●') + '</span><span>' + esc(it.txt) + '</span></li>').join('');
+    $('#qa-tech').classList.add('hidden');
   }
 
   /* Aide au cadrage en direct sur l'écran de préparation */
   let assistTimer = null, assistHist = [];
   function assistMessage(r) {
+    const m = r.mesh;
+    if (m && m.face) {
+      const T = framingTarget();
+      if (m.fh < T.lo) return { txt: 'Rapprochez-vous de la caméra' };
+      if (m.fh > T.hi) return { txt: 'Éloignez-vous de la caméra' };
+      if (Math.abs(m.cx - 0.5) > 0.1) return { txt: 'Placez-vous au centre' };
+      if (m.eyeY > T.eyeHi) return { txt: 'Redressez-vous : les yeux sur la ligne' };
+      if (m.eyeY < T.eyeLo) return { txt: 'Baissez-vous un peu' };
+      if (r.luma != null && r.luma < 75) return { txt: 'Avancez un peu vers la lumière' };
+      return { txt: 'Cadrage parfait ✔', ok: true };
+    }
     if (!r.face) return { txt: 'Placez votre visage dans le cadre' };
-    if (r.h < 0.15) return { txt: 'Approchez-vous un peu' };
-    if (r.h > 0.56) return { txt: 'Reculez un peu' };
+    if (r.h < 0.15) return { txt: 'Rapprochez-vous de la caméra' };
+    if (r.h > 0.56) return { txt: 'Éloignez-vous de la caméra' };
     if (Math.abs(r.cx - 0.5) > 0.16) return { txt: 'Placez-vous au centre' };
     if (r.cy > 0.52) return { txt: 'Redressez-vous : les yeux sur la ligne' };
     if (r.luma != null && r.luma < 75) return { txt: 'Avancez un peu vers la lumière' };
@@ -2006,7 +2192,7 @@
     const loop = async () => {
       if (state.screen !== 'prep') { el.classList.add('hidden'); return; }
       if (QA.api) {
-        const r = await analyseFrame($('#prep-video'), false);
+        const r = await analyseFrame($('#prep-video'), { mesh: true });
         if (r && state.screen === 'prep') {
           const m = assistMessage(r);
           assistHist.push(m.txt); if (assistHist.length > 3) assistHist.shift();
@@ -2024,7 +2210,7 @@
   /* ------------------------------------------------------------------
      Affichage
      ------------------------------------------------------------------ */
-  const SCREENS = ['home', 'intro', 'prep', 'pose', 'question', 'record', 'review', 'end', 'error'];
+  const SCREENS = ['home', 'hub', 'intro', 'prep', 'pose', 'question', 'record', 'review', 'end', 'error'];
   const CUE_SCREENS = ['intro', 'prep', 'pose', 'question', 'record'];
 
   function show(name) {
@@ -2122,15 +2308,24 @@
     }
     add.classList.add('hidden');
     if (!list.length) { box.innerHTML = '<p class="empty">Aucun nom pour cette journée : cherchez votre nom ci-dessus.</p>'; return; }
-    list.forEach(n => {
-      const b = document.createElement('button');
-      b.className = 'name-btn';
+    const mk = (n) => {
+      const b = document.createElement('button'), p = progOf(n), passe = isPasse(n);
+      b.className = 'name-btn' + (passe ? ' passed' : '');
       const inf = (LS.get('plan.info', {}) || {})[n];
-      if (inf && (inf.h || inf.arr)) b.innerHTML = esc(n) + '<small style="display:block;font-weight:500;opacity:.75;font-size:.85rem;margin-top:.25rem">' + esc([inf.h, inf.arr].filter(Boolean).join(' · ')) + '</small>';
-      else b.textContent = n;
+      let html = '<span class="nm">' + esc(n) + '</span>';
+      if (passe) html += '<span class="tag">' + (p.refus ? 'aucune vidéo' : 'passé') + '</span>';
+      else if (p.done.size) html += '<span class="tag">' + p.done.size + ' / ' + STEPS.length + '</span>';
+      if (inf && (inf.h || inf.arr)) html += '<small style="display:block;font-weight:500;opacity:.75;font-size:.85rem;margin-top:.25rem">' + esc([inf.h, inf.arr].filter(Boolean).join(' · ')) + '</small>';
+      b.innerHTML = html;
       b.addEventListener('click', () => startSession(n));
-      box.appendChild(b);
-    });
+      return b;
+    };
+    list.filter(n => !isPasse(n)).forEach(n => box.appendChild(mk(n)));
+    const seen = list.filter(isPasse);
+    if (seen.length) {
+      const h = document.createElement('p'); h.className = 'sep'; h.textContent = 'Déjà passés (' + seen.length + ')'; box.appendChild(h);
+      seen.forEach(n => box.appendChild(mk(n)));
+    }
   }
   $('#search').addEventListener('input', renderNames);
   $('#search').addEventListener('keydown', (e) => {
@@ -2150,28 +2345,87 @@
   function goHome() {
     state.session++;
     if (state.recording) { try { state.recording.stop(); } catch (e) {} state.recording = null; }
-    state.candidate = null; state.pending = null; state.noIdle = false;
-    MIC.phase = null; hideLiveChip(); $('#mic-alert').classList.add('hidden');
+    state.candidate = null; state.pending = null; state.noIdle = false; state.cancelTake = null;
+    state.framed = false; state.introSeen = false;
+    MIC.phase = null; hideLiveChip(); $('#mic-alert').classList.add('hidden'); $('#ask').classList.add('hidden');
     const rv = $('#rev-video'); rv.pause(); if (rv.src) { URL.revokeObjectURL(rv.src); rv.removeAttribute('src'); rv.load(); }
     $('#search').value = '';
     $('#add-name').classList.add('hidden');
     renderHome();
     show('home');
     $('#names').scrollTop = 0;
+    refreshProgress().then(() => { if (state.screen === 'home' && !$('#search').value) renderNames(); });
+    micWatchNow('accueil');
   }
 
   /* ------------------------------------------------------------------
-     Parcours du candidat
+     Parcours du candidat : fiche (sommaire) → cadrage → conseils → étapes
      ------------------------------------------------------------------ */
   async function startSession(name) {
     micCtx();
     state.session++;
     state.candidate = name;
-    state.qIndex = 0;
+    state.qIndex = 0; state.framed = false; state.introSeen = false;
     $('#search').blur();
-    startIntro(0);
-    openCamera();          // la caméra s'allume discrètement pendant les consignes : pas d'attente ensuite
+    openCamera();          // la caméra s'allume discrètement pendant que le candidat lit sa fiche
+    showHub();
   }
+
+  async function noVideoFlow(name) {
+    const p = progOf(name);
+    if (p.refus) {
+      if (await askConfirm('Annuler « aucune vidéo » ?', name + ' pourra de nouveau tourner ses vidéos.', 'Oui, annuler')) {
+        setProfile(name, { refus: false }); await refreshProgress(); renderNames(); if (state.screen === 'hub' && state.candidate === name) showHub();
+      }
+      return;
+    }
+    if (await askConfirm('Aucune vidéo pour ce candidat ?', name + ' ne tournera aucune vidéo. Son nom passera en bas de la liste, comme les candidats déjà passés.', 'Oui, aucune vidéo')) {
+      setProfile(name, { refus: true }); await refreshProgress(); renderNames();
+      if (state.screen === 'hub' && state.candidate === name) goHome();
+    }
+  }
+
+  async function showHub() {
+    const sess = state.session;
+    await refreshProgress();
+    if (sess !== state.session || !state.candidate) return;
+    const n = state.candidate, p = progOf(n), inf = (LS.get('plan.info', {}) || {})[n] || {};
+    $('#hub-name').textContent = n;
+    $('#hub-kicker').textContent = [inf.h && ('Passage ' + inf.h), inf.arr].filter(Boolean).join(' · ');
+    const next = STEPS.findIndex(st => !stepDone(p, st));
+    const ul = $('#hub-list'); ul.innerHTML = '';
+    STEPS.forEach((st, i) => {
+      const done = p.done.has(st.id), skipped = !done && p.skip.has(st.id);
+      const li = document.createElement('li'), b = document.createElement('button');
+      b.className = 'hub-row ' + (done || skipped ? 'done' : 'todo') + (i === next && !p.refus ? ' next' : '');
+      const sub = st.type === 'pose' ? 'Une courte vidéo guidée, pour finir' : String(st.texte || '');
+      b.innerHTML = '<span class="n">' + (i + 1) + '</span><span class="t">' + esc(stepLabel(st)) + '<small>' + esc(sub) + '</small></span><span class="s">' +
+        (done ? '✔ Faite' : skipped ? 'Passée' : i === next ? 'À faire' : '') + '</span>';
+      b.addEventListener('click', () => { if (!p.refus) startStep(i); });
+      li.appendChild(b); ul.appendChild(li);
+    });
+    const ban = $('#hub-banner');
+    ban.classList.toggle('hidden', !p.refus);
+    ban.textContent = p.refus ? 'Ce candidat ne tournera aucune vidéo.' : '';
+    $('#btn-hub-go').classList.toggle('hidden', !!p.refus);
+    $('#btn-hub-go').textContent = next < 0 ? 'Terminer' : p.done.size ? 'Continuer' : 'Commencer';
+    $('#hub-sub').textContent = p.done.size && next >= 0 ? 'Il reste ' + STEPS.filter(st => !stepDone(p, st)).length + ' étape(s)' : next < 0 ? 'Toutes les étapes sont faites' : 'Votre programme';
+    $('#btn-hub-refuse').textContent = p.refus ? 'Annuler « aucune vidéo »' : 'Je refuse de tourner la vidéo';
+    show('hub');
+  }
+  async function startStep(i) {
+    micCtx(); state.qIndex = i;
+    if (!streamLive()) openCamera();
+    if (!state.framed) { show('prep'); fitAll(); return; }     // le cadrage passe avant les conseils et les questions
+    showQuestion(i);
+  }
+  $('#btn-hub-go').addEventListener('click', () => {
+    const p = progOf(state.candidate), next = STEPS.findIndex(st => !stepDone(p, st));
+    if (next < 0) return finish();
+    startStep(next);
+  });
+  $('#btn-hub-back').addEventListener('click', goHome);
+  $('#btn-hub-refuse').addEventListener('click', () => noVideoFlow(state.candidate));
 
   /* ------------------------------------------------------------------
      Bonjour + consignes : une carte par écran, en grand, sans retour caméra
@@ -2235,8 +2489,8 @@
   function nextIntro() {
     stopIntroTimer();
     if (state.introIndex + 1 < introCards().length) return startIntro(state.introIndex + 1);
-    show('prep');
-    fitAll();
+    state.introSeen = true;
+    showQuestion(state.qIndex);
   }
   $('#btn-intro-next').addEventListener('click', (e) => { e.stopPropagation(); nextIntro(); });
   $('#btn-intro-back').addEventListener('click', (e) => { e.stopPropagation(); goHome(); });
@@ -2274,26 +2528,45 @@
     if (state.candidate) { show('prep'); await openCamera(); } else goHome();
   });
 
-  $('#btn-prep-back').addEventListener('click', () => startIntro(1));
+  $('#btn-prep-back').addEventListener('click', showHub);
   $('#btn-prep-go').addEventListener('click', async () => {
     if (!streamLive()) { if (!(await openCamera())) return; }
-    showQuestion(0);
+    state.framed = true;
+    // premier passage : les conseils (une carte par écran) viennent après le cadrage ; sinon on enchaîne
+    if (!state.introSeen && progOf(state.candidate).done.size === 0) return startIntro(0);
+    state.introSeen = true;
+    showQuestion(state.qIndex);
   });
 
-  function showQuestion(i) {
-    if (i >= STEPS.length) return finish();
+  function showQuestion(i, again) {
+    if (i >= STEPS.length) return goNext(STEPS.length - 1);
+    if (i < 0) return showHub();
     state.qIndex = i;
     state.takesThisQ = 0;
     const q = STEPS[i];
+    renderSteppers();
     if (q.type === 'pose') return showPose();
-    const k = STEPS.slice(0, i + 1).filter(x => x.type === 'question').length;
-    const offset = POSE.active ? 1 : 0;
-    $('#q-count').textContent = (offset ? 'Étape ' + (i + 1) + ' · ' : '') + 'Question ' + k + ' sur ' + QUESTIONS.length + (q.facultative ? ' · facultative' : '');
     $('#q-text').textContent = q.texte;
     $('#q-text').style.fontSize = q.texte.length > 95 ? '2.2rem' : q.texte.length > 60 ? '2.6rem' : '';
     $('#q-help').textContent = q.aide || '';
-    $('#q-dur').textContent = 'Jusqu\'à ' + (q.duree || 30) + ' secondes · vous pouvez terminer avant';
+    $('#q-dur').textContent = (again ? 'Nouvelle prise : relisez la question, respirez, puis lancez-vous. ' : '') + 'Jusqu\'à ' + (q.duree || 30) + ' secondes · vous pouvez terminer avant';
+    $('#btn-q-skip').textContent = q.facultative ? 'Passer cette question' : 'Passer';
     show('question');
+  }
+  /* Étape suivante : la prochaine non faite ; s'il manque des étapes avant, retour à la fiche ; sinon fin */
+  async function goNext(i) {
+    const sess = state.session;
+    await refreshProgress();
+    if (sess !== state.session) return;
+    const p = progOf(state.candidate);
+    for (let k = i + 1; k < STEPS.length; k++) if (!stepDone(p, STEPS[k])) return showQuestion(k);
+    if (STEPS.some(st => !stepDone(p, st))) return showHub();
+    finish();
+  }
+  async function skipStep() {
+    const st = STEPS[state.qIndex], P = profiles(), cur = (P[state.candidate] && P[state.candidate].skip) || [];
+    setProfile(state.candidate, { skip: [...new Set(cur.concat(st.id))] });
+    goNext(state.qIndex);
   }
 
   /* ------------------------------------------------------------------
@@ -2329,11 +2602,15 @@
     demoMan.resize(); demoMan.start();
   }
   $('#btn-pose-go').addEventListener('click', () => record());
-  $('#btn-pose-skip').addEventListener('click', () => showQuestion(state.qIndex + 1));
+  $('#btn-pose-skip').addEventListener('click', skipStep);
+  $('#btn-p-prev').addEventListener('click', () => showQuestion(state.qIndex - 1));
+  $('#btn-p-hub').addEventListener('click', showHub);
   window.addEventListener('resize', () => { if (demoMan && state.screen === 'pose') demoMan.resize(); });
 
-  $('#btn-q-skip').addEventListener('click', () => showQuestion(state.qIndex + 1));
+  $('#btn-q-skip').addEventListener('click', skipStep);
   $('#btn-q-go').addEventListener('click', () => record());
+  $('#btn-q-prev').addEventListener('click', () => showQuestion(state.qIndex - 1));
+  $('#btn-q-hub').addEventListener('click', showHub);
 
   async function nextTakeNumber(meta) {
     const all = await DB.all();
@@ -2344,6 +2621,9 @@
     const sess = state.session;
     if (!streamLive()) { show('prep'); if (!(await openCamera())) return; }
     micCtx(); micAttach();
+    setAudioSession('play-and-record');
+    // Micro absent ou déconnecté : on tente d'abord de le reconnecter tout seul, sans déranger le candidat
+    if (micBlockReason()) { micRecoverAt = 0; await micRecover(); if (sess !== state.session) return; }
     // Pas de prise sans son exploitable : micro absent, déconnecté ou muet
     for (let why = micBlockReason(); why; why = micBlockReason()) {
       const a = await micAlert(why);
@@ -2359,7 +2639,7 @@
     $('#rec-q').textContent = q.texte;
     $('#rec-q').classList.toggle('hidden', isPose);
     $('#rec-pose').classList.toggle('hidden', !isPose);
-    $('#btn-stop').classList.toggle('hidden', isPose);
+    $('#btn-stop').classList.remove('hidden');      // la pose aussi peut être arrêtée avant la fin
     const cues = POSE.etapes || [];
     const setCue = (k) => { $('#rec-pose-n').textContent = (k + 1) + ' / ' + cues.length; $('#rec-pose-txt').textContent = cues[k] || ''; };
     if (isPose) {
@@ -2370,6 +2650,7 @@
     }
     $('#rec-badge').classList.add('hidden');
     $('#btn-stop').disabled = true;
+    renderSteppers();
     $('#bar').classList.remove('late');
     $('#bar > div').style.width = '0%';
     $('#rec-time').textContent = fmtTime(dur);
@@ -2378,13 +2659,15 @@
     show('record');
     state.noIdle = true;
     $('#rec-video').play().catch(() => {});
+    let cancelled = false, stopFn = null;
+    state.cancelTake = () => { cancelled = true; if (stopFn) stopFn(false); };
 
     // Métadonnées figées AU DÉBUT de la prise (plus de mélange Q1/Q2)
     const meta = {
       date: today(), dayId: state.dayId, candidate: state.candidate,
       cid: ((LS.get('plan.info', {}) || {})[state.candidate] || {}).id || '',
       questionId: q.id, questionIndex: state.qIndex, questionText: q.texte,
-      take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0
+      take: 0, status: 'pending', exported: false, createdAt: Date.now(), mime: '', duration: 0, size: 0, cam: camSnapshot()
     };
 
     hideLiveChip();
@@ -2393,6 +2676,7 @@
       cd.textContent = n;
       await sleep(1000);
       if (sess !== state.session) return;
+      if (cancelled) { hideLiveChip(); micEnd(); if (miniMan) miniMan.stop(); state.noIdle = false; state.cancelTake = null; cd.classList.add('hidden'); if (state.candidate) showHub(); return; }
     }
     cd.classList.add('hidden');
 
@@ -2410,6 +2694,8 @@
     const t0 = performance.now();
     let stopped = false, byTimer = false;
     const stop = (auto) => { if (stopped) return; stopped = true; byTimer = !!auto; $('#btn-stop').disabled = true; clearInterval(tick); rec.stop(); };
+    stopFn = stop;
+    if (cancelled) stop(false);
     $('#btn-stop').onclick = () => stop(false);
     const tick = setInterval(() => {
       const el = (performance.now() - t0) / 1000;
@@ -2435,6 +2721,8 @@
     if (miniMan) miniMan.stop();
     state.recording = null;
     state.noIdle = false;
+    state.cancelTake = null;
+    if (cancelled) { if (sess === state.session && state.candidate) showHub(); return; }      // prise annulée : rien n'est conservé
     if (sess !== state.session) return;       // session abandonnée
 
     if (result.blob.size >= MIN_BYTES) result.blob = await fixMp4(result.blob);
@@ -2457,7 +2745,7 @@
       await DB.verify(meta.id, result.blob);
     } catch (e) {
       toast('⚠ Impossible d\'enregistrer la vidéo sur l\'iPad (espace plein ?). Prévenez un organisateur.', 8000);
-      return showQuestion(state.qIndex + 1);
+      return goNext(state.qIndex);
     }
     state.takesThisQ++;
     state.pending = meta;
@@ -2465,20 +2753,43 @@
     analyseTake(q, result.blob, samples, dur, byTimer, sess, live, meta);
   }
 
+  $('#btn-rec-cancel').addEventListener('click', () => { if (state.cancelTake) state.cancelTake(); });
+
+  /* Retour son : l'iPad baisse le volume quand le micro est ouvert (mode « enregistrement »).
+     On repasse en mode « lecture » pour la relecture et on amplifie le son (avec un limiteur pour éviter la saturation). */
+  const PLAYVOL = { normal: 1, fort: 3, max: 6 };
+  const PB = { src: null, gain: null, comp: null, failed: false };
+  function setAudioSession(t) { try { if (navigator.audioSession) navigator.audioSession.type = t; } catch (e) {} }
+  function playbackBoost(v) {
+    setAudioSession('playback');
+    if (PB.failed) return;
+    const ctx = micCtx(); if (!ctx) return;
+    if (!PB.src) {
+      try {
+        PB.src = ctx.createMediaElementSource(v);
+        PB.gain = ctx.createGain(); PB.comp = ctx.createDynamicsCompressor();
+        PB.comp.threshold.value = -16; PB.comp.knee.value = 10; PB.comp.ratio.value = 12; PB.comp.attack.value = 0.002; PB.comp.release.value = 0.2;
+        PB.src.connect(PB.gain); PB.gain.connect(PB.comp); PB.comp.connect(ctx.destination);
+      } catch (e) { PB.failed = true; console.warn('Amplification du retour son indisponible', e); return; }
+    }
+    PB.gain.gain.value = PLAYVOL[state.vol] || 1;
+  }
+
   function showReview(blob, meta) {
     const v = $('#rev-video');
     if (v.src) URL.revokeObjectURL(v.src);
     v.src = URL.createObjectURL(blob);
-    v.muted = false;
-    const left = (CFG.prisesMax || 3) - state.takesThisQ;
-    $('#btn-retake').classList.toggle('hidden', left <= 0);
-    $('#btn-retake').textContent = 'Recommencer' + (left > 0 ? ' (' + left + ' essai' + (left > 1 ? 's' : '') + ')' : '');
-    $('#rev-info').textContent = left <= 0 ? 'Dernier essai pour cette question.' : '';
+    v.muted = false; v.volume = 1;
+    renderSteppers();
+    $('#btn-retake').textContent = 'Recommencer';
+    $('#rev-info').textContent = 'Prise n° ' + meta.take + ' de cette étape · vous pouvez en refaire autant que vous voulez.';
     $('#rev-play').classList.add('hidden');
     $('#btn-retake').classList.remove('advised');
     if (qaEnabled()) { $('#rev-qa').classList.remove('hidden'); $('#qa-title').textContent = 'Analyse de votre prise…'; $('#qa-list').innerHTML = ''; }
     else $('#rev-qa').classList.add('hidden');
+    $('#qa-tech').classList.add('hidden');
     show('review');
+    playbackBoost(v);
     v.setAttribute('playsinline', ''); v.playsInline = true;
     v.onended = () => $('#rev-play').classList.remove('hidden');
     v.load();
@@ -2488,6 +2799,7 @@
   }
   $('#rev-play').addEventListener('click', () => {
     const v = $('#rev-video'); $('#rev-play').classList.add('hidden');
+    micCtx(); playbackBoost(v);
     try { v.currentTime = 0; } catch (e) {}
     v.muted = false;
     v.play().catch(() => { v.muted = true; v.play().catch(() => $('#rev-play').classList.remove('hidden')); });
@@ -2503,15 +2815,21 @@
   $('#btn-keep').addEventListener('click', async () => {
     $('#rev-video').pause();
     await settlePending('kept');
-    showQuestion(state.qIndex + 1);
+    goNext(state.qIndex);
   });
   $('#btn-retake').addEventListener('click', async () => {
     $('#rev-video').pause();
     await settlePending('rejected');
-    record();
+    showQuestion(state.qIndex, true);       // on relit la question entre deux prises
+  });
+  $('#btn-rev-hub').addEventListener('click', async () => {
+    $('#rev-video').pause();
+    await settlePending('kept');
+    showHub();
   });
 
   function finish() {
+    if (state.candidate) { setProfile(state.candidate, { fin: true }); refreshProgress(); }
     show('end');
     const sess = state.session;
     setTimeout(() => { if (sess === state.session && state.screen === 'end') goHome(); }, (CFG.ecranMerciSecondes || 8) * 1000);
@@ -2523,10 +2841,10 @@
   let idleTimer;
   function bumpIdle() {
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(onIdle, (CFG.retourAccueilSecondes || 90) * 1000);
+    idleTimer = setTimeout(onIdle, (CFG.retourAccueilSecondes || 600) * 1000);
   }
   async function onIdle() {
-    if (state.noIdle || !$('#admin').classList.contains('hidden') || !$('#pin').classList.contains('hidden')) return bumpIdle();
+    if (state.noIdle || !$('#admin').classList.contains('hidden') || !$('#pin').classList.contains('hidden') || !$('#ask').classList.contains('hidden')) return bumpIdle();
     if (state.screen === 'review') await settlePending('kept');
     if (state.screen !== 'home' || $('#search').value) goHome();
     bumpIdle();
@@ -2566,7 +2884,7 @@
   function renderPin() {
     $('#pin-dots').innerHTML = Array.from({ length: PIN.length }, (_, i) => '<i class="' + (i < pinVal.length ? 'on' : '') + '"></i>').join('');
   }
-  function openPin() { pinVal = ''; $('#pin-err').textContent = ''; renderPin(); $('#pin').classList.remove('hidden'); }
+  function openPin() { if (state.cancelTake) state.cancelTake(); pinVal = ''; $('#pin-err').textContent = ''; renderPin(); $('#pin').classList.remove('hidden'); }
   (function buildPad() {
     const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫'];
     keys.forEach(k => {
@@ -2591,7 +2909,7 @@
      ------------------------------------------------------------------ */
   async function openAdmin() {
     $('#admin').classList.remove('hidden');
-    setSeg('#seg-lot', state.lot);
+    setSeg('#seg-lot', state.lot); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
     const sel = $('#adm-day');
     sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
       '<option value="ALL">Toutes les journées (liste complète)</option>';
@@ -2662,7 +2980,11 @@
     L.push('<b>' + (pb.length ? '⚠ À corriger : ' + pb.join(', ') + '.' : '✔ Son prêt pour le tournage.') + '</b>');
     out.innerHTML = L.join('<br>');
   });
-  $('#btn-adm-close').addEventListener('click', () => { $('#admin').classList.add('hidden'); state.exportBatch = null; $('#btn-exp-share').disabled = true; goHome(); });
+  $('#btn-adm-close').addEventListener('click', () => {
+    $('#admin').classList.add('hidden'); state.exportBatch = null;
+    if (state.candidate && state.screen !== 'home') { renderSteppers(); return; }       // le candidat reprend là où il en était
+    goHome();
+  });
 
   function setSeg(sel, v) { document.querySelectorAll(sel + ' button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
   document.querySelectorAll('#seg-cam button').forEach(b => b.addEventListener('click', () => {
@@ -2674,6 +2996,28 @@
   document.querySelectorAll('#seg-selfview button').forEach(b => b.addEventListener('click', () => {
     state.selfview = b.dataset.v === 'on'; LS.set('selfview', state.selfview); setSeg('#seg-selfview', b.dataset.v);
   }));
+  document.querySelectorAll('#seg-vol button').forEach(b => b.addEventListener('click', () => {
+    state.vol = b.dataset.v; LS.set('vol', state.vol); setSeg('#seg-vol', state.vol); if (PB.gain) PB.gain.gain.value = PLAYVOL[state.vol] || 1;
+    toast('Volume du retour son : ' + b.textContent.replace(/ \(.*/, ''));
+  }));
+  function frameRefInfo() {
+    const r = LS.get('frameRef', null);
+    $('#frame-ref-info').textContent = r ? 'Référence : visage à ' + Math.round(r.fh * 100) + ' % de la hauteur, yeux à ' + Math.round(r.eyeY * 100) + ' % depuis le haut (mémorisée à ' + hhmm(r.t) + ')' :
+      'Pas de référence : la borne vise un visage de ' + Math.round(framingTarget().lo * 100) + ' à ' + Math.round(framingTarget().hi * 100) + ' % de la hauteur de l\'image.';
+  }
+  $('#btn-frame-ref').addEventListener('click', async () => {
+    const b = $('#btn-frame-ref'), info = $('#frame-ref-info');
+    try { await ensureCamera(); } catch (e) { info.textContent = 'Erreur caméra : ' + (e.name || ''); return; }
+    await loadFaceMesh();
+    if (!GZ.ok) { info.textContent = 'L\'outil de détection du visage n\'est pas chargé : réessayez dans un instant.'; return; }
+    b.disabled = true; const v = liveVideoEl(), M = [];
+    for (let i = 0; i < 10; i++) { b.textContent = 'Mesure… ' + (10 - i); const m = await meshFrame(v); if (m && m.face) M.push(m); await sleep(350); }
+    b.disabled = false; b.textContent = 'Mémoriser le cadrage actuel';
+    if (M.length < 5) { info.textContent = 'Visage non détecté : placez quelqu\'un face à l\'iPad, bien éclairé, et recommencez.'; return; }
+    LS.set('frameRef', { fh: median(M.map(m => m.fh)), eyeY: median(M.map(m => m.eyeY)), t: Date.now() });
+    frameRefInfo(); toast('Cadrage de référence mémorisé ✔');
+  });
+  $('#btn-frame-clear').addEventListener('click', () => { LS.del('frameRef'); frameRefInfo(); toast('Référence effacée'); });
   document.querySelectorAll('#seg-mode button').forEach(b => b.addEventListener('click', () => {
     state.recMode = b.dataset.v; LS.set('recMode', state.recMode); setSeg('#seg-mode', state.recMode); $('#cam-info').innerHTML = camInfo(); fitAll();
   }));
@@ -2804,50 +3148,72 @@
   });
 
   /* ------------------------------------------------------------------
-     Rapport de fin de journée : qui a tourné quelle vidéo (CSV pour Excel + texte lisible)
+     Rapport unique « qui a tourné quoi » (.json), lu par l'app Contrôle-infos
+     (remplace la liste de contrôle et le rapport CSV : une seule source, tous les détails)
      ------------------------------------------------------------------ */
-  const VIDEO_LABELS = { 'Q0-pose': 'Pose', 'Q1-presentation': 'Q1 Présentation', 'Q2-engagement': 'Q2 Engagement', 'Q3-vaud-2037': 'Q3 Vision Vaud 2037', 'Q4-coin-prefere': 'Q4 Coin préféré' };
-  const videoCol = st => 'Vidéo ' + (VIDEO_LABELS[st.id] || st.id.replace(/-/g, ' '));
-  async function buildDayReport() {
+  const VIDEO_LABELS = { 'Q0-pose': 'Pose', 'Q1-presentation': 'Q1 Présentation', 'Q2-engagement': 'Q2 Engagement', 'Q3-vision-vaud-2037': 'Q3 Vision Vaud 2037', 'Q3-vaud-2037': 'Q3 Vision Vaud 2037', 'Q4-coin-prefere': 'Q4 Coin préféré' };
+  const STEP_KEY = (st) => { const n = /^Q(\d)/.exec(st.id); return n ? (n[1] === '0' ? 'pose' : 'q' + n[1]) : st.id; };
+  const ddmm = (iso) => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(iso || ''); return m ? m[3] + '.' + m[2] : (iso || ''); };
+  async function buildRapportJson() {
     const all = await DB.all();
-    const dayId = state.dayId;
+    await refreshProgress();
     const info = LS.get('plan.info', {}) || {};
-    const inDay = all.filter(m => dayId === 'ALL' || m.dayId === dayId);
-    const byCand = {}; inDay.forEach(m => { (byCand[m.candidate] = byCand[m.candidate] || []).push(m); });
-    const planned = namesFor(dayId);
-    const names = dayId === 'ALL' ? [...new Set([...planned, ...Object.keys(byCand)])] : [...planned, ...Object.keys(byCand).filter(n => !planned.includes(n))];
-    const RSTEPS = [...STEPS].sort((a, b) => a.id.localeCompare(b.id));   // colonnes toujours dans l'ordre Pose, Q1…Q4, quel que soit l'ordre de passage
-    const cols = RSTEPS.map(videoCol);
-    const head = ['Date', 'Rang', 'Heure', 'Nom', 'Prénom', 'Arrondissement'].concat(cols, ['Vidéos tournées']);
-    const day = DAYS.find(d => d.id === dayId);
-    const rows = names.map((n, i) => {
-      const inf = info[n] || {}, ms = byCand[n] || [];
-      const cells = RSTEPS.map(st => {
-        const t = ms.filter(m => m.questionId === st.id);
+    const groups = new Map();   // (jour, nom) -> { name, dayId, ms }
+    const g = (name, dayId) => { const k = dayId + '|' + name; if (!groups.has(k)) groups.set(k, { name, dayId, ms: [] }); return groups.get(k); };
+    DAYS.forEach(d => namesFor(d.id).forEach(n => g(n, d.id)));
+    all.forEach(m => g(m.candidate, m.dayId || '?').ms.push(m));
+    const exportedAt = (m) => m.exportedAt ? new Date(m.exportedAt).toISOString() : '';
+    let nb = 0, nbRej = 0, octets = 0, nRefus = 0, nAvec = 0;
+    const candidats = [...groups.values()].sort((a, b) => (a.dayId || '').localeCompare(b.dayId || '') || a.name.localeCompare(b.name, 'fr')).map(c => {
+      const inf = info[c.name] || {}, sp = c.name.split(' '), day = DAYS.find(d => d.id === c.dayId);
+      const videos = {};
+      STEPS.forEach(st => {
+        const t = c.ms.filter(m => m.questionId === st.id);
         const ok = t.filter(m => m.status !== 'rejected').sort((a, b) => b.take - a.take)[0];
-        return ok ? 'Oui (prise ' + ok.take + ')' : t.length ? 'Rejetée' : '';
+        videos[STEP_KEY(st)] = ok ? 'Oui' : t.length ? 'Rejetée' : '';
       });
-      const nb = cells.filter(c => c.startsWith('Oui')).length;
-      const sp = n.split(' ');
-      return [day ? day.date || '' : '', i + 1, inf.h || '', inf.nom || sp.slice(1).join(' '), inf.pre || sp[0], inf.arr || '', ...cells, nb + ' / ' + RSTEPS.length];
+      const refus = !!progOf(c.name).refus; if (refus) nRefus++;
+      if (Object.values(videos).includes('Oui')) nAvec++;
+      const fichiers = c.ms.slice().sort((a, b) => stepNo(a) - stepNo(b) || (a.take || 0) - (b.take || 0)).map(m => {
+        if (m.status === 'rejected') nbRej++; else nb++; octets += m.size || 0;
+        return { fichier: fileName(m), dossier: whoSlug(m), etape: 'Q' + stepNo(m), prise: m.take, statut: m.status === 'rejected' ? 'rejetée' : 'validée',
+          taille: m.size || 0, duree: m.duration || null, crc32: m.crc != null ? (m.crc >>> 0).toString(16).padStart(8, '0') : '',
+          exportee: !!m.exported, exporteeLe: exportedAt(m), exporteeVers: m.exportedTo || '' };
+      });
+      return { complet: c.name, prenom: inf.pre || sp[0], nom: inf.nom || sp.slice(1).join(' '), jour: ddmm(day && day.date), date: day && day.date || '', journee: c.dayId, heure: inf.h || '',
+        refus, videos, fichiers };
     });
-    return { head, rows, label: dayLabel(dayId), dayId, date: day && day.date || today() };
+    return { format: 'borne-video-rapport', version: 1, genere: new Date().toISOString(), borne: VERSION,
+      resume: { candidats: candidats.length, avecVideos: nAvec, refus: nRefus, videosGardees: nb, videosRejetees: nbRej, octets }, candidats };
   }
-  function reportFiles(r) {
-    const q = v => '"' + String(v).replace(/"/g, '""') + '"';
-    const csv = '﻿' + [r.head, ...r.rows].map(l => l.map(q).join(';')).join('\r\n');
-    const base = 'Rapport-videos_' + r.dayId + '_' + r.date;
-    return [new File([csv], base + '.csv', { type: 'text/csv' })];
+  async function reportFile() {
+    const r = await buildRapportJson(), t = new Date(), pad = (x) => String(x).padStart(2, '0');
+    return { r, file: new File([JSON.stringify(r, null, 1)], 'Rapport-borne_' + today() + '_' + pad(t.getHours()) + 'h' + pad(t.getMinutes()) + '.json', { type: 'application/json' }) };
   }
-  $('#btn-report').addEventListener('click', async () => {
+  $('#btn-report-json').addEventListener('click', async () => {
     const out = $('#report-info');
     try {
-      const r = await buildDayReport(); const files = reportFiles(r);
-      out.textContent = r.rows.length + ' candidats dans le rapport.';
-      if (navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files, title: 'Rapport vidéos ' + r.label }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-      files.forEach(f => { const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click(); a.remove(); });
+      const { r, file } = await reportFile(); const files = [file];
+      out.textContent = r.candidats.length + ' candidats, ' + r.resume.videosGardees + ' vidéo(s) gardée(s), ' + r.resume.refus + ' refus.';
+      if (navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files, title: 'Rapport borne vidéo' }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
     } catch (e) { out.textContent = 'Rapport impossible : ' + (e && e.message || e); }
   });
+  async function renderReportSync() {
+    const el = $('#report-sync'); if (!el) return;
+    const st = await dashState(); el.textContent = st.txt; el.className = 'dash-badge ' + (st.ok ? 'ok' : 'ko');
+  }
+  $('#btn-sync-now').addEventListener('click', async () => {
+    const out = $('#report-info'); out.textContent = 'Envoi en cours…';
+    try {
+      // tout est renvoyé (le site reconnaît chaque prise par son identifiant : pas de doublon)
+      const all = await DB.all(); for (const m of all) if (m.statusSent) { m.statusSent = null; await DB.put(m); }
+      const RF = LS.get('dash.refus', {}) || {}; Object.keys(RF).forEach(n => { RF[n].sent = false; }); LS.set('dash.refus', RF);
+      DASH.statusBusy = false; await pushStatuses();
+      await renderReportSync(); out.textContent = (await dashState()).ok ? 'Tout est à jour sur le site.' : 'Le site n\'a pas tout reçu : voir l\'état ci-dessus, puis utilisez le fichier .json.';
+    } catch (e) { out.textContent = 'Envoi impossible : ' + (e && e.message || e); }
+  });
+  setInterval(() => { if ($('#admin') && !$('#admin').classList.contains('hidden')) renderReportSync(); }, 5000);
 
   function fillNamesBox() {
     const id = $('#adm-day').value;
@@ -2883,28 +3249,25 @@
     $('#st-todo').textContent = todo.length;
     try {
       const box = $('#exp-check'), main = $('#exp-main');
-      const todoRej = all.filter(m => m.status === 'rejected' && !isEmpty(m) && !m.exported && !m.uploaded).length;
-      const nSite = kept.filter(m => m.uploaded).length, nLoc = kept.filter(m => m.exported).length;
+      const todoRej = all.filter(m => m.status === 'rejected' && !isEmpty(m) && !m.exported).length;
+      const nLoc = kept.filter(m => m.exported).length;
       const nAir = kept.filter(m => m.exported && m.exportedTo !== 'disque').length, nDisk = kept.filter(m => m.exported && m.exportedTo === 'disque').length;
       const paint = (el, ok, txt) => { el.innerHTML = txt; el.style.borderLeftColor = ok ? '#2e9e5b' : '#e0a100'; };
-      const per = {}; kept.forEach(m => { const d = per[m.dayId || '?'] = per[m.dayId || '?'] || { k: 0, s: 0, l: 0 }; d.k++; if (!m.uploaded) d.s++; if (!m.exported) d.l++; });
+      const per = {}; kept.forEach(m => { const d = per[m.dayId || '?'] = per[m.dayId || '?'] || { k: 0, l: 0 }; d.k++; if (!m.exported) d.l++; });
       if (!kept.length) {
         main.textContent = 'Aucune vidéo sur cet iPad.'; box.style.borderColor = '#2e9e5b';
-        paint($('#exp-site'), true, 'Site : rien à envoyer.'); paint($('#exp-local'), true, 'AirDrop / disque dur : rien à exporter.');
+        paint($('#exp-local'), true, 'AirDrop / disque dur : rien à exporter.');
       } else {
-        const okS = nSite === kept.length, okL = nLoc === kept.length;
-        const nNone = kept.filter(m => !m.uploaded && !m.exported).length;
-        main.textContent = okS && okL ? '✔ Tout est sauvegardé deux fois (' + kept.length + ' vidéo(s) gardée(s)).' : nNone ? '⚠ ' + nNone + ' vidéo(s) ne sont sauvegardées nulle part ailleurs que sur cet iPad. Ne rien effacer.' : '⚠ Chaque vidéo a au moins une copie, mais pas encore les deux (site et AirDrop / disque).';
-        box.style.borderColor = okS && okL ? '#2e9e5b' : '#e0a100';
-        paint($('#exp-site'), okS, '<b>Envoi au site :</b> ' + (okS ? '✔ toutes envoyées' : '⚠ ' + (kept.length - nSite) + ' pas encore envoyée(s)') + ' (' + nSite + ' / ' + kept.length + ')');
+        const okL = nLoc === kept.length;
+        main.textContent = okL ? '✔ Tout est exporté (' + kept.length + ' vidéo(s) gardée(s)).' : '⚠ ' + (kept.length - nLoc) + ' vidéo(s) ne sont sauvegardées nulle part ailleurs que sur cet iPad. Ne rien effacer.';
+        box.style.borderColor = okL ? '#2e9e5b' : '#e0a100';
         paint($('#exp-local'), okL, '<b>Export AirDrop / disque dur externe :</b> ' + (okL ? '✔ tout exporté' : '⚠ ' + (kept.length - nLoc) + ' pas encore exportée(s)') + ' (' + nLoc + ' / ' + kept.length + (nLoc ? ' · AirDrop : ' + nAir + ', disque : ' + nDisk : '') + ')');
       }
       $('#exp-days').innerHTML = Object.keys(per).sort().map(k => {
         const d = per[k], dd = DAYS.find(x => x.id === k);
-        return '<div>' + esc(dd ? dd.id + ' · ' + dd.libelle : k) + ' : site ' + (d.s ? '<b style="color:#e0a100">' + d.s + ' à envoyer</b>' : '<span style="color:#2e9e5b">✔</span>') +
-          ' · export ' + (d.l ? '<b style="color:#e0a100">' + d.l + ' à exporter</b>' : '<span style="color:#2e9e5b">✔</span>') + ' (sur ' + d.k + ')</div>';
-      }).join('') + (todoRej ? '<div class="muted">' + todoRej + ' vidéo(s) rejetée(s) non sauvegardée(s) (normal : elles ne sont pas exportées par défaut).</div>' : '') +
-        '<div style="margin-top:.4rem">Pensez aussi au « Rapport de fin de journée » (qui a tourné quoi).</div>';
+        return '<div>' + esc(dd ? dd.id + ' · ' + dd.libelle : k) + ' : export ' + (d.l ? '<b style="color:#e0a100">' + d.l + ' à exporter</b>' : '<span style="color:#2e9e5b">✔</span>') + ' (sur ' + d.k + ')</div>';
+      }).join('') + (todoRej ? '<div class="muted">' + todoRej + ' vidéo(s) rejetée(s) non exportée(s) (normal : elles ne sont pas exportées par défaut).</div>' : '') +
+        '<div style="margin-top:.4rem">Le rapport « qui a tourné quoi » part tout seul vers Contrôle-infos ; le fichier .json (carte 2) sert de secours.</div>';
     } catch (e) {}
     $('#st-rej').textContent = rej.length;
     $('#st-size').textContent = fmtBytes(all.reduce((a, m) => a + (m.size || 0), 0));
@@ -2921,21 +3284,26 @@
     const byCand = {};
     all.filter(m => state.dayId === 'ALL' || m.dayId === state.dayId).forEach(m => { (byCand[m.candidate] = byCand[m.candidate] || []).push(m); });
     const names = [...new Set([...dayNames, ...Object.keys(byCand)])].sort((a, b) => a.localeCompare(b, 'fr'));
+    await refreshProgress();
     const done = names.filter(n => (byCand[n] || []).some(m => m.status !== 'rejected')).length;
-    $('#track-sum').textContent = dayLabel(state.dayId) + ' : ' + done + ' / ' + dayNames.length + ' candidats passés à la borne.';
+    const nref = dayNames.filter(n => progOf(n).refus).length;
+    $('#track-sum').textContent = dayLabel(state.dayId) + ' : ' + done + ' / ' + dayNames.length + ' candidats passés à la borne' + (nref ? ' · ' + nref + ' sans vidéo (refus)' : '') + '.';
     const ul = $('#track-list'); ul.innerHTML = '';
     names.forEach(n => {
       const li = document.createElement('li');
       const ms = (byCand[n] || []).sort((a, b) => a.id - b.id);
-      li.innerHTML = '<span class="nm">' + esc(n) + '</span>' + (ms.length ? '' : ' <span class="muted">— pas encore passé</span>') +
-        (dayNames.includes(n) ? '' : ' <span class="warn">(hors liste)</span>');
+      const pr = progOf(n);
+      li.innerHTML = '<span class="nm">' + esc(n) + '</span>' + (pr.refus ? ' <span class="muted">— aucune vidéo (refus)</span>' : ms.length ? '' : ' <span class="muted">— pas encore passé</span>') +
+        (dayNames.includes(n) ? '' : ' <span class="warn">(hors liste)</span>') +
+        ' <button class="chip" data-nov="1" style="margin-left:.4rem">' + (pr.refus ? 'Annuler « aucune vidéo »' : 'Aucune vidéo') + '</button>';
+      li.querySelector('[data-nov]').addEventListener('click', async () => { setProfile(n, { refus: !pr.refus }); await refreshProgress(); renderNames(); refreshStats(); });
       if (ms.length) {
         const chips = document.createElement('div'); chips.className = 'chips';
         ms.forEach(m => {
           const c = document.createElement('button');
           c.className = 'chip' + (m.status === 'rejected' ? ' rej' : '') + (m.exported || m.uploaded ? ' exp' : '');
-          c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt) + (m.qa && m.qa.redo ? ' ⚠' : '');
-          if (m.qa && m.qa.codes && m.qa.codes.length) c.title = m.qa.codes.join(', ');
+          c.textContent = m.questionId.split('-')[0] + ' p' + m.take + ' · ' + Math.round(m.duration) + ' s · ' + hhmm(m.createdAt) + (m.qa && m.qa.redo ? ' ⚠' : '') + (m.qa && m.qa.tech && m.qa.tech.length ? ' 🔧' : '');
+          if (m.qa) c.title = (m.qa.tech || []).concat(m.qa.codes || []).join(' · ') + (m.qa.visage ? ' · visage ' + Math.round(m.qa.visage * 100) + ' %' : '') + (m.cam ? ' · caméra ' + m.cam.w + '×' + m.cam.h : '');
           c.addEventListener('click', () => playMeta(m));
           chips.appendChild(c);
         });
@@ -2963,78 +3331,223 @@
   }
   $('#btn-player-close').addEventListener('click', () => { const v = $('#adm-video'); v.pause(); $('#adm-player').classList.add('hidden'); });
 
+  /* ------------------------------------------------------------------
+     Export en UN SEUL ZIP, écrit au fil de l'eau par le service worker (voir sw.js).
+     La page : 1) lit chaque vidéo une fois pour calculer sa somme de contrôle (et vérifier qu'elle est lisible),
+     2) dépose la liste dans le cache, 3) lance le téléchargement. Aucune vidéo ne passe par la mémoire de la page.
+     ------------------------------------------------------------------ */
+  const T8 = (() => {
+    const t = new Int32Array(256 * 8);
+    for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c; }
+    for (let n = 0; n < 256; n++) { let c = t[n]; for (let k = 1; k < 8; k++) { c = t[c & 255] ^ (c >>> 8); t[k * 256 + n] = c; } }
+    return t;
+  })();
+  function crcUpdate(c, b) {
+    let i = 0; const n = b.length;
+    for (; i + 8 <= n; i += 8) {
+      const lo = c ^ (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24));
+      c = T8[1792 + (lo & 255)] ^ T8[1536 + ((lo >>> 8) & 255)] ^ T8[1280 + ((lo >>> 16) & 255)] ^ T8[1024 + (lo >>> 24)] ^ T8[768 + b[i + 4]] ^ T8[512 + b[i + 5]] ^ T8[256 + b[i + 6]] ^ T8[b[i + 7]];
+    }
+    for (; i < n; i++) c = T8[(c ^ b[i]) & 255] ^ (c >>> 8);
+    return c;
+  }
+  async function crcOfBlob(blob, onBytes) {
+    const rd = blob.stream().getReader(); let c = -1, n = 0;
+    for (;;) { const r = await rd.read(); if (r.done) break; c = crcUpdate(c, r.value); n += r.value.length; onBytes(r.value.length); }
+    return { crc: (~c) >>> 0, size: n };
+  }
+  const zipBar = (f) => { $('#zip-bar > div').style.width = Math.round(100 * Math.max(0, Math.min(1, f))) + '%'; };
+  const zip = { busy: false, pool: [], total: 0, name: '', ping: null, flow: false };
+
+  /* Taille exacte du ZIP (même calcul que sw.js) */
+  function zipSizeOf(files) {
+    const enc = new TextEncoder(); let off = 0, cd = 0;
+    files.forEach(f => { const n = f.name.length, size = typeof f.text === 'string' ? enc.encode(f.text).length : f.size; cd += 46 + n + (off >= 0xFFFFFFFF ? 12 : 0); off += 30 + n + size; });
+    const z64 = off >= 0xFFFFFFFF || files.length >= 0xFFFF || cd >= 0xFFFFFFFF;
+    return off + cd + (z64 ? 76 : 0) + 22;
+  }
+
+  async function zipPrepare() {
+    if (zip.busy) return;
+    const info = $('#zip-info'); zip.busy = true; zip.test = false; $('#btn-zip-prep').disabled = true; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden');
+    try {
+      if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('le mode hors ligne de l\'app n\'est pas actif : fermez puis rouvrez la borne (une fois avec du réseau), puis réessayez');
+      const all = await DB.all(), pool = exportable(all, $('#exp-rej').checked);
+      if (!pool.length) { info.textContent = 'Rien à exporter : tout est déjà parti ✔'; zipBar(1); return; }
+      const totalIn = pool.reduce((a, m) => a + (m.size || 0), 0); let read = 0; const files = [], metas = [], used = new Set(); let empty = 0, t0 = Date.now();
+      for (let i = 0; i < pool.length; i++) {
+        const m = pool[i]; info.textContent = 'Vérification ' + (i + 1) + ' / ' + pool.length + ' · ' + fmtBytes(read) + ' sur ' + fmtBytes(totalIn) + '…';
+        const b = await DB.blob(m.id);
+        if (!b || b.size < MIN_BYTES) { empty++; read += m.size || 0; zipBar(read / totalIn); continue; }
+        if (m.crc == null || m.crcSize !== b.size) {
+          const r = await crcOfBlob(b, n => { read += n; if ((read & 0xFFFFF) < n) zipBar(read / totalIn); });
+          if (r.size !== b.size) throw new Error('lecture incomplète de ' + fileName(m));
+          m.crc = r.crc; m.crcSize = r.size; await DB.put(m);
+        } else { read += b.size; }
+        zipBar(read / totalIn);
+        let path = whoSlug(m) + '/' + fileName(m);
+        if (used.has(path)) path = whoSlug(m) + '/' + fileName(m).replace(/(\.\w+)$/, '_n' + m.id + '$1');
+        used.add(path);
+        files.push({ name: path, id: m.id, size: b.size, crc: m.crc, at: m.createdAt }); metas.push(m);
+      }
+      if (!files.length) { info.textContent = 'Les vidéos à exporter sont vides (enregistrements ratés) : rien à envoyer.'; return; }
+      zip.name = 'Videos-borne_' + today() + '.zip';
+      const token = String(Date.now());
+      const c = await caches.open('borne-export');
+      await c.put('manifest.json', new Response(JSON.stringify({ token, zipName: zip.name, files }), { headers: { 'Content-Type': 'application/json' } }));
+      zip.pool = metas; zip.total = zipSizeOf(files); zip.token = token;
+      zipBar(1); $('#btn-zip-go').disabled = false;
+      info.textContent = '✔ Prêt : ' + metas.length + ' vidéo(s) vérifiée(s), fichier de ' + fmtBytes(zip.total) + ' (' + zip.total.toLocaleString('fr-CH') + ' octets).' + (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + ' Touchez « 2. Télécharger le ZIP ».';
+    } catch (e) { info.textContent = '⚠ Préparation impossible : ' + (e && e.message || e); }
+    finally { zip.busy = false; $('#btn-zip-prep').disabled = false; }
+  }
+  function zipStartDownload() {
+    if (!zip.total) return;
+    zipBar(0); zip.flow = true;
+    const url = './__export/' + zip.name;
+    // iframe invisible : méthode la plus fiable pour lancer un téléchargement servi par le service worker (Safari comme Chrome)
+    document.querySelectorAll('iframe.zip-dl').forEach(f => f.remove());
+    const fr = document.createElement('iframe'); fr.className = 'zip-dl'; fr.style.cssText = 'display:none'; fr.src = url; document.body.appendChild(fr);
+    clearInterval(zip.ping);
+    zip.ping = setInterval(() => { try { navigator.serviceWorker.controller && navigator.serviceWorker.controller.postMessage({ type: 'ping' }); } catch (e) {} }, 8000);
+    $('#zip-info').textContent = 'Téléchargement lancé… Gardez l\'app ouverte et l\'écran allumé.';
+    $('#zip-expect').innerHTML = 'À la fin, le fichier « ' + esc(zip.name) + ' » doit faire <b>' + fmtBytes(zip.total) + '</b> (' + zip.total.toLocaleString('fr-CH') + ' octets) dans l\'app Fichiers. S\'il est plus petit, ne marquez rien et recommencez.';
+    if (zip.test) $('#zip-expect').innerHTML = 'ESSAI : à la fin, « ' + esc(zip.name) + ' » doit faire <b>' + fmtBytes(zip.total) + '</b> (' + zip.total.toLocaleString('fr-CH') + ' octets). Supprimez-le ensuite dans Fichiers.';
+    $('#zip-confirm').classList.toggle('hidden', !!zip.test); $('#btn-zip-go').disabled = true;
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (ev) => {
+    const d = ev.data || {}; if (!d.type || !/^export-/.test(d.type) || !zip.flow) return;
+    if (d.type === 'export-progress') { zipBar(d.sent / d.total); $('#zip-info').textContent = 'Téléchargement : ' + fmtBytes(d.sent) + ' sur ' + fmtBytes(d.total) + ' (' + Math.round(100 * d.sent / d.total) + ' %)'; }
+    else if (d.type === 'export-done') { clearInterval(zip.ping); zipBar(1); $('#zip-info').textContent = '✔ Envoi terminé (' + fmtBytes(d.sent) + '). Vérifiez la taille du fichier dans Fichiers, puis confirmez ci-dessous.'; }
+    else if (d.type === 'export-error') { clearInterval(zip.ping); zip.flow = false; $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = false; $('#zip-info').textContent = '⚠ Échec du téléchargement : ' + d.msg + '. Rien n\'est marqué comme exporté : touchez « 2. Télécharger le ZIP » pour recommencer.'; }
+    else if (d.type === 'export-cancel') { clearInterval(zip.ping); $('#zip-info').textContent = 'Téléchargement interrompu. Rien n\'est marqué comme exporté.'; $('#btn-zip-go').disabled = false; }
+  });
+  async function zipTest(gb) {
+    if (zip.busy) return; zip.busy = true;
+    try {
+      if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('mode hors ligne de l\'app non actif : fermez puis rouvrez la borne');
+      const files = []; for (let i = 1; i <= gb; i++) files.push({ name: 'ESSAI/essai-' + String(i).padStart(2, '0') + '.bin', fake: true, size: 1073741824, at: Date.now() });
+      files.push({ name: 'LISEZMOI.txt', text: 'Fichier d\'essai de la borne video : a supprimer.\r\n', at: Date.now() });
+      zip.name = 'ESSAI-' + gb + 'Go.zip'; zip.pool = []; zip.test = true; zip.total = zipSizeOf(files);
+      await (await caches.open('borne-export')).put('manifest.json', new Response(JSON.stringify({ token: String(Date.now()), zipName: zip.name, files }), { headers: { 'Content-Type': 'application/json' } }));
+      zipStartDownload();
+    } catch (e) { $('#zip-info').textContent = '⚠ Essai impossible : ' + (e && e.message || e); }
+    finally { zip.busy = false; }
+  }
+  document.querySelectorAll('[data-ztest]').forEach(b => b.addEventListener('click', () => zipTest(Number(b.dataset.ztest))));
+  $('#btn-zip-prep').addEventListener('click', zipPrepare);
+  $('#btn-zip-go').addEventListener('click', zipStartDownload);
+  $('#btn-zip-ok').addEventListener('click', async () => {
+    for (const m of zip.pool) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = 'zip'; await DB.put(m); }
+    const n = zip.pool.length; zip.pool = []; zip.total = 0; zip.flow = false; clearInterval(zip.ping);
+    $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = true; zipBar(1);
+    $('#zip-info').textContent = '✔ ' + n + ' vidéo(s) marquée(s) comme exportée(s).'; await refreshStats();
+    try { await (await caches.open('borne-export')).delete('manifest.json'); } catch (e) {}
+  });
+  $('#btn-zip-ko').addEventListener('click', () => { zip.flow = false; clearInterval(zip.ping); $('#zip-confirm').classList.add('hidden'); $('#btn-zip-go').disabled = !zip.total; $('#zip-info').textContent = 'Rien n\'a été marqué comme exporté.'; });
+
+
   /* Export en deux temps : préparer (lecture des fichiers), puis partager (geste direct) */
   const DEST_HELP = {
-    airdrop: 'Touchez « Partager », puis AirDrop et le Mac.',
-    disque: 'Branchez le disque à l\'iPad (USB-C) et vérifiez qu\'il apparaît dans l\'app Fichiers. Touchez « Partager », puis « Enregistrer dans Fichiers » et choisissez le disque.' + (window.showDirectoryPicker ? ' Ici, l\'iPad vous demandera directement le dossier du disque.' : '')
+    airdrop: 'Touchez « Partager », puis AirDrop et le Mac. Gardez l\'iPad et le Mac déverrouillés, côte à côte, pendant l\'envoi.',
+    disque: 'Branchez le disque à l\'iPad (USB-C) et vérifiez qu\'il apparaît dans l\'app Fichiers. Touchez « Partager », puis « Enregistrer dans Fichiers » et choisissez le disque (le plus sûr pour de gros volumes).' + (window.showDirectoryPicker ? ' Ici, l\'iPad vous demandera directement le dossier du disque.' : '')
   };
   function setDest(v) { state.dest = v === 'disque' ? 'disque' : 'airdrop'; LS.set('exp.dest', state.dest); setSeg('#seg-dest', state.dest); $('#dest-help').textContent = DEST_HELP[state.dest]; }
   document.querySelectorAll('#seg-dest button').forEach(b => b.addEventListener('click', () => setDest(b.dataset.v)));
   setDest(LS.get('exp.dest', 'airdrop'));
   document.querySelectorAll('#seg-lot button').forEach(b => b.addEventListener('click', () => {
-    state.lot = b.dataset.v; LS.set('lot', state.lot); setSeg('#seg-lot', state.lot);
-    state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
-    $('#exp-info').textContent = '';
+    state.lot = b.dataset.v; LS.set('lot2', state.lot); setSeg('#seg-lot', state.lot);
+    resetExportFlow();
   }));
 
-  const exportable = (all, incl) => all.filter(m => !m.exported && (incl || m.status !== 'rejected')).sort((a, b) => a.id - b.id);
+  /* Ordre d'export : par candidat, puis par étape et par prise (un lot contient des candidats entiers) */
+  const exportable = (all, incl) => all.filter(m => !m.exported && (m.size || 0) >= MIN_BYTES && !(state.pending && state.pending.id === m.id) && (incl || m.status !== 'rejected'))
+    .sort((a, b) => (a.candidate || '').localeCompare(b.candidate || '', 'fr') || stepNo(a) - stepNo(b) || (a.take || 0) - (b.take || 0));
+  const expBar = (frac) => { $('#exp-bar > div').style.width = Math.round(100 * Math.max(0, Math.min(1, frac))) + '%'; };
 
-  $('#btn-exp-prep').addEventListener('click', async () => {
-    const btn = $('#btn-exp-prep');
-    const incl = $('#exp-rej').checked;
-    const all = await DB.all();
-    const pool = exportable(all, incl);
-    const metas = state.lot === 'all' ? pool : pool.slice(0, Number(state.lot));
-    if (!metas.length) { state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Rien à exporter : tout est déjà parti.'; return; }
-    btn.disabled = true;
-    const files = [], kept = [];
-    let empty = 0;
-    for (let i = 0; i < metas.length; i++) {
-      $('#exp-info').textContent = 'Préparation ' + (i + 1) + ' / ' + metas.length + '…';
-      const m = metas[i];
-      const b = await DB.blob(m.id);
-      if (b && b.size >= MIN_BYTES) { files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' })); kept.push(m); }
-      else empty++;
+  /* Découpage en lots : un candidat n'est jamais coupé en deux, sauf s'il dépasse à lui seul la taille d'un lot */
+  function planLots(pool, cap) {
+    const byC = []; pool.forEach(m => { const l = byC[byC.length - 1]; if (l && l.c === m.candidate) l.ms.push(m); else byC.push({ c: m.candidate, ms: [m] }); });
+    const lots = []; let cur = [], curSize = 0;
+    const flush = () => { if (cur.length) lots.push(cur); cur = []; curSize = 0; };
+    for (const g of byC) {
+      const gs = g.ms.reduce((a, m) => a + (m.size || 0), 0);
+      if (gs > cap) { flush(); for (const m of g.ms) { if (cur.length && curSize + (m.size || 0) > cap) flush(); cur.push(m); curSize += m.size || 0; } flush(); continue; }
+      if (cur.length && curSize + gs > cap) flush();
+      cur.push(...g.ms); curSize += gs;
     }
-    btn.disabled = false;
-    const size = files.reduce((a, f) => a + f.size, 0);
-    const remaining = pool.length - metas.length;
-    state.exportBatch = { metas: kept, files };
-    if (!files.length) { state.exportBatch = null; btn.disabled = false; $('#btn-exp-share').disabled = true; $('#exp-info').textContent = 'Les ' + empty + ' vidéo(s) à exporter sont vides (enregistrements ratés) : rien à envoyer.'; return; }
-    $('#btn-exp-share').disabled = false;
-    $('#btn-exp-share').textContent = '2. Partager ' + files.length + ' vidéo' + (files.length > 1 ? 's' : '') + ' (' + fmtBytes(size) + ')';
-    $('#exp-info').textContent = (remaining > 0 ? 'Prêt. Il restera ' + remaining + ' vidéo(s) pour l\'envoi suivant.' : 'Prêt : toutes les vidéos à exporter sont dans cet envoi.') +
-      (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + (size > 2e9 ? ' Envoi volumineux : si le partage échoue, choisissez un lot de 50 ou 25.' : '');
-  });
+    flush(); return lots;
+  }
+  const expFlow = { mode: 'prep', done: 0, total: 0, batch: null, busy: false };
+  const mainBtn = () => $('#btn-exp-main');
+  function resetExportFlow() {
+    expFlow.mode = 'prep'; expFlow.done = 0; expFlow.total = 0; expFlow.batch = null; state.exportBatch = null;
+    mainBtn().textContent = 'Préparer l\'export'; mainBtn().disabled = false; $('#exp-info').textContent = '';
+  }
 
-  $('#btn-exp-share').addEventListener('click', async () => {
+  /* Prépare UN lot : les fichiers sont relus un par un (jamais tout en mémoire) ; l'iPad n'a ensuite qu'à les partager */
+  async function prepareBatch(prefix) {
+    const btn = mainBtn(), info = $('#exp-info');
+    const all = await DB.all(), pool = exportable(all, $('#exp-rej').checked);
+    const done = all.filter(m => m.exported).reduce((a, m) => a + (m.size || 0), 0), todo = pool.reduce((a, m) => a + (m.size || 0), 0);
+    expBar(done + todo ? done / (done + todo) : 1);
+    if (!pool.length) {
+      state.exportBatch = null; expFlow.mode = 'done'; btn.textContent = 'Tout est exporté ✔'; btn.disabled = true;
+      info.textContent = (prefix || '') + 'Rien d\'autre à exporter : tout est parti ✔ Pensez à exporter aussi le rapport (carte 2).'; return false;
+    }
+    const lots = planLots(pool, Number(state.lot) * 1e6), metas = lots[0];
+    expFlow.total = expFlow.done + lots.length;
+    btn.disabled = true;
+    const files = [], kept = []; let empty = 0;
+    try {
+      for (let i = 0; i < metas.length; i++) {
+        info.textContent = 'Préparation du lot ' + (expFlow.done + 1) + ' / ' + expFlow.total + ' : ' + (i + 1) + ' / ' + metas.length + '…';
+        const m = metas[i], b = await DB.blob(m.id);
+        if (b && b.size >= MIN_BYTES) { files.push(new File([b], fileName(m), { type: m.mime || b.type || 'video/mp4' })); kept.push(m); } else empty++;
+      }
+    } finally { btn.disabled = false; }
+    if (!files.length) { state.exportBatch = null; expFlow.mode = 'prep'; btn.textContent = 'Préparer l\'export'; info.textContent = 'Les vidéos de ce lot sont vides (enregistrements ratés) : rien à envoyer.'; return false; }
+    const size = files.reduce((a, f) => a + f.size, 0), names = [...new Set(kept.map(m => m.candidate))];
+    state.exportBatch = { metas: kept, files, size };
+    expFlow.mode = 'share';
+    btn.textContent = 'Partager le lot ' + (expFlow.done + 1) + ' / ' + expFlow.total + ' · ' + files.length + ' vidéo' + (files.length > 1 ? 's' : '') + ' (' + fmtBytes(size) + ')';
+    info.textContent = (prefix || '') + 'Lot ' + (expFlow.done + 1) + ' / ' + expFlow.total + ' prêt : ' + names.length + ' candidat(s), ' + files.length + ' vidéo(s), ' + fmtBytes(size) + '.' +
+      (lots.length > 1 ? ' Il restera ' + (lots.length - 1) + ' lot(s).' : ' C\'est le dernier lot.') + (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') +
+      (state.dest === 'disque' ? ' Dans la feuille de partage : « Enregistrer dans Fichiers », puis le disque.' : ' Dans la feuille de partage : AirDrop, puis le Mac.');
+    return true;
+  }
+
+  async function shareBatch() {
     const batch = state.exportBatch; if (!batch) return;
+    mainBtn().disabled = true;
     const markDone = async () => {
       for (const m of batch.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = state.dest; await DB.put(m); }
-      state.exportBatch = null; $('#btn-exp-share').disabled = true; $('#btn-exp-share').textContent = '2. Partager';
-      const left = exportable(await DB.all(), $('#exp-rej').checked).length;
-      $('#exp-info').textContent = batch.files.length + ' vidéo(s) exportée(s).' + (left ? ' Il en reste ' + left + ' : touchez « 1. Préparer l\'export ».' : ' Tout est exporté ✔');
+      state.exportBatch = null; expFlow.done++;
+      const n = batch.files.length;
+      await prepareBatch('✔ Lot ' + expFlow.done + ' envoyé (' + n + ' vidéo(s), ' + fmtBytes(batch.size) + '). ');   // le lot suivant est prêt tout de suite
       await refreshStats();
     };
+    const abort = (msg) => { mainBtn().disabled = false; $('#exp-info').textContent = msg; };
     if (state.dest === 'disque' && window.showDirectoryPicker) {
       try {
         const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
         for (let i = 0; i < batch.files.length; i++) {
           $('#exp-info').textContent = 'Écriture sur le disque ' + (i + 1) + ' / ' + batch.files.length + '…';
-          const fh = await dir.getFileHandle(batch.files[i].name, { create: true });
+          const sub = await dir.getDirectoryHandle(whoSlug(batch.metas[i]), { create: true });
+          const fh = await sub.getFileHandle(batch.files[i].name, { create: true });
           const w = await fh.createWritable(); await w.write(batch.files[i]); await w.close();
         }
         await markDone(); return;
       } catch (e) {
-        if (e && e.name === 'AbortError') { $('#exp-info').textContent = 'Choix du dossier annulé : rien n\'a été marqué comme exporté.'; return; }
+        if (e && e.name === 'AbortError') return abort('Choix du dossier annulé : rien n\'a été marqué comme exporté.');
         $('#exp-info').textContent = 'Écriture directe impossible (' + (e && e.name) + ') : passage par le partage.';
       }
     }
     if (navigator.canShare && navigator.canShare({ files: batch.files })) {
       try { await navigator.share({ files: batch.files }); await markDone(); }
       catch (e) {
-        if (e && e.name === 'AbortError') $('#exp-info').textContent = 'Partage annulé : rien n\'a été marqué comme exporté.';
-        else $('#exp-info').textContent = 'Échec du partage (' + (e && e.name) + '). Rien n\'a été marqué comme exporté : choisissez un lot plus petit (50 ou 25) et recommencez.';
+        if (e && e.name === 'AbortError') abort('Partage annulé : rien n\'a été marqué comme exporté. Touchez de nouveau le bouton pour recommencer ce lot.');
+        else abort('Échec du partage (' + (e && e.name) + '). Rien n\'a été marqué comme exporté : choisissez des lots plus petits (500 Mo) et recommencez.');
       }
     } else {
       // Ordinateur de test : téléchargement classique
@@ -3048,7 +3561,16 @@
       }
       await markDone();
     }
+  }
+  mainBtn().addEventListener('click', async () => {
+    if (expFlow.busy) return; expFlow.busy = true;
+    try {
+      if (expFlow.mode === 'share') await shareBatch();
+      else if (expFlow.mode === 'prep') await prepareBatch('');
+    } catch (e) { $('#exp-info').textContent = '⚠ ' + (e && e.message || e); mainBtn().disabled = false; }
+    finally { expFlow.busy = false; }
   });
+  $('#exp-rej').addEventListener('change', resetExportFlow);
 
   let resetArmed = 0, delArmed = 0;
   $('#btn-exp-reset').addEventListener('click', async () => {
@@ -3083,6 +3605,7 @@
     }
     allArmed = 0;
     for (const m of all) await DB.remove(m.id);
+    LS.del('profiles'); LS.del('dash.refus');   // nouvelle journée : plus de « passé » ni de « aucune vidéo » mémorisés
     toast('Toutes les vidéos ont été effacées de l\'iPad'); await refreshStats();
   });
 
@@ -3169,13 +3692,15 @@
     show('home');
     try { await DB.open(); }
     catch (e) { toast('⚠ Stockage indisponible sur cet appareil (navigation privée ?)', 10000); }
+    await refreshProgress(); renderNames();
     try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
-    setTimeout(() => { loadFaceApi(); loadMannequin(); }, 1500);
+    setTimeout(() => { loadFaceApi(); loadMannequin(); loadFaceMesh(); }, 1500);
     if ('serviceWorker' in navigator && window.isSecureContext) {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     dashBoot();
   }
+  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, fileName };   // pour les tests automatiques
   boot();
 })();
 </script>

@@ -34,8 +34,8 @@ window.BORNE_CONFIG = {
   /* ---------- Réglages de la borne ---------- */
   codeAdmin: "1848",              // code du menu administrateur (à changer !)
   compteARebours: 3,              // secondes avant le début de l'enregistrement
-  prisesMax: 3,                   // nombre d'essais maximum par question
-  retourAccueilSecondes: 90,      // retour à l'accueil si personne ne touche l'écran
+  // (plus de limite d'essais : le candidat peut refaire une prise autant de fois qu'il le souhaite)
+  retourAccueilSecondes: 600,     // retour à l'accueil si personne ne touche l'écran (10 minutes)
   ecranMerciSecondes: 8,          // durée de l'écran « Merci »
   exportParLot: 0,                // vidéos par envoi à l'export : 0 = tout en une fois (sinon 50, 25 ou 10)
                                   // modifiable aussi directement dans le menu organisateur
@@ -103,40 +103,54 @@ window.BORNE_CONFIG = {
   microExterne: "avertir",
   alertesEnDirect: true,
 
-  /* ---------- Contrôle du regard ----------
-     La borne mesure où le candidat regarde (position de l'iris et orientation de la tête). Si le regard
-     n'est pas dirigé vers l'objectif pendant plus de 40 % de la prise, elle demande de recommencer.
-     seuilRegardX : écart horizontal toléré (0,15 = environ 25° de côté) ; seuilRegardY : écart vers le bas
-     toléré (0,10 = environ 15° sous l'objectif). Augmenter = plus tolérant, diminuer = plus strict. */
-  seuilRegardX: 0.15,
-  seuilRegardY: 0.10,
+  /* ---------- Contrôle du regard et du cadrage ----------
+     Outil : MediaPipe Face Mesh (dossier vendor/mediapipe, 100 % local). Il repère l'iris de chaque œil.
+     Seuils réglés sur 942 images de 31 candidats (27.10) : quand on regarde l'objectif, l'iris est à 0,49 ± 0,02
+     de la largeur de l'œil. regard.h : écart horizontal toléré (0,065 = un peu plus que 3 fois l'écart habituel) ;
+     regard.bas : position verticale de l'iris au-delà de laquelle on regarde vers le bas (l'écran) ;
+     regard.tete : écart de rotation de la tête toléré ; regard.part : part de la prise passée à regarder ailleurs
+     avant de le signaler (0,4 = 40 %). Augmenter = plus tolérant.
+     detectionRegard: false désactive l'outil (retour à l'ancienne estimation, moins fiable). */
+  detectionRegard: true,
+  regard: { h: 0.065, bas: 0.57, tete: 0.2, part: 0.4 },
+  /* Taille visée du visage, en part de la hauteur de l'image (candidats du 27.10 : de 0,13 à 0,43 ; médiane 0,17).
+     Mémoriser un cadrage de référence dans le menu organisateur remplace cette fenêtre. */
+  cadrage: { visageMin: 0.18, visageMax: 0.26 },
+
+  /* ---------- Noms des fichiers exportés ----------
+     Prenom-Nom_Q1_p1_validee.mp4 (la pose est la Q5). Toujours sans accent ni symbole (compatible Windows). */
 
   /* ---------- Questions ----------
      id     : court, sans espace ni accent (sert au nom du fichier)
      texte  : la question affichée en grand
+     titreCourt : intitulé court affiché dans le sommaire du candidat
      aide   : une ligne d'aide sous la question (facultatif)
      duree  : durée maximale en secondes                                      */
   questions: [
     {
       id: "Q1-presentation",
+      titreCourt: "Se présenter",
       texte: "Présentez-vous en quelques mots.",
       aide: "Votre nom, votre commune, votre métier, un détail qui vous ressemble, et votre candidature. (environ 5 secondes)",
       duree: 20
     },
     {
       id: "Q2-engagement",
+      titreCourt: "Mon engagement",
       texte: "Pourquoi vous engagez-vous ? Quels thèmes politiques vous tiennent à cœur ?",
       aide: "Ce que vous observez autour de vous, puis ce que vous voulez changer. Un ou deux thèmes suffisent. (environ 10 secondes)",
       duree: 30
     },
     {
       id: "Q3-vaud-2037",
+      titreCourt: "Ma vision du canton",
       texte: "Quelle est votre vision pour le futur du canton ?",
       aide: "Par exemple : « Dans dix ans, j'aimerais que le canton de Vaud… » ou « Je veux un canton où… ». (environ 10 secondes)",
       duree: 30
     },
     {
       id: "Q4-coin-prefere",
+      titreCourt: "Un coin ou une anecdote",
       texte: "Voulez-vous partager une anecdote personnelle, un coin du canton qui vous est cher, ou porter un autre message ?",
       aide: "Question facultative : si rien ne vous vient, touchez « Passer ». (environ 10 secondes)",
       facultative: true,
