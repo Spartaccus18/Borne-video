@@ -594,6 +594,12 @@
         <button data-v="8000">8 Go</button>
         <button data-v="all">Un seul fichier</button>
       </div>
+      <p class="small" style="margin-top:.6rem">Méthode de sortie :</p>
+      <div class="seg" id="seg-zipmode" style="margin-top:.4rem">
+        <button data-v="partage">Partage (app installée)</button>
+        <button data-v="telecharger">Téléchargement Safari</button>
+      </div>
+      <p class="small" id="zip-mode-help" style="margin-top:.4rem"></p>
       <div class="row">
         <button class="btn" id="btn-zip-prep">1. Préparer et vérifier</button>
         <button class="btn btn-ok" id="btn-zip-go" disabled>2. Tout télécharger</button>
@@ -609,13 +615,12 @@
           <button class="btn btn-ghost" id="btn-zip-ko">Annuler (rien n'est marqué)</button>
         </div>
       </div>
-      <p class="small" style="margin-top:.7rem">Les fichiers arrivent dans le dossier de téléchargement de Safari (Réglages › Safari › Téléchargements). Il faut, à chaque instant, autant de place libre sur l'iPad qu'<b>un seul</b> fichier ZIP : envoyez chaque fichier au Mac (AirDrop depuis l'app Fichiers) puis supprimez-le. Gardez l'écran allumé et l'app ouverte pendant le téléchargement.</p>
       <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Journal technique (à me montrer en cas de problème)</summary>
         <pre class="small" id="zip-log" style="white-space:pre-wrap;max-height:14rem;overflow:auto;margin-top:.4rem"></pre>
       </details>
       <details style="margin-top:.7rem"><summary class="small" style="cursor:pointer">Essai de transfert (fichier factice, sans vidéo réelle)</summary>
-      <p class="small" style="margin-top:.5rem">Télécharge de faux ZIP remplis de zéros, découpés selon la taille choisie ci-dessus, pour vérifier que l'iPad et Safari tiennent le coup. Supprimez-les ensuite dans l'app Fichiers : au total, ils prennent la taille de l'essai.</p>
-      <div class="row"><button class="btn btn-ghost" data-ztest="1">Essai 1 Go</button><button class="btn btn-ghost" data-ztest="10">Essai 10 Go</button><button class="btn btn-ghost" data-ztest="25">Essai 25 Go</button></div>
+      <p class="small" style="margin-top:.5rem">Prépare de faux ZIP remplis de zéros, découpés selon la taille choisie ci-dessus, avec la méthode de sortie choisie. Commencez par 200 Mo. Si vous avez envoyé les fichiers dans Fichiers, supprimez-les ensuite.</p>
+      <div class="row"><button class="btn btn-ghost" data-ztest="200">Essai 200 Mo</button><button class="btn btn-ghost" data-ztest="1000">Essai 1 Go</button><button class="btn btn-ghost" data-ztest="4000">Essai 4 Go</button><button class="btn btn-ghost" data-ztest="10000">Essai 10 Go</button></div>
       </details>
             <details style="margin-top:1rem"><summary class="small" style="cursor:pointer">Autre option : par lots, avec la feuille de partage (AirDrop, Fichiers)</summary>
       <p class="small" style="margin-top:.5rem">Safari charge en mémoire toutes les vidéos d'un même partage : choisissez un petit nombre de vidéos par envoi. L'app prépare le lot suivant toute seule ; un seul gros bouton à toucher à chaque lot.</p>
@@ -810,7 +815,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.4 · 28.10.2026';
+  const VERSION = '4.5 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -858,10 +863,12 @@
     noIdle: false,
     lot: LS.get('lot', '50'),
     zipcap: LS.get('zipcap', '4000'),
+    zipmode: LS.get('zipmode', 'partage'),
     vol: LS.get('vol', 'max')
   };
   if (!['all', '50', '25', '10'].includes(state.lot)) state.lot = '50';
   if (!['2000', '4000', '8000', 'all'].includes(state.zipcap)) state.zipcap = '4000';
+  if (!['partage', 'telecharger'].includes(state.zipmode)) state.zipmode = 'partage';
   if (!['normal', 'fort', 'max'].includes(state.vol)) state.vol = 'max';
   if (state.dayId !== 'ALL' && !DAYS.some(d => d.id === state.dayId)) state.dayId = DAYS[0] ? DAYS[0].id : 'ALL';
 
@@ -2923,7 +2930,7 @@
      ------------------------------------------------------------------ */
   async function openAdmin() {
     $('#admin').classList.remove('hidden');
-    setSeg('#seg-lot', state.lot); setSeg('#seg-zipcap', state.zipcap); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
+    setSeg('#seg-lot', state.lot); setSeg('#seg-zipcap', state.zipcap); setSeg('#seg-zipmode', state.zipmode); zipModeUi(); setSeg('#seg-vol', state.vol); frameRefInfo(); renderReportSync();
     const sel = $('#adm-day');
     sel.innerHTML = DAYS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.id + ' · ' + d.libelle) + '</option>').join('') +
       '<option value="ALL">Toutes les journées (liste complète)</option>';
@@ -3420,7 +3427,7 @@
 
   async function zipPrepare() {
     if (zip.busy || zip.flow) return;
-    const info = $('#zip-info'); zip.busy = true; zip.test = false; $('#btn-zip-prep').disabled = true; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = '';
+    const info = $('#zip-info'); zip.busy = true; zip.test = false; zip.shareState = null; zipModeUi(); $('#btn-zip-prep').disabled = true; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = '';
     try {
       if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('le mode hors ligne de l\'app n\'est pas actif : fermez puis rouvrez la borne (une fois avec du réseau), puis réessayez');
       const all = await DB.all(), pool = exportable(all, $('#exp-rej').checked);
@@ -3446,7 +3453,7 @@
       await zipBuild(items);
       zipBar(1); $('#btn-zip-go').disabled = false;
       zlog('prêt : ' + zip.parts.length + ' fichier(s), ' + fmtBytes(zip.total));
-      info.textContent = '✔ Prêt : ' + items.length + ' vidéo(s) vérifiée(s), ' + zip.parts.length + ' fichier(s) ZIP (' + zip.parts.map(p => fmtBytes(p.size)).join(' + ') + ' = ' + fmtBytes(zip.total) + ').' + (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + ' Touchez « 2. Tout télécharger ».';
+      info.textContent = '✔ Prêt : ' + items.length + ' vidéo(s) vérifiée(s), ' + zip.parts.length + ' fichier(s) ZIP (' + zip.parts.map(p => fmtBytes(p.size)).join(' + ') + ' = ' + fmtBytes(zip.total) + ').' + (empty ? ' ' + empty + ' vidéo(s) vide(s) ignorée(s).' : '') + ' Touchez « ' + (state.zipmode === 'partage' ? '2. Préparer et partager' : '2. Tout télécharger') + ' ».';
     } catch (e) { info.textContent = '⚠ Préparation impossible : ' + (e && e.message || e); zlog('ERREUR préparation : ' + (e && e.message || e)); }
     finally { zip.busy = false; $('#btn-zip-prep').disabled = false; }
   }
@@ -3511,15 +3518,105 @@
     else if (d.type === 'export-error') { p.status = 'err'; zlog('ERREUR du fichier ' + (zip.cur + 1) + ' : ' + d.msg); zipProblem('Échec du fichier ' + (zip.cur + 1) + ' : ' + d.msg + '. Rien n\'est marqué comme exporté pour ce fichier : touchez « Relancer ».'); }
     else if (d.type === 'export-cancel') { zlog('annulé (Safari a interrompu le téléchargement)'); p.status = 'err'; zipProblem('Safari a interrompu le téléchargement du fichier ' + (zip.cur + 1) + '. Touchez « Relancer ».'); }
   });
-  async function zipTest(gb) {
+
+  /* ---------- Méthode « Partage » : ZIP écrit dans le stockage privé de l'app (OPFS), puis feuille de partage ---------- */
+  const MODE_HELP = {
+    partage: 'Recommandé dans l\'app installée : chaque fichier ZIP est d\'abord écrit dans le stockage de l\'app (barre de progression), puis vous touchez « Partager » : AirDrop vers le Mac ou « Enregistrer dans Fichiers ». Il faut de la place libre pour un fichier, et autant pour sa copie si vous l\'enregistrez dans Fichiers : préférez 2 Go.',
+    telecharger: 'Les fichiers sont téléchargés par Safari, dans Fichiers › iCloud Drive › Téléchargements. Fonctionne dans un onglet Safari ; dans l\'app installée, iOS peut bloquer ou perdre le téléchargement.'
+  };
+  function zipModeUi() {
+    const h = $('#zip-mode-help'); if (h) h.textContent = MODE_HELP[state.zipmode];
+    if (!zip.flow) $('#btn-zip-go').textContent = state.zipmode === 'partage' ? '2. Préparer et partager' : '2. Tout télécharger';
+  }
+  async function opfsClean() { try { const r = await navigator.storage.getDirectory(); const names = []; for await (const [n] of r.entries()) if (/\.zip$/.test(n)) names.push(n); for (const n of names) await r.removeEntry(n); } catch (e) {} }
+  const zipGo = () => state.zipmode === 'partage' ? (zip.shareState === 'ready' ? shareNow() : shareStart()) : zipStartDownload();
+
+  function shareStart() {
+    if (!zip.parts.length) return;
+    if (!navigator.storage || !navigator.storage.getDirectory || typeof Worker === 'undefined') { $('#zip-info').textContent = '⚠ Cet appareil ne permet pas la méthode « Partage » : choisissez « Téléchargement Safari ».'; return; }
+    zip.flow = true; zip.t0 = Date.now(); $('#zip-confirm').classList.add('hidden'); keepAwake();
+    zip.parts.forEach(p => { if (p.status !== 'done') { p.status = 'wait'; p.sent = 0; p.file = null; } });
+    const first = zip.parts.findIndex(p => p.status !== 'done'); sharePrepare(first < 0 ? 0 : first);
+  }
+  function shareShow(p) {
+    const n = zip.parts.length, done = zip.parts.reduce((a, q) => a + (q.status === 'done' ? q.size : q.sent), 0), el = (Date.now() - zip.tp) / 1000, sp = el > 2 ? p.sent / el : 0;
+    zipBar(zip.total ? done / zip.total : 0);
+    $('#zip-pct').textContent = Math.round(100 * done / Math.max(1, zip.total)) + ' % · ' + fmtBytes(done) + ' sur ' + fmtBytes(zip.total);
+    $('#zip-info').textContent = 'Préparation du fichier ' + (zip.cur + 1) + ' / ' + n + ' : ' + fmtBytes(p.sent) + ' sur ' + fmtBytes(p.size) + (sp > 1e6 ? ' · ' + Math.round(sp / 1e6) + ' Mo/s · fichier prêt dans environ ' + fmtDur((p.size - p.sent) / sp) : '') + '.';
+  }
+  async function sharePrepare(i) {
+    const p = zip.parts[i], n = zip.parts.length, g = $('#btn-zip-go'); if (!p) return;
+    zip.cur = i; p.status = 'write'; p.sent = 0; p.file = null; zip.shareState = 'write'; zip.tp = Date.now();
+    g.disabled = true; g.textContent = 'Préparation du fichier ' + (i + 1) + ' / ' + n + '…';
+    const rb = $('#btn-zip-retry'); rb.textContent = 'Annuler'; rb.classList.remove('hidden');
+    try {
+      const hit = await caches.open('borne-export').then(c => c.match(manKey(p.name))); if (!hit) throw new Error('liste d\'export perdue : refaites « 1. Préparer »');
+      const man = await hit.json(); await opfsClean();
+      zlog('écriture du fichier ' + (i + 1) + ' / ' + n + ' dans le stockage de l\'app : ' + p.name + ' (' + p.size + ' octets)');
+      const w = new Worker('opfs-zip.js'); zip.worker = w;
+      w.onmessage = async (ev) => {
+        const d = ev.data || {};
+        if (d.type === 'progress') { p.sent = d.pos; shareShow(p); }
+        else if (d.type === 'done') {
+          try {
+            // le système peut mettre un instant à rendre le fichier complet : on relit sa taille jusqu'à 30 s avant de conclure
+            const root = await navigator.storage.getDirectory(); let raw = null, t = 0;
+            for (;;) { raw = await (await root.getFileHandle(p.name)).getFile(); if (raw.size === p.size || ++t > 60) break; await sleep(500); }
+            if (raw.size !== p.size) { zlog('taille relue ' + raw.size + ' au lieu de ' + p.size); throw new Error('taille écrite ' + raw.size + ' au lieu de ' + p.size); }
+            p.file = new File([raw], p.name, { type: 'application/zip' });
+          } catch (e) { try { w.terminate(); } catch (x) {} zip.worker = null; return shareProblem('Fichier illisible après écriture : ' + (e && e.message || e)); }
+          try { w.terminate(); } catch (x) {} zip.worker = null;
+          p.status = 'ready'; p.sent = p.size; zip.shareState = 'ready'; shareShow(p); zlog('fichier ' + (i + 1) + ' prêt (' + p.size + ' octets)');
+          rb.classList.add('hidden'); g.disabled = false; g.textContent = 'Partager le fichier ' + (i + 1) + ' / ' + n + ' · ' + fmtBytes(p.size);
+          $('#zip-info').textContent = '✔ Fichier ' + (i + 1) + ' / ' + n + ' prêt (' + fmtBytes(p.size) + '). Touchez « Partager », puis AirDrop (Mac déverrouillé, à côté) ou « Enregistrer dans Fichiers ».';
+        }
+        else if (d.type === 'error') { w.terminate(); zip.worker = null; shareProblem(d.msg); }
+      };
+      w.onerror = (e) => { shareProblem('erreur du module d\'écriture : ' + (e && e.message || 'inconnue')); };
+      w.postMessage({ type: 'start', name: p.name, files: man.files });
+    } catch (e) { shareProblem(e && e.message || e); }
+  }
+  function shareProblem(msg) {
+    const p = zip.parts[zip.cur], g = $('#btn-zip-go'); if (p) { p.status = 'wait'; p.sent = 0; p.file = null; }
+    zip.shareState = null; zip.flow = false; $('#btn-zip-retry').classList.add('hidden');
+    $('#zip-info').textContent = '⚠ ' + msg; zlog('PROBLÈME : ' + msg);
+    g.disabled = false; g.textContent = 'Réessayer le fichier ' + (zip.cur + 1) + ' / ' + zip.parts.length; opfsClean();
+  }
+  async function shareCancel() {
+    if (zip.worker) { try { zip.worker.postMessage({ type: 'cancel' }); } catch (e) {} setTimeout(() => { if (zip.worker) { try { zip.worker.terminate(); } catch (e) {} zip.worker = null; shareProblem('Préparation annulée.'); } }, 2500); }
+  }
+  /* Appelé directement par le toucher de l'utilisateur : le partage doit partir sans aucune attente avant */
+  function shareNow() {
+    const p = zip.parts[zip.cur], n = zip.parts.length, g = $('#btn-zip-go'); if (!p || !p.file) return;
+    if (!(navigator.share && navigator.canShare && navigator.canShare({ files: [p.file] }))) { zip.shareState = null; zip.flow = false; $('#zip-info').textContent = '⚠ Cet iPad refuse de partager ce fichier ZIP (partage de fichiers indisponible). Journal : ' + (navigator.canShare ? 'canShare=faux' : 'canShare absent') + '. Essayez la méthode « Téléchargement Safari » ou l\'envoi par lots.'; zlog('canShare refusé pour ' + p.name); g.textContent = 'Partager le fichier ' + (zip.cur + 1) + ' / ' + n; zip.shareState = 'ready'; return; }
+    g.disabled = true; zlog('ouverture de la feuille de partage pour le fichier ' + (zip.cur + 1));
+    navigator.share({ files: [p.file] }).then(async () => {
+      zlog('partage terminé pour le fichier ' + (zip.cur + 1));
+      p.status = 'done'; p.file = null; zip.shareState = null;
+      if (!zip.test) for (const m of p.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = 'zip'; await DB.put(m); }
+      try { const r = await navigator.storage.getDirectory(); await r.removeEntry(p.name); } catch (e) {}
+      await refreshStats();
+      const next = zip.parts.findIndex(q => q.status !== 'done');
+      if (next >= 0) { $('#zip-info').textContent = '✔ Fichier ' + (zip.cur + 1) + ' envoyé. Préparation du suivant…'; sharePrepare(next); return; }
+      zip.flow = false; zipBar(1); $('#zip-pct').textContent = '100 %';
+      $('#zip-info').textContent = zip.test ? '✔ Essai terminé : le partage a fonctionné.' : '✔ Tout est exporté (' + fmtBytes(zip.total) + '). Pensez à exporter aussi le rapport (carte 2).';
+      g.disabled = true; g.textContent = zip.test ? '2. Préparer et partager' : 'Tout est exporté ✔'; if (!zip.test) { zip.parts = []; zip.total = 0; await zipClearManifests(); }
+    }).catch((e) => {
+      zip.shareState = 'ready'; g.disabled = false; zlog('partage : ' + (e && e.name) + ' ' + (e && e.message || ''));
+      if (e && e.name === 'AbortError') $('#zip-info').textContent = 'Partage annulé : rien n\'est marqué comme exporté. Le fichier reste prêt : touchez de nouveau « Partager ».';
+      else $('#zip-info').textContent = '⚠ Échec du partage (' + (e && e.name) + ' : ' + (e && e.message || '') + '). Rien n\'est marqué comme exporté ; le fichier reste prêt. Réessayez, ou choisissez une taille de fichier plus petite.';
+    });
+  }
+  async function zipTest(mb) {
     if (zip.busy || zip.flow) return; zip.busy = true;
     try {
       if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) throw new Error('mode hors ligne de l\'app non actif : fermez puis rouvrez la borne');
-      const items = []; for (let i = 1; i <= gb; i++) items.push({ candidate: 'essai-' + i, size: 1073741824, file: { name: 'ESSAI/essai-' + String(i).padStart(2, '0') + '.bin', fake: true, size: 1073741824, at: Date.now() } });
-      zip.test = true; await zipBuild(items, 'ESSAI-' + gb + 'Go');
-      zlog('essai ' + gb + ' Go : ' + zip.parts.length + ' fichier(s)');
+      const items = []; let left = mb * 1e6, i = 1;
+      while (left > 0) { const sz = Math.min(1073741824, left); items.push({ candidate: 'essai-' + i, size: sz, file: { name: 'ESSAI/essai-' + String(i).padStart(2, '0') + '.bin', fake: true, size: sz, at: Date.now() } }); left -= sz; i++; }
+      zip.test = true; await zipBuild(items, 'ESSAI-' + mb + 'Mo');
+      zlog('essai ' + mb + ' Mo : ' + zip.parts.length + ' fichier(s), méthode ' + state.zipmode);
       $('#zip-info').textContent = 'Essai prêt : ' + zip.parts.length + ' fichier(s) factice(s), ' + fmtBytes(zip.total) + ' au total.';
-      zipStartDownload();
+      zipGo();
     } catch (e) { $('#zip-info').textContent = '⚠ Essai impossible : ' + (e && e.message || e); }
     finally { zip.busy = false; }
   }
@@ -3529,9 +3626,14 @@
     state.zipcap = b.dataset.v; LS.set('zipcap', state.zipcap); setSeg('#seg-zipcap', state.zipcap);
     zip.parts = []; zip.total = 0; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = ''; $('#zip-info').textContent = 'Taille changée : touchez « 1. Préparer et vérifier ».';
   }));
+  document.querySelectorAll('#seg-zipmode button').forEach(b => b.addEventListener('click', () => {
+    if (zip.flow) return;
+    state.zipmode = b.dataset.v; LS.set('zipmode', state.zipmode); setSeg('#seg-zipmode', state.zipmode); zipModeUi();
+    zip.parts = []; zip.total = 0; zip.shareState = null; $('#btn-zip-go').disabled = true; $('#zip-confirm').classList.add('hidden'); $('#zip-pct').textContent = ''; $('#zip-info').textContent = 'Méthode changée : touchez « 1. Préparer et vérifier ».';
+  }));
   $('#btn-zip-prep').addEventListener('click', zipPrepare);
-  $('#btn-zip-go').addEventListener('click', zipStartDownload);
-  $('#btn-zip-retry').addEventListener('click', () => { keepAwake(); zip.lastMsg = Date.now(); if (!zip.flow) { zip.flow = true; zip.t0 = zip.t0 || Date.now(); clearInterval(zip.watch); zip.watch = setInterval(zipWatchdog, 1000); } zipRunPart(Math.max(0, zip.cur)); });
+  $('#btn-zip-go').addEventListener('click', zipGo);
+  $('#btn-zip-retry').addEventListener('click', () => { if (state.zipmode === 'partage') return shareCancel(); keepAwake(); zip.lastMsg = Date.now(); if (!zip.flow) { zip.flow = true; zip.t0 = zip.t0 || Date.now(); clearInterval(zip.watch); zip.watch = setInterval(zipWatchdog, 1000); } zipRunPart(Math.max(0, zip.cur)); });
   $('#btn-zip-ok').addEventListener('click', async () => {
     let n = 0;
     for (const p of zip.parts) if (p.status === 'done') for (const m of p.metas) { m.exported = true; m.exportedAt = Date.now(); m.exportedTo = 'zip'; await DB.put(m); n++; }
