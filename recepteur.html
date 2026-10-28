@@ -30,14 +30,16 @@
 <body>
 <main>
   <h1>Réception des vidéos de la borne</h1>
-  <p class="small">Cette page reçoit les vidéos de l'iPad par le réseau local et les écrit <b>directement dans le dossier de votre choix</b> (par exemple le SSD). <b>Les vidéos ne passent jamais par internet</b> : seule la mise en relation de l'iPad et du Mac (un petit échange technique, sans vidéo) passe par un service public gratuit. Fonctionne dans Chrome, Edge et Brave.</p>
+  <p class="small">Cette page reçoit les vidéos de l'iPad par le réseau local et les écrit <b>directement dans le dossier de votre choix</b> (par exemple le SSD). <b>Les vidéos ne passent jamais par internet</b> : seule la mise en relation de l'iPad et du Mac (un petit échange technique, sans vidéo) passe par un service public gratuit.</p>
 
   <div class="card" id="c-brave" style="display:none">
-    <h2 class="ko">Ce navigateur bloque l'accès aux dossiers</h2>
-    <p id="brave-txt">Pour écrire directement dans un dossier (le SSD), le navigateur doit autoriser l'accès aux dossiers.</p>
-    <p><b>Brave</b> : collez <span class="mono sel" id="brave-flag">brave://flags/#file-system-access-api</span> dans la barre d'adresse (Brave n'ouvre pas ce lien depuis une page), choisissez « Enabled », cliquez « Relancer », puis rouvrez cette page. <button class="ghost" id="b-copy-flag">Copier ce lien</button></p>
-    <p><b>Ou</b> continuez sans réglage : les vidéos seront téléchargées une à une dans le dossier « Téléchargements » du navigateur (Brave peut demander d'autoriser les téléchargements multiples : acceptez). Dans ce mode, il n'y a pas de sous-dossier par candidat (le nom du candidat est dans le nom de chaque fichier), et en cas de coupure tous les fichiers sont renvoyés.</p>
-    <div class="row"><button id="b-nodir">Continuer sans dossier (Téléchargements)</button></div>
+    <h2>Ce navigateur n'écrit pas directement dans un dossier</h2>
+    <p id="brave-txt">C'est normal : Brave désactive volontairement cette fonction par sécurité. <b>Vous n'avez rien à activer.</b></p>
+    <p>Cliquez sur le bouton ci-dessous : les vidéos seront téléchargées une à une dans le dossier « Téléchargements » du navigateur (le navigateur peut demander d'autoriser les téléchargements multiples : acceptez pour ce site). Elles sont vérifiées à l'arrivée comme d'habitude. Il n'y a simplement pas de sous-dossier par candidat : le nom du candidat figure dans chaque nom de fichier, et le tri en dossiers pourra se faire ensuite. En cas de coupure, tous les fichiers sont renvoyés.</p>
+    <div class="row"><button id="b-nodir">Continuer : télécharger dans « Téléchargements »</button></div>
+    <details style="margin-top:.6rem"><summary class="small" style="cursor:pointer">Option avancée (non recommandée) : écrire directement dans un dossier</summary>
+      <p class="small">Dans Brave, un réglage expérimental permet cette fonction : <span class="mono sel" id="brave-flag">brave://flags/#file-system-access-api</span> <button class="ghost" id="b-copy-flag">Copier</button> (à coller dans la barre d'adresse). Brave la désactive car elle touche à la vie privée : une fois activée, tous les sites peuvent proposer de choisir un dossier. Le site n'accède qu'au dossier que vous choisissez, après votre clic, et l'accès s'arrête à la fermeture de l'onglet. Le nom exact du réglage vient de discussions d'utilisateurs, pas de Brave : ne l'activez que si le tri automatique en dossiers vous est vraiment utile.</p>
+    </details>
   </div>
 
   <div class="card" id="c-dir">
@@ -128,7 +130,7 @@ const updateManual = () => { $('#b-connect').disabled = !((rootDir || dlMode) &&
   if (window.showDirectoryPicker) return;
   const brave = !!(navigator.brave && await navigator.brave.isBrave().catch(() => false));
   $('#c-brave').style.display = ''; $('#c-dir').style.display = 'none';
-  if (!brave) $('#brave-txt').textContent = 'Ce navigateur ne permet pas d\'écrire dans un dossier. Pour choisir le SSD, ouvrez cette page dans Google Chrome ou Microsoft Edge. Sinon, continuez avec les téléchargements ci-dessous.';
+  if (!brave) $('#brave-txt').textContent = 'Ce navigateur ne permet pas d\'écrire directement dans un dossier. Pour choisir le SSD, ouvrez cette page dans Google Chrome ou Microsoft Edge ; sinon, continuez avec les téléchargements ci-dessous.';
 })();
 $('#b-copy-flag').addEventListener('click', async () => { try { await navigator.clipboard.writeText('brave://flags/#file-system-access-api'); $('#b-copy-flag').textContent = 'Copié ✔'; } catch (e) { $('#b-copy-flag').textContent = 'Sélectionnez le lien et faites Cmd+C'; } });
 $('#b-nodir').addEventListener('click', () => { dlMode = true; rootDir = null; $('#b-nodir').textContent = 'Mode téléchargements activé ✔'; log('mode sans dossier : téléchargements du navigateur'); updateManual(); });
