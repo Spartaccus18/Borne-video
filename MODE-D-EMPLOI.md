@@ -115,6 +115,15 @@ Les seuils (niveau, bruit, netteté, regard) sont réglés de manière prudente 
 
 Les vidéos ne sont **jamais envoyées au site** : le dashboard ne reçoit que des statuts (qui a tourné quoi, qui a refusé). Le menu organisateur propose deux exports **séparés**, car ils ne vont pas au même endroit.
 
+**Envoi direct au Mac (v4.6, recommandé pour tout exporter d'un coup).** Les vidéos passent de l'iPad au Mac **par le réseau local** (même Wi-Fi, ou partage de connexion de l'iPhone), sans internet et sans limite de taille. Le Mac les écrit directement dans le dossier choisi (par exemple le SSD), un sous-dossier par candidat, et vérifie chaque fichier (somme de contrôle).
+
+1. Sur le Mac, ouvrir dans **Chrome** : `https://spartaccus18.github.io/Borne-video/recepteur.html`, puis « Choisir le dossier… » (le SSD).
+2. Sur l'iPad (menu organisateur, carte « Envoyer toutes les vidéos au Mac ») : « 1. Préparer la connexion », « Copier le code ». Le coller dans la page du Mac (presse-papiers partagé si les deux sont sur le même compte Apple, sinon AirDrop ou Messages) puis « Générer le code de réponse », « Copier ».
+3. Sur l'iPad : coller le code de réponse, « 3. Connecter ». Quand l'état affiche « Connecté au Mac », « 4. Tout envoyer ». Un « Essai de vitesse (200 Mo factices) » permet de tester le réseau avant. Il écrit un dossier ESSAI sur le Mac : à supprimer.
+4. Garder l'iPad allumé et l'app ouverte, le Mac réveillé. Une vidéo n'est marquée « exportée » qu'une fois confirmée par le Mac. Si la connexion se coupe, refaire les étapes 1 à 3 : les fichiers déjà arrivés en entier sont reconnus et seuls les manquants sont renvoyés.
+
+Si l'iPad n'arrive pas à se connecter (réseau qui isole les appareils, ou adresses réseau masquées), cocher « Mode compatibilité » sur la page du Mac et recommencer.
+
 **Carte 1 : exporter toutes les vidéos d'un coup (fichiers ZIP).** Un seul bouton enchaîne plusieurs fichiers ZIP (par défaut 4 Go chacun ; 2 Go, 8 Go ou « Un seul fichier » au choix), avec un dossier par candidat (`Marie-Dupont/Marie-Dupont_Q1_p2_validee.mp4`). Un candidat n'est jamais coupé en deux, et le rapport n'en fait pas partie.
 
 Pourquoi plusieurs fichiers plutôt qu'un seul : un ZIP de 20 Go d'un seul tenant exige 20 Go de plus sur l'iPad, en plus des vidéos déjà stockées, et Safari supporte mal les très longs téléchargements ([StreamSaver, ticket 373](https://github.com/jimmywarting/StreamSaver.js/issues/373)). Avec des fichiers de 4 Go, il suffit d'avoir 4 Go libres à chaque instant : envoyer chaque ZIP au Mac (AirDrop depuis Fichiers) puis le supprimer.

@@ -584,6 +584,25 @@
     </div>
 
     <div class="card">
+      <h3>Envoyer toutes les vidéos au Mac (Wi-Fi, direct, sans internet)</h3>
+      <p>Les vidéos passent de l'iPad au Mac <b>directement par le réseau local</b> (iPad et Mac sur le même Wi-Fi, ou sur le partage de connexion de l'iPhone). Elles sont écrites sur le Mac dans le dossier de votre choix (par exemple le SSD), un dossier par candidat, <b>vérifiées une à une</b>, sans limite de taille. Rien ne passe par internet.</p>
+      <p class="small">Sur le Mac, ouvrez dans <b>Chrome</b> : <span class="mono" id="lan-url"></span>, puis suivez les étapes.</p>
+      <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="lan-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
+      <div class="row"><button class="btn" id="btn-lan-offer">1. Préparer la connexion</button><button class="btn btn-ghost hidden" id="btn-lan-copy">Copier le code</button></div>
+      <textarea id="lan-offer" class="hidden" readonly style="width:100%;min-height:4.5rem;margin-top:.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
+      <p class="small" style="margin-top:.6rem">2. Collez ce code sur le Mac (page ouverte dans Chrome), puis collez ici le « code de réponse » qu'il affiche :</p>
+      <textarea id="lan-answer" placeholder="Code de réponse du Mac (commence par BV1)" style="width:100%;min-height:4.5rem;font:12px/1.3 ui-monospace,Menlo,monospace;word-break:break-all"></textarea>
+      <div class="row"><button class="btn" id="btn-lan-connect">3. Connecter</button><button class="btn btn-ghost" id="btn-lan-paste">Coller</button></div>
+      <p id="lan-state" style="margin-top:.5rem;font-weight:700"></p>
+      <div class="row"><button class="btn btn-ok" id="btn-lan-send" disabled>4. Tout envoyer</button><button class="btn btn-ghost" id="btn-lan-test" disabled>Essai de vitesse (200 Mo factices)</button><button class="btn btn-ghost hidden" id="btn-lan-stop">Interrompre</button></div>
+      <div class="bar" id="lan-bar" style="margin-top:.7rem;height:.9rem"><div></div></div>
+      <p id="lan-pct" style="margin-top:.4rem;font-weight:700"></p>
+      <p class="small" id="lan-info" style="margin-top:.3rem"></p>
+      <p class="small" style="margin-top:.6rem">Gardez l'iPad allumé, l'app ouverte au premier plan, et le Mac réveillé pendant l'envoi. Si la connexion se coupe, les fichiers déjà arrivés en entier sont conservés : refaites les étapes 1 à 3 et seuls les fichiers manquants sont renvoyés. Une vidéo n'est marquée « exportée » qu'une fois confirmée et vérifiée par le Mac.</p>
+      <details style="margin-top:.5rem"><summary class="small" style="cursor:pointer">Journal technique</summary><pre class="small" id="lan-log" style="white-space:pre-wrap;max-height:14rem;overflow:auto;margin-top:.4rem"></pre></details>
+    </div>
+
+    <div class="card">
       <h3>1. Exporter toutes les vidéos d'un coup (fichiers ZIP)</h3>
       <p>Un seul bouton lance tout : l'app enchaîne toute seule plusieurs fichiers ZIP, classés par dossier de candidat (<span class="mono">Prenom-Nom/Prenom-Nom_Q1_p1_validee.mp4</span>). Un candidat n'est jamais coupé en deux. Le rapport n'en fait pas partie (carte 2).</p>
       <label class="row" style="align-items:center;gap:.5rem"><input type="checkbox" id="exp-rej" checked> <span>Inclure aussi les prises rejetées</span></label>
@@ -815,7 +834,7 @@
 (function () {
   'use strict';
 
-  const VERSION = '4.5 · 28.10.2026';
+  const VERSION = '4.6 · 28.10.2026';
   const CFG = window.BORNE_CONFIG;
   const $ = (s) => document.querySelector(s);
 
@@ -3519,6 +3538,157 @@
     else if (d.type === 'export-cancel') { zlog('annulé (Safari a interrompu le téléchargement)'); p.status = 'err'; zipProblem('Safari a interrompu le téléchargement du fichier ' + (zip.cur + 1) + '. Touchez « Relancer ».'); }
   });
 
+
+  /* ==========================================================================
+     Envoi direct iPad → Mac par le réseau local (WebRTC), sans serveur ni internet.
+     Les codes de connexion s'échangent à la main (copier-coller). Le Mac (recepteur.html, dans Chrome)
+     écrit chaque vidéo dans le dossier choisi, calcule sa somme de contrôle et la confirme.
+     Contrôle de débit : au plus 32 Mo envoyés sans accusé de réception du Mac.
+     ========================================================================== */
+  const lan = { pc: null, dc: null, open: false, ack: 0, sent: 0, wake: null, low: null, have: null, haveWait: null, fin: null, finWait: null, err: null, busy: false, t0: 0, total: 0, base: 0, byPath: {}, ok: 0, bad: [], log: [], test: false, stop: false };
+  const lanBar = (f) => { $('#lan-bar > div').style.width = Math.round(100 * Math.max(0, Math.min(1, f))) + '%'; };
+  const llog = (msg) => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); lan.log.push(p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '  ' + msg); if (lan.log.length > 80) lan.log.shift(); const el = $('#lan-log'); if (el) { el.textContent = lan.log.join('\n'); el.scrollTop = el.scrollHeight; } };
+  const lanState = (t) => { $('#lan-state').textContent = t; };
+  const LAN_URL = location.origin + location.pathname.replace(/[^/]*$/, '') + 'recepteur.html';
+  if ($('#lan-url')) $('#lan-url').textContent = LAN_URL;
+  async function lanPack(obj) {
+    const raw = new TextEncoder().encode(JSON.stringify(obj)); let bytes = raw, tag = 'BV1:';
+    if (typeof CompressionStream !== 'undefined') { bytes = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); tag = 'BV1z:'; }
+    let s = ''; for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    return tag + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  async function lanUnpack(code) {
+    code = code.trim().replace(/\s+/g, ''); const m = /^(BV1z?):(.*)$/.exec(code); if (!m) throw new Error('code non reconnu (il doit commencer par BV1)');
+    const b64 = m[2].replace(/-/g, '+').replace(/_/g, '/'), bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4)); let bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    if (m[1] === 'BV1z') bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  const lanKick = () => { if (lan.wake) { const f = lan.wake; lan.wake = null; f(); } if (lan.low) { const f = lan.low; lan.low = null; f(); } };
+  function lanClose() { try { if (lan.dc) lan.dc.close(); } catch (e) {} try { if (lan.pc) lan.pc.close(); } catch (e) {} lan.pc = lan.dc = null; lan.open = false; lanKick(); }
+  const lanSendJ = (o) => lan.dc.send(JSON.stringify(o));
+
+  async function lanOffer() {
+    if (lan.busy) return;
+    lanClose(); Object.assign(lan, { ack: 0, sent: 0, have: null, fin: null, err: null, ok: 0, bad: [] });
+    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; $('#lan-answer').value = ''; lanBar(0); $('#lan-pct').textContent = ''; $('#lan-info').textContent = '';
+    try {
+      if (typeof RTCPeerConnection === 'undefined') throw new Error('cet appareil ne gère pas la connexion directe');
+      lanState('Préparation du code…');
+      const pc = new RTCPeerConnection({ iceServers: [] }); lan.pc = pc;
+      const dc = pc.createDataChannel('videos', { ordered: true }); lan.dc = dc; dc.binaryType = 'arraybuffer'; dc.bufferedAmountLowThreshold = 1 << 20;
+      dc.onopen = () => { lan.open = true; llog('canal ouvert'); lanState('✔ Connecté au Mac. Touchez « 4. Tout envoyer ».'); $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; };
+      dc.onclose = () => { lan.open = false; llog('canal fermé'); lanKick(); if (!lan.busy) lanState('Connexion fermée.'); };
+      dc.onbufferedamountlow = () => lanKick();
+      dc.onmessage = (ev) => lanOnMsg(ev);
+      pc.onconnectionstatechange = () => { llog('connexion : ' + pc.connectionState); if (pc.connectionState === 'failed') { lanState('⚠ Connexion impossible : le Mac et l\'iPad ne se voient pas sur ce réseau (voir l\'aide ci-dessous).'); lanKick(); } };
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise((res) => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); });
+      const code = await lanPack({ type: pc.localDescription.type, sdp: pc.localDescription.sdp });
+      $('#lan-offer').value = code; $('#lan-offer').classList.remove('hidden'); $('#btn-lan-copy').classList.remove('hidden');
+      lanState('Code prêt : copiez-le et collez-le sur le Mac.'); llog('code prêt (' + code.length + ' caractères)');
+    } catch (e) { lanState('⚠ ' + (e && e.message || e)); llog('ERREUR : ' + e); }
+  }
+  async function lanConnect() {
+    try {
+      if (!lan.pc) throw new Error('faites d\'abord « 1. Préparer la connexion »');
+      const ans = await lanUnpack($('#lan-answer').value); lanState('Connexion au Mac…');
+      await lan.pc.setRemoteDescription(ans); llog('réponse du Mac appliquée');
+      const pc = lan.pc; setTimeout(() => { if (lan.pc === pc && !lan.open && pc.connectionState !== 'failed') lanState('⚠ Toujours pas connecté après 20 secondes. Vérifiez que l\'iPad et le Mac sont sur le même réseau ; sinon, sur le Mac, cochez « Mode compatibilité » et recommencez.'); }, 20000);
+    } catch (e) { lanState('⚠ ' + (e && e.message || e)); llog('ERREUR : ' + e); }
+  }
+  function lanOnMsg(ev) {
+    if (typeof ev.data !== 'string') return;
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (m.t === 'have') { lan.have = new Set(m.paths || []); if (lan.haveWait) lan.haveWait(); }
+    else if (m.t === 'ack') { lan.ack = m.bytes; lanKick(); }
+    else if (m.t === 'ok') lanConfirm(m.path);
+    else if (m.t === 'bad') { lan.bad.push(m.path); llog('à renvoyer (vérification échouée) : ' + m.path); }
+    else if (m.t === 'error') { lan.err = m.msg; llog('erreur du Mac : ' + m.msg); lanKick(); }
+    else if (m.t === 'alldone') { lan.fin = m; if (lan.finWait) lan.finWait(); }
+  }
+  let lanDbChain = Promise.resolve();
+  function lanConfirm(path) {
+    lan.ok++; const meta = lan.byPath[path];
+    if (meta && !lan.test) lanDbChain = lanDbChain.then(async () => { meta.exported = true; meta.exportedAt = Date.now(); meta.exportedTo = 'lan'; await DB.put(meta); });
+    lanShow();
+  }
+  function lanShow() {
+    const got = lan.base + lan.ack, el = (Date.now() - lan.t0) / 1000, sp = el > 2 ? lan.ack / el : 0;
+    lanBar(lan.total ? got / lan.total : 0);
+    $('#lan-pct').textContent = Math.round(100 * got / Math.max(1, lan.total)) + ' % · ' + fmtBytes(got) + ' sur ' + fmtBytes(lan.total) + ' (reçus par le Mac)';
+    $('#lan-info').textContent = (sp > 1e6 ? Math.round(sp / 1e6) + ' Mo/s · il reste environ ' + fmtDur((lan.total - got) / sp) + ' · ' : '') + lan.ok + ' fichier(s) confirmé(s) par le Mac.';
+  }
+  async function lanPump(u8buf) {
+    while (lan.open && lan.dc.bufferedAmount > (4 << 20)) await new Promise((r) => { lan.low = r; });
+    while (lan.open && lan.sent - lan.ack > (32 << 20) && !lan.err) await new Promise((r) => { lan.wake = r; });
+    if (!lan.open) throw new Error('connexion perdue');
+    if (lan.err) throw new Error('le Mac signale : ' + lan.err);
+    lan.dc.send(u8buf); lan.sent += u8buf.byteLength;
+  }
+  async function lanSend(test) {
+    if (lan.busy || !lan.open) return; lan.busy = true; lan.test = !!test; lan.stop = false; lan.err = null; lan.have = null; lan.fin = null; lan.ok = 0; lan.bad = []; lan.sent = 0; lan.ack = 0; lan.byPath = {};
+    $('#btn-lan-send').disabled = true; $('#btn-lan-test').disabled = true; $('#btn-lan-stop').classList.remove('hidden'); keepAwake();
+    const info = $('#lan-info');
+    try {
+      let files = [];
+      if (test) { for (let i = 1; i <= 2; i++) files.push({ path: 'ESSAI/essai-' + i + '.bin', size: 100000000, crc: null, at: Date.now(), fake: true }); }
+      else {
+        const all = await DB.all(), pool = exportable(all, $('#lan-rej').checked);
+        if (!pool.length) { lanState('Rien à exporter : tout est déjà parti ✔'); return; }
+        const totalIn = pool.reduce((a, m) => a + (m.size || 0), 0); let read = 0, empty = 0; const used = new Set();
+        for (let i = 0; i < pool.length; i++) {
+          const m = pool[i]; info.textContent = 'Vérification ' + (i + 1) + ' / ' + pool.length + ' · ' + fmtBytes(read) + ' sur ' + fmtBytes(totalIn) + '…'; lanBar(read / totalIn);
+          const b = await DB.blob(m.id);
+          if (!b || b.size < MIN_BYTES) { empty++; read += m.size || 0; continue; }
+          if (m.crc == null || m.crcSize !== b.size) { const r = await crcOfBlob(b, (n) => { read += n; }); if (r.size !== b.size) throw new Error('lecture incomplète de ' + fileName(m)); m.crc = r.crc; m.crcSize = r.size; await DB.put(m); } else read += b.size;
+          let path = whoSlug(m) + '/' + fileName(m); if (used.has(path)) path = whoSlug(m) + '/' + fileName(m).replace(/(\.\w+)$/, '_n' + m.id + '$1'); used.add(path);
+          files.push({ path, size: b.size, crc: m.crc, at: m.createdAt, id: m.id }); lan.byPath[path] = m;
+        }
+        if (!files.length) { lanState('Les vidéos à exporter sont vides (enregistrements ratés) : rien à envoyer.'); return; }
+        if (empty) llog(empty + ' vidéo(s) vide(s) ignorée(s)');
+      }
+      lan.total = files.reduce((a, f) => a + f.size, 0); lan.t0 = Date.now(); lan.base = 0;
+      lanState('Envoi en cours…'); llog('liste envoyée : ' + files.length + ' fichier(s), ' + fmtBytes(lan.total));
+      lanSendJ({ t: 'hello', files: files.map((f) => ({ path: f.path, size: f.size, crc: f.crc, at: f.at })), test: !!test });
+      await new Promise((res, rej) => { lan.haveWait = res; const t = setInterval(() => { if (!lan.open) { clearInterval(t); rej(new Error('connexion perdue')); } if (lan.have) clearInterval(t); }, 500); setTimeout(() => { clearInterval(t); if (!lan.have) rej(new Error('le Mac ne répond pas : la page de réception est-elle bien ouverte et le dossier choisi ?')); }, 90000); });
+      const todo = [];
+      for (const f of files) { if (lan.have.has(f.path)) { lan.base += f.size; if (!test && lan.byPath[f.path]) lanConfirm(f.path); } else todo.push(f); }
+      llog(lan.have.size + ' fichier(s) déjà présents sur le Mac, ' + todo.length + ' à envoyer');
+      lan.t0 = Date.now(); lanShow();
+      const CH = 65536, zero = new ArrayBuffer(CH);
+      for (const f of todo) {
+        if (lan.stop) throw new Error('envoi interrompu');
+        lanSendJ({ t: 'file', path: f.path, size: f.size, crc: f.crc });
+        if (f.fake) { for (let o = 0; o < f.size; o += CH) await lanPump(f.size - o >= CH ? zero : new ArrayBuffer(f.size - o)); }
+        else {
+          const blob = await DB.blob(f.id); if (!blob || blob.size !== f.size) throw new Error('vidéo modifiée ou introuvable : ' + f.path);
+          for (let o = 0; o < f.size; o += 1 << 20) {
+            const ab = await blob.slice(o, Math.min(f.size, o + (1 << 20))).arrayBuffer();
+            for (let p = 0; p < ab.byteLength; p += CH) await lanPump(ab.slice(p, p + CH));
+            if (lan.stop) throw new Error('envoi interrompu');
+          }
+        }
+        lanSendJ({ t: 'end', path: f.path }); lanShow();
+      }
+      lanSendJ({ t: 'done' }); llog('tout est envoyé, attente de la confirmation finale du Mac…'); lanState('Dernières vérifications sur le Mac…');
+      await new Promise((res, rej) => { lan.finWait = res; const t = setInterval(() => { if (lan.fin) { clearInterval(t); } else if (!lan.open) { clearInterval(t); rej(new Error('connexion perdue avant la confirmation finale')); } else lanShow(); }, 700); setTimeout(() => { clearInterval(t); if (!lan.fin) rej(new Error('pas de confirmation finale du Mac')); }, 600000); });
+      await lanDbChain; await refreshStats();
+      const f = lan.fin, nOk = lan.ok, nTot = files.length; lanBar(f.errors ? 0.99 : 1); lanShow();
+      lanState(f.errors ? '⚠ Terminé avec ' + f.errors + ' erreur(s) : ' + nOk + ' / ' + nTot + ' fichier(s) confirmés. Relancez les étapes 1 à 3 puis « Tout envoyer » : seuls les manquants seront renvoyés.' : (test ? '✔ Essai réussi : la connexion directe fonctionne.' : '✔ Tout est arrivé sur le Mac et vérifié : ' + nOk + ' vidéo(s) (' + fmtBytes(lan.total) + '). Pensez à exporter aussi le rapport (carte 2).') );
+      llog('terminé : ' + nOk + ' / ' + nTot);
+    } catch (e) {
+      await lanDbChain; await refreshStats();
+      lanState('⚠ ' + (e && e.message || e) + '. ' + lan.ok + ' fichier(s) déjà confirmés par le Mac (conservés). Refaites les étapes 1 à 3 pour reprendre : seuls les fichiers manquants seront envoyés.'); llog('ERREUR : ' + (e && e.message || e));
+    } finally { lan.busy = false; $('#btn-lan-stop').classList.add('hidden'); if (lan.open) { $('#btn-lan-send').disabled = false; $('#btn-lan-test').disabled = false; } }
+  }
+  $('#btn-lan-offer').addEventListener('click', lanOffer);
+  $('#btn-lan-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#lan-offer').value); toast('Code copié'); } catch (e) { $('#lan-offer').select(); toast('Sélectionné : touchez « Copier »'); } });
+  $('#btn-lan-paste').addEventListener('click', async () => { try { $('#lan-answer').value = await navigator.clipboard.readText(); } catch (e) { toast('Collage refusé : touchez longuement le champ, puis « Coller »'); } });
+  $('#btn-lan-connect').addEventListener('click', lanConnect);
+  $('#btn-lan-send').addEventListener('click', () => lanSend(false));
+  $('#btn-lan-test').addEventListener('click', () => lanSend(true));
+  $('#btn-lan-stop').addEventListener('click', () => { lan.stop = true; llog('interruption demandée'); lanKick(); });
+
   /* ---------- Méthode « Partage » : ZIP écrit dans le stockage privé de l'app (OPFS), puis feuille de partage ---------- */
   const MODE_HELP = {
     partage: 'Recommandé dans l\'app installée : chaque fichier ZIP est d\'abord écrit dans le stockage de l\'app (barre de progression), puis vous touchez « Partager » : AirDrop vers le Mac ou « Enregistrer dans Fichiers ». Il faut de la place libre pour un fichier, et autant pour sa copie si vous l\'enregistrez dans Fichiers : préférez 2 Go.',
@@ -3891,7 +4061,7 @@
     }
     dashBoot();
   }
-  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, zipTest, zip, fileName };   // pour les tests automatiques
+  window.__borne = { state, GZ, MIC, meshFrame, PB, micRecover, micReconnectAudio, getStream: () => stream, DB, zipPrepare, zipTest, zip, fileName, lan, lanOffer, lanConnect, lanSend };   // pour les tests automatiques
   boot();
 })();
 </script>

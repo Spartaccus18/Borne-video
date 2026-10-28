@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Borne vidéo — réception sur le Mac</title>
+<style>
+  :root { --bg:#0b1f3a; --card:#12305a; --txt:#fff; --mut:#b6c7e0; --main:#00a0e2; --ok:#46d37f; --ko:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 1.2rem; }
+  h1 { font-size: 1.4rem; margin: .2rem 0 .8rem; }
+  .card { background:var(--card); border-radius:14px; padding:1rem 1.1rem; margin:.9rem 0; }
+  .card h2 { font-size:1.05rem; margin:0 0 .5rem; }
+  .small { color:var(--mut); font-size:.88rem; }
+  button { font:inherit; font-weight:700; color:#fff; background:var(--main); border:0; border-radius:10px; padding:.7rem 1.1rem; cursor:pointer; }
+  button:disabled { opacity:.45; cursor:default; }
+  button.ghost { background:transparent; border:1px solid var(--mut); color:var(--mut); }
+  textarea { width:100%; min-height:5.5rem; border-radius:10px; border:1px solid #2c5086; background:#0b1f3a; color:#fff; padding:.6rem; font:12px/1.3 ui-monospace, Menlo, monospace; word-break:break-all; }
+  .row { display:flex; gap:.6rem; flex-wrap:wrap; margin:.6rem 0 0; align-items:center; }
+  .bar { height:1rem; background:#0b1f3a; border-radius:8px; overflow:hidden; margin-top:.6rem; }
+  .bar > div { height:100%; width:0; background:var(--main); transition:width .25s; }
+  .ok { color:var(--ok); } .ko { color:var(--ko); }
+  pre { white-space:pre-wrap; max-height:13rem; overflow:auto; font-size:.8rem; background:#0b1f3a; border-radius:8px; padding:.6rem; }
+  .hidden { display:none; }
+  b.big { font-size:1.1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Réception des vidéos de la borne</h1>
+  <p class="small">Cette page reçoit les vidéos de l'iPad par le réseau local et les écrit <b>directement dans le dossier de votre choix</b> (par exemple le SSD). Rien ne passe par internet. Il faut <b>Chrome</b> (ou Edge) sur ordinateur.</p>
+
+  <div class="card" id="c-unsupported" style="display:none">
+    <h2 class="ko">Navigateur non adapté</h2>
+    <p>Ce navigateur ne peut pas écrire dans un dossier. Ouvrez cette page dans <b>Google Chrome</b> ou Microsoft Edge sur le Mac.</p>
+  </div>
+
+  <div class="card">
+    <h2>1. Choisir le dossier de destination</h2>
+    <p class="small">Les vidéos seront rangées dans un sous-dossier par candidat. Les fichiers déjà reçus en entier sont reconnus et ne sont pas renvoyés.</p>
+    <div class="row"><button id="b-dir">Choisir le dossier…</button><span id="dir-name" class="small">Aucun dossier choisi</span></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Coller le code de l'iPad</h2>
+    <p class="small">Sur l'iPad (menu organisateur › « Envoyer au Mac ») : « Préparer la connexion », « Copier le code », puis collez-le ici (le presse-papiers partagé Mac/iPad le fait passer tout seul si les deux sont connectés au même compte Apple, sinon envoyez-le par AirDrop ou Messages).</p>
+    <textarea id="t-offer" placeholder="Collez ici le code de l'iPad (commence par BV1:)"></textarea>
+    <label class="small" style="display:block;margin-top:.5rem"><input type="checkbox" id="k-compat"> Mode compatibilité : si l'iPad n'arrive pas à se connecter, cochez cette case (le navigateur demandera le micro, uniquement pour révéler l'adresse réseau du Mac ; rien n'est enregistré).</label>
+    <div class="row"><button id="b-connect" disabled>Générer le code de réponse</button></div>
+  </div>
+
+  <div class="card hidden" id="c-answer">
+    <h2>3. Renvoyer ce code à l'iPad</h2>
+    <textarea id="t-answer" readonly></textarea>
+    <div class="row"><button id="b-copy">Copier le code de réponse</button><span class="small" id="copy-msg"></span></div>
+    <p class="small">Sur l'iPad, collez-le dans « Code de réponse du Mac », puis touchez « Connecter ».</p>
+  </div>
+
+  <div class="card">
+    <h2>État</h2>
+    <p id="st" class="big">En attente.</p>
+    <div class="bar"><div id="bar"></div></div>
+    <p class="small" id="detail" style="margin:.5rem 0 0"></p>
+    <details style="margin-top:.6rem"><summary class="small" style="cursor:pointer">Journal technique</summary><pre id="log"></pre></details>
+  </div>
+</main>
+
+<script>
+'use strict';
+const $ = (s) => document.querySelector(s);
+const logEl = $('#log'), logLines = [];
+const log = (m) => { const d = new Date(), p = (n) => String(n).padStart(2, '0'); logLines.push(p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + '  ' + m); if (logLines.length > 120) logLines.shift(); logEl.textContent = logLines.join('\n'); logEl.scrollTop = logEl.scrollHeight; };
+const fmtBytes = (b) => b > 1e9 ? (b / 1e9).toFixed(1).replace('.', ',') + ' Go' : Math.round(b / 1e6) + ' Mo';
+const fmtDur = (s) => s < 90 ? Math.round(s) + ' s' : s < 5400 ? Math.floor(s / 60) + ' min ' + String(Math.round(s % 60)).padStart(2, '0') + ' s' : Math.floor(s / 3600) + ' h ' + String(Math.floor((s % 3600) / 60)).padStart(2, '0') + ' min';
+
+/* ---------- CRC32 (somme de contrôle, la même que sur l'iPad) ---------- */
+const T8 = (() => {
+  const t = new Int32Array(256 * 8);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c; }
+  for (let n = 0; n < 256; n++) { let c = t[n]; for (let k = 1; k < 8; k++) { c = t[c & 255] ^ (c >>> 8); t[k * 256 + n] = c; } }
+  return t;
+})();
+function crcUpdate(c, b) {
+  let i = 0; const n = b.length;
+  for (; i + 8 <= n; i += 8) {
+    const lo = c ^ (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24));
+    c = T8[1792 + (lo & 255)] ^ T8[1536 + ((lo >>> 8) & 255)] ^ T8[1280 + ((lo >>> 16) & 255)] ^ T8[1024 + (lo >>> 24)] ^ T8[768 + b[i + 4]] ^ T8[512 + b[i + 5]] ^ T8[256 + b[i + 6]] ^ T8[b[i + 7]];
+  }
+  for (; i < n; i++) c = T8[(c ^ b[i]) & 255] ^ (c >>> 8);
+  return c;
+}
+
+/* ---------- Codes de connexion (SDP compressé, sans serveur) ---------- */
+async function pack(obj) {
+  const raw = new TextEncoder().encode(JSON.stringify(obj));
+  let bytes = raw, tag = 'BV1:';
+  if (typeof CompressionStream !== 'undefined') {
+    const cs = new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    bytes = new Uint8Array(await new Response(cs).arrayBuffer()); tag = 'BV1z:';
+  }
+  let s = ''; for (let i = 0; i < bytes.length; i += 8192) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+  return tag + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function unpack(code) {
+  code = code.trim().replace(/\s+/g, '');
+  const m = /^(BV1z?):(.*)$/.exec(code); if (!m) throw new Error('code non reconnu (il doit commencer par BV1)');
+  const b64 = m[2].replace(/-/g, '+').replace(/_/g, '/'), bin = atob(b64 + '='.repeat((4 - b64.length % 4) % 4));
+  let bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  if (m[1] === 'BV1z') { const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); bytes = new Uint8Array(await new Response(ds).arrayBuffer()); }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+/* ---------- Dossier de destination ---------- */
+let rootDir = null;
+function setDir(handle, label) { rootDir = handle; $('#dir-name').textContent = label || handle.name; $('#b-connect').disabled = !$('#t-offer').value.trim(); log('dossier : ' + (label || handle.name)); }
+if (!window.showDirectoryPicker) $('#c-unsupported').style.display = '';
+$('#b-dir').addEventListener('click', async () => {
+  try { const h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'borne-videos', startIn: 'desktop' }); setDir(h); }
+  catch (e) { if (e.name !== 'AbortError') $('#st').textContent = 'Dossier impossible : ' + e.message; }
+});
+$('#t-offer').addEventListener('input', () => { $('#b-connect').disabled = !(rootDir && $('#t-offer').value.trim()); });
+
+/* ---------- Réception ---------- */
+let pc = null, dc = null, wake = null;
+const S = { files: [], total: 0, done: 0, doneBytes: 0, cur: null, t0: 0, queue: Promise.resolve(), written: 0, lastAck: 0, errors: 0, skipped: 0, fin: false };
+const bar = (f) => { $('#bar').style.width = Math.round(100 * Math.max(0, Math.min(1, f))) + '%'; };
+function show() {
+  const got = S.doneBytes + (S.cur ? S.cur.got : 0), el = (Date.now() - S.t0) / 1000, sp = el > 2 ? (got - S.baseBytes) / el : 0;
+  bar(S.total ? got / S.total : 0);
+  $('#st').textContent = Math.round(100 * got / Math.max(1, S.total)) + ' % · ' + fmtBytes(got) + ' sur ' + fmtBytes(S.total);
+  $('#detail').textContent = 'Fichiers : ' + S.done + ' / ' + S.files.length + ' · ' + (S.cur ? 'en cours : ' + S.cur.path : '') + (sp > 1e6 ? ' · ' + Math.round(sp / 1e6) + ' Mo/s · il reste environ ' + fmtDur((S.total - got) / sp) : '') + (S.errors ? ' · ' + S.errors + ' erreur(s)' : '');
+}
+const sendJ = (o) => { try { dc.send(JSON.stringify(o)); } catch (e) { log('envoi impossible : ' + e.message); } };
+
+async function dirFor(path, create) {
+  const parts = path.split('/'); let d = rootDir;
+  for (let i = 0; i < parts.length - 1; i++) d = await d.getDirectoryHandle(parts[i], { create });
+  return { dir: d, name: parts[parts.length - 1] };
+}
+async function haveFile(path, size) {
+  try { const { dir, name } = await dirFor(path, false); const f = await (await dir.getFileHandle(name)).getFile(); return f.size === size; } catch (e) { return false; }
+}
+
+async function onHello(m) {
+  Object.assign(S, { done: 0, doneBytes: 0, skipped: 0, errors: 0, fin: false, written: 0, lastAck: 0, cur: null });
+  S.files = m.files; S.total = m.files.reduce((a, f) => a + f.size, 0); S.test = !!m.test; S.t0 = Date.now();
+  log('liste reçue : ' + m.files.length + ' fichier(s), ' + fmtBytes(S.total));
+  const have = []; S.doneBytes = 0;
+  for (const f of m.files) if (await haveFile(f.path, f.size)) { have.push(f.path); S.doneBytes += f.size; S.done++; S.skipped++; }
+  S.baseBytes = S.doneBytes; S.t0 = Date.now();
+  log(have.length + ' fichier(s) déjà présents en entier : ignorés');
+  sendJ({ t: 'have', paths: have }); show();
+}
+async function onFile(m) {
+  const { dir, name } = await dirFor(m.path, true);
+  const fh = await dir.getFileHandle(name, { create: true });
+  S.cur = { path: m.path, size: m.size, crc: m.crc, got: 0, c: -1, w: await fh.createWritable(), buf: [], bufLen: 0, dir, name };
+  show();
+}
+async function flush(c) { if (c.bufLen) { const b = new Blob(c.buf); c.buf = []; c.bufLen = 0; await c.w.write(b); } }
+async function onChunk(buf) {
+  const c = S.cur; if (!c) return;
+  const u = new Uint8Array(buf); c.c = crcUpdate(c.c, u); c.got += u.length; c.buf.push(u); c.bufLen += u.length; S.written += u.length;
+  if (c.bufLen >= (1 << 20)) await flush(c);
+  if (S.written - S.lastAck >= (4 << 20)) { S.lastAck = S.written; sendJ({ t: 'ack', bytes: S.written }); }
+  if (c.got % (1 << 22) < u.length) show();
+}
+async function onEnd(m) {
+  const c = S.cur; if (!c) return;
+  await flush(c); await c.w.close(); S.cur = null;
+  const crc = (~c.c) >>> 0;
+  if (c.got !== c.size || (c.crc != null && crc !== (c.crc >>> 0))) {
+    S.errors++; log('ERREUR ' + c.path + ' : reçu ' + c.got + ' octets sur ' + c.size + ', somme ' + crc + ' au lieu de ' + c.crc);
+    try { await c.dir.removeEntry(c.name); } catch (e) {}
+    sendJ({ t: 'bad', path: c.path }); show(); return;
+  }
+  S.done++; S.doneBytes += c.size; sendJ({ t: 'ok', path: c.path }); sendJ({ t: 'ack', bytes: S.written }); S.lastAck = S.written; show();
+}
+async function onDone() {
+  S.fin = true; bar(S.errors ? S.doneBytes / Math.max(1, S.total) : 1);
+  $('#st').innerHTML = S.errors ? '<span class="ko">Terminé avec ' + S.errors + ' erreur(s)</span>' : '<span class="ok">✔ Terminé : tout est arrivé et vérifié</span>';
+  $('#detail').textContent = S.done + ' / ' + S.files.length + ' fichier(s) (' + fmtBytes(S.doneBytes) + ')' + (S.skipped ? ', dont ' + S.skipped + ' déjà présent(s)' : '') + ' dans le dossier « ' + (rootDir && rootDir.name) + ' ».' + (S.test ? ' C\'était un essai : supprimez le sous-dossier ESSAI.' : '');
+  sendJ({ t: 'alldone', n: S.done, errors: S.errors }); log('terminé : ' + S.done + ' fichier(s), ' + S.errors + ' erreur(s)');
+  try { if (wake) wake.release(); } catch (e) {}
+}
+function attach(channel) {
+  dc = channel; dc.binaryType = 'arraybuffer';
+  dc.onopen = async () => { log('canal ouvert'); $('#st').textContent = 'Connecté à l\'iPad : en attente de la liste des vidéos…'; try { wake = await navigator.wakeLock.request('screen'); } catch (e) {} };
+  dc.onclose = () => { log('canal fermé'); S.queue = S.queue.then(async () => { try { if (S.cur) { await S.cur.w.abort(); S.cur = null; } } catch (e) {} }); if (!S.fin) { $('#st').innerHTML = '<span class="ko">Connexion perdue.</span>'; $('#detail').textContent = 'Les fichiers déjà reçus en entier sont conservés. Sur l\'iPad, refaites « Préparer la connexion » puis ici « Générer le code de réponse » : seuls les fichiers manquants seront envoyés.'; } };
+  dc.onmessage = (ev) => {
+    S.queue = S.queue.then(async () => {
+      try {
+        if (typeof ev.data !== 'string') return await onChunk(ev.data);
+        const m = JSON.parse(ev.data);
+        if (m.t === 'hello') await onHello(m); else if (m.t === 'file') await onFile(m); else if (m.t === 'end') await onEnd(m); else if (m.t === 'done') await onDone();
+      } catch (e) {
+        S.errors++; log('ERREUR : ' + (e && e.name) + ' ' + (e && e.message)); $('#st').innerHTML = '<span class="ko">Erreur : ' + (e && e.message || e) + '</span>';
+        sendJ({ t: 'error', msg: (e && e.name === 'QuotaExceededError' ? 'place insuffisante sur le disque du Mac' : (e && e.message || String(e))) });
+        try { if (S.cur) { await S.cur.w.abort(); S.cur = null; } } catch (x) {}
+      }
+    });
+  };
+}
+$('#b-connect').addEventListener('click', async () => {
+  try {
+    $('#b-connect').disabled = true; $('#st').textContent = 'Préparation de la réponse…';
+    $('#t-answer').value = ''; try { if (pc) pc.close(); } catch (e) {}
+    const offer = await unpack($('#t-offer').value);
+    if ($('#k-compat').checked) { try { const ms = await navigator.mediaDevices.getUserMedia({ audio: true }); ms.getTracks().forEach((t) => t.stop()); log('mode compatibilité : micro autorisé puis coupé'); } catch (e) { log('mode compatibilité : micro refusé (' + e.name + ')'); } }
+    pc = new RTCPeerConnection({ iceServers: [] });
+    pc.ondatachannel = (ev) => attach(ev.channel);
+    pc.onconnectionstatechange = () => { log('connexion : ' + pc.connectionState); if (pc.connectionState === 'connected') $('#c-answer').classList.add('hidden'); };
+    await pc.setRemoteDescription(offer);
+    const ans = await pc.createAnswer(); await pc.setLocalDescription(ans);
+    await new Promise((res) => { if (pc.iceGatheringState === 'complete') return res(); const t = setTimeout(res, 3500); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); res(); } }); });
+    const code = await pack({ type: pc.localDescription.type, sdp: pc.localDescription.sdp });
+    $('#t-answer').value = code; $('#c-answer').classList.remove('hidden'); $('#st').textContent = 'Collez le code de réponse sur l\'iPad.'; log('code de réponse prêt (' + code.length + ' caractères)');
+  } catch (e) { $('#st').innerHTML = '<span class="ko">Impossible : ' + (e && e.message || e) + '</span>'; log('ERREUR : ' + e); }
+  $('#b-connect').disabled = false;
+});
+$('#b-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('#t-answer').value); $('#copy-msg').textContent = 'Copié ✔'; } catch (e) { $('#t-answer').select(); $('#copy-msg').textContent = 'Sélectionné : faites Cmd+C'; } });
+window.__recv = { setDir, S };   // pour les tests automatiques
+</script>
+</body>
+</html>
